@@ -1,0 +1,190 @@
+/* C · Večerná — dark ambient living-room frame. */
+:root {
+  --bg: #0b1220;
+  --panel: #141c2c;
+  --panel2: #1a2438;
+  --ink: #e8eef7;
+  --muted: #9aa8bc;
+  --amber: #e7b56a;
+  --line: rgba(231, 181, 106, 0.22);
+  --focus: #f5d78e;
+}
+
+body.theme-vecerna {
+  color: var(--ink);
+  background:
+    radial-gradient(ellipse at 20% 0%, rgba(231, 181, 106, 0.14), transparent 42%),
+    radial-gradient(ellipse at 100% 80%, rgba(60, 90, 140, 0.25), transparent 45%),
+    linear-gradient(180deg, #0e1626 0%, var(--bg) 40%, #080d16 100%);
+  font-family: "Atkinson Hyperlegible", "Segoe UI", sans-serif;
+}
+
+.theme-vecerna h1,
+.theme-vecerna h2,
+.theme-vecerna .tile-title {
+  font-family: "Fraunces", Georgia, serif;
+  font-weight: 600;
+  color: #f4efe6;
+}
+
+.theme-vecerna .eyebrow {
+  color: var(--amber);
+  opacity: 1;
+}
+
+.theme-vecerna .nav-back:focus,
+.theme-vecerna .lane-head:focus,
+.theme-vecerna .tile:focus,
+.theme-vecerna a:focus {
+  outline-color: var(--focus);
+  outline-offset: 4px;
+}
+
+.theme-vecerna .panel {
+  background: rgba(20, 28, 44, 0.92);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
+}
+
+.theme-vecerna .nav-back {
+  background: rgba(231, 181, 106, 0.12);
+  border-color: var(--line);
+  color: var(--amber);
+  border-radius: 999px;
+}
+
+.theme-vecerna .weather {
+  color: var(--muted);
+}
+
+.theme-vecerna .wx-temps {
+  color: var(--ink);
+}
+
+.theme-vecerna .sample-flag {
+  background: rgba(231, 181, 106, 0.15);
+  color: var(--amber);
+  border: 1px solid var(--line);
+}
+
+.theme-vecerna .hl-block h3 {
+  color: var(--amber);
+  opacity: 1;
+}
+
+.theme-vecerna .lane-head,
+.theme-vecerna .lane-head-static {
+  background: rgba(26, 36, 56, 0.9);
+  border-color: transparent;
+  color: var(--ink);
+}
+
+.theme-vecerna .lane-head:focus {
+  background: rgba(231, 181, 106, 0.12);
+}
+
+.theme-vecerna .tl-body {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.02), transparent 30%),
+    #0f1726;
+  border: 1px solid var(--line);
+}
+
+.theme-vecerna .tl-hour {
+  border-top-color: rgba(154, 168, 188, 0.18);
+}
+
+.theme-vecerna .tl-hour-label {
+  color: var(--muted);
+  opacity: 1;
+}
+
+.theme-vecerna .event-block {
+  border-width: 0;
+  border-left: 4px solid rgba(255, 255, 255, 0.35);
+  border-radius: 10px;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.35);
+}
+
+.theme-vecerna .event-block.is-conflict {
+  box-shadow: 0 0 0 2px var(--amber), 0 6px 16px rgba(0, 0, 0, 0.35);
+  background-image: repeating-linear-gradient(
+    -45deg,
+    transparent,
+    transparent 5px,
+    rgba(0, 0, 0, 0.18) 5px,
+    rgba(0, 0, 0, 0.18) 10px
+  );
+}
+
+.theme-vecerna .event-block.is-conflict .ev-flags {
+  color: var(--amber);
+}
+
+.theme-vecerna .allday-chip {
+  background: var(--panel2);
+  border: 1px solid var(--line);
+  color: var(--ink);
+}
+
+.theme-vecerna .tl-now {
+  border-top-color: var(--amber);
+}
+
+.theme-vecerna .tl-now-label {
+  background: var(--amber);
+  color: #1a1208;
+}
+
+.theme-vecerna .agenda-item {
+  background: var(--panel2);
+  border: 1px solid var(--line);
+  border-left-width: 8px;
+}
+
+.theme-vecerna .agenda-loc,
+.theme-vecerna .empty-inline,
+.theme-vecerna .member-meta,
+.theme-vecerna .page-home .lede {
+  color: var(--muted);
+  opacity: 1;
+}
+
+.theme-vecerna .ev-status {
+  background: rgba(231, 181, 106, 0.16);
+  color: var(--amber);
+}
+
+.theme-vecerna .tile {
+  background: linear-gradient(165deg, rgba(231, 181, 106, 0.10), rgba(20, 28, 44, 0.95));
+  border-color: var(--line);
+  color: var(--ink);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.4);
+}
+
+.theme-vecerna .tile-dnes {
+  background:
+    radial-gradient(ellipse at 30% 20%, rgba(231, 181, 106, 0.28), transparent 55%),
+    linear-gradient(160deg, #1e2a42, #121a2a);
+  border-color: rgba(231, 181, 106, 0.45);
+}
+
+.theme-vecerna .tile-member {
+  border-bottom: 6px solid var(--m);
+}
+
+.theme-vecerna .empty-state {
+  border: 1px dashed var(--line);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.theme-vecerna .empty-state p {
+  color: var(--muted);
+  opacity: 1;
+}
+
+.theme-vecerna .hl-who {
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.15);
+}

@@ -1,0 +1,31 @@
+# Stub: denný JSON + téma → statické HTML (neskôr aj GitHub Pages).
+# Deployment is NOT enabled in this design-proposal round.
+# When a theme is chosen, wire Pages + the morning bot commit here
+# (mirror kucharka-recepty: one "build: … [skip ci]" commit, actor != github-actions[bot]).
+name: build
+
+on:
+  workflow_dispatch:
+  # push:
+  #   branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Render designs from sample JSON
+        run: python3 tools/build.py
+      - name: Upload designs artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: designs
+          path: designs/
+# Pages deploy intentionally omitted for this round.

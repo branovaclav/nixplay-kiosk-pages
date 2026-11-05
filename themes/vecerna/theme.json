@@ -1,0 +1,16 @@
+{
+  "id": "vecerna",
+  "name": "Večerná",
+  "letter": "C",
+  "theme_color": "#0B1220",
+  "blurb": "Tmavá ambientná izba — nízky jas, jantárové akcenty, vhodné na rámček v obývačke večer.",
+  "css": ["fonts.css", "design.css"],
+  "fonts": [
+    "fraunces-regular.woff2",
+    "fraunces-regular-ext.woff2",
+    "fraunces-semibold.woff2",
+    "fraunces-semibold-ext.woff2",
+    "atkinson-regular.woff2",
+    "atkinson-bold.woff2"
+  ]
+}

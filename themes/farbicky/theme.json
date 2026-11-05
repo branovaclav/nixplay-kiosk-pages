@@ -1,0 +1,16 @@
+{
+  "id": "farbicky",
+  "name": "Farbičky",
+  "letter": "B",
+  "theme_color": "#E85D04",
+  "blurb": "Odvážne detské farbičky — silné plochy, zaoblené tvary, veľké mená a jasné pruhy členov.",
+  "css": ["fonts.css", "design.css"],
+  "fonts": [
+    "nunito-regular.woff2",
+    "nunito-regular-ext.woff2",
+    "nunito-bold.woff2",
+    "nunito-bold-ext.woff2",
+    "nunito-extrabold.woff2",
+    "nunito-extrabold-ext.woff2"
+  ]
+}

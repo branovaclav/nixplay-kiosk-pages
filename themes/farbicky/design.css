@@ -1,0 +1,172 @@
+/* B · Farbičky — bold, colorful, kid-friendly (warm citrus + sky, not purple). */
+:root {
+  --bg0: #fff3d6;
+  --bg1: #ffe0a8;
+  --ink: #1c1208;
+  --panel: #fffdf8;
+  --focus: #1d4ed8;
+}
+
+body.theme-farbicky {
+  color: var(--ink);
+  background:
+    radial-gradient(circle at 8% 18%, #ffd166 0, #ffd166 60px, transparent 62px),
+    radial-gradient(circle at 92% 12%, #4cc9f0 0, #4cc9f0 48px, transparent 50px),
+    radial-gradient(circle at 86% 78%, #ef476f 0, #ef476f 56px, transparent 58px),
+    radial-gradient(circle at 14% 84%, #06d6a0 0, #06d6a0 44px, transparent 46px),
+    linear-gradient(155deg, var(--bg0), var(--bg1));
+  font-family: "Nunito", "Segoe UI", sans-serif;
+  font-weight: 700;
+}
+
+.theme-farbicky h1,
+.theme-farbicky h2,
+.theme-farbicky .tile-title,
+.theme-farbicky .lane-name {
+  font-weight: 800;
+}
+
+.theme-farbicky .nav-back:focus,
+.theme-farbicky .lane-head:focus,
+.theme-farbicky .tile:focus,
+.theme-farbicky a:focus {
+  outline-color: var(--focus);
+  outline-width: 5px;
+}
+
+.theme-farbicky .panel {
+  background: var(--panel);
+  border: 4px solid #1c1208;
+  border-radius: 22px;
+  box-shadow: 8px 8px 0 #1c1208;
+}
+
+.theme-farbicky .topbar h1 {
+  font-size: 36px;
+}
+
+.theme-farbicky .nav-back {
+  background: #ffd166;
+  border: 4px solid #1c1208;
+  border-radius: 999px;
+  box-shadow: 4px 4px 0 #1c1208;
+  font-weight: 800;
+}
+
+.theme-farbicky .sample-flag {
+  background: #ef476f;
+  color: #fff;
+  border-radius: 999px;
+}
+
+.theme-farbicky .wx-temps {
+  font-size: 32px;
+}
+
+.theme-farbicky .lane-head,
+.theme-farbicky .lane-head-static {
+  background: #fff;
+  border: 3px solid #1c1208;
+  border-radius: 18px;
+  box-shadow: 3px 3px 0 #1c1208;
+  border-bottom-width: 6px;
+  border-bottom-color: var(--m);
+}
+
+.theme-farbicky .lane-name {
+  font-size: 20px;
+}
+
+.theme-farbicky img.avatar {
+  border: 3px solid #1c1208;
+}
+
+.theme-farbicky .tl-body {
+  background: #fff;
+  border: 3px solid #1c1208;
+  border-radius: 18px;
+}
+
+.theme-farbicky .event-block {
+  border: 3px solid #1c1208;
+  border-radius: 12px;
+  box-shadow: 3px 3px 0 rgba(28, 18, 8, 0.25);
+  font-weight: 800;
+}
+
+.theme-farbicky .event-block.is-conflict {
+  box-shadow: 3px 3px 0 #1c1208, inset 0 0 0 3px #ffd166;
+}
+
+.theme-farbicky .event-block.is-conflict .ev-flags {
+  color: #fff;
+  background: #1c1208;
+  padding: 1px 6px;
+  border-radius: 6px;
+}
+
+.theme-farbicky .allday-chip {
+  background: #fff;
+  border: 3px solid #1c1208;
+  border-radius: 14px;
+  box-shadow: 3px 3px 0 #1c1208;
+}
+
+.theme-farbicky .tl-now {
+  border-top-color: #ef476f;
+  border-top-width: 4px;
+}
+
+.theme-farbicky .tl-now-label {
+  background: #ef476f;
+  border: 2px solid #1c1208;
+  border-radius: 999px;
+}
+
+.theme-farbicky .agenda-item {
+  background: #fff;
+  border: 3px solid #1c1208;
+  border-radius: 16px;
+  box-shadow: 4px 4px 0 var(--m);
+}
+
+.theme-farbicky .agenda-time {
+  font-size: 24px;
+}
+
+.theme-farbicky .ev-status {
+  background: #ffd166;
+  color: #1c1208;
+  border: 2px solid #1c1208;
+  border-radius: 999px;
+}
+
+.theme-farbicky .tile {
+  border: 4px solid #1c1208;
+  box-shadow: 8px 8px 0 #1c1208;
+  color: #1c1208;
+}
+
+.theme-farbicky .tile-dnes {
+  background: linear-gradient(145deg, #4cc9f0, #06d6a0);
+}
+
+.theme-farbicky .tile-member {
+  background: #fffdf8;
+  border-bottom-width: 14px;
+  border-bottom-color: var(--m);
+}
+
+.theme-farbicky .tile-title {
+  font-size: 40px;
+}
+
+.theme-farbicky .empty-state {
+  border: 4px dashed #1c1208;
+  border-radius: 22px;
+  background: #fff3d6;
+}
+
+.theme-farbicky .page-home .lede {
+  font-weight: 700;
+}

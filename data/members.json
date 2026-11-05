@@ -1,0 +1,56 @@
+{
+  "members": [
+    {
+      "id": "branislav",
+      "display_name": "Braňo",
+      "full_name": "Branislav",
+      "role": "otec",
+      "color": "#1F6AA5",
+      "avatar": "branislav.svg",
+      "meta": {}
+    },
+    {
+      "id": "mama",
+      "display_name": "Mama",
+      "full_name": "Mama",
+      "role": "mama",
+      "color": "#C45C4A",
+      "avatar": "mama.svg",
+      "meta": {}
+    },
+    {
+      "id": "andrej",
+      "display_name": "Andrej",
+      "full_name": "Andrej",
+      "role": "dieta",
+      "color": "#2F7D4A",
+      "avatar": "andrej.svg",
+      "meta": {
+        "school": "ZŠ Trojská",
+        "grade": "5. ročník",
+        "club": "baseball SaBaT U11"
+      }
+    },
+    {
+      "id": "tomas",
+      "display_name": "Tomáš",
+      "full_name": "Tomáš",
+      "role": "dieta",
+      "color": "#D97706",
+      "avatar": "tomas.svg",
+      "meta": {
+        "school": "ZŠ Trojská",
+        "grade": "2.A"
+      }
+    },
+    {
+      "id": "rodina",
+      "display_name": "Rodina",
+      "full_name": "Rodina",
+      "role": "rodina",
+      "color": "#4A6670",
+      "avatar": "rodina.svg",
+      "meta": {}
+    }
+  ]
+}

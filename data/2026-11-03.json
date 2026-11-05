@@ -1,0 +1,105 @@
+{
+  "date": "2026-11-03",
+  "locale": "sk-SK",
+  "timezone": "Europe/Prague",
+  "title": "Utorok (vzorka — hustý deň)",
+  "now": "14:45",
+  "weather": {
+    "sample": true,
+    "summary": "Zamračené",
+    "temp_high_c": 9,
+    "temp_low_c": 3,
+    "icon": "cloudy"
+  },
+  "timeline": {
+    "start": "07:00",
+    "end": "21:00"
+  },
+  "events": [
+    {
+      "id": "andrej-math-prep",
+      "member": "andrej",
+      "title": "Príprava z matematiky",
+      "start": "15:15",
+      "end": "16:45",
+      "all_day": false,
+      "location": "Gymnázium Českolipská",
+      "status": "confirmed",
+      "flags": ["conflict", "needs-ride"],
+      "conflict_with": ["andrej-baseball-uvltavy"],
+      "notes": ["Prekrýva sa s baseballom — treba odvoz / rozhodnúť."],
+      "reminders": []
+    },
+    {
+      "id": "andrej-baseball-uvltavy",
+      "member": "andrej",
+      "title": "Baseball SaBaT",
+      "start": "16:00",
+      "end": "18:00",
+      "all_day": false,
+      "location": "U Vltavy 816/1",
+      "status": "confirmed",
+      "flags": ["conflict", "needs-ride"],
+      "conflict_with": ["andrej-math-prep"],
+      "notes": ["Prekrýva sa s prípravou z matematiky."],
+      "reminders": []
+    },
+    {
+      "id": "brano-bike",
+      "member": "branislav",
+      "title": "Bicykel",
+      "start": "16:00",
+      "end": "19:00",
+      "all_day": false,
+      "location": "",
+      "status": "confirmed",
+      "flags": [],
+      "conflict_with": [],
+      "notes": [],
+      "reminders": []
+    },
+    {
+      "id": "andrej-rehab",
+      "member": "andrej",
+      "title": "Konzultácia rehabilitácie",
+      "start": "18:30",
+      "end": "19:30",
+      "all_day": false,
+      "location": "KYKO med, Tišická 396/1",
+      "status": "confirmed",
+      "flags": ["needs-ride"],
+      "conflict_with": [],
+      "notes": [],
+      "reminders": []
+    },
+    {
+      "id": "rodina-trash",
+      "member": "rodina",
+      "title": "Vyniesť odpadky",
+      "start": "20:00",
+      "end": "20:15",
+      "all_day": false,
+      "location": "doma",
+      "status": "todo",
+      "flags": [],
+      "conflict_with": [],
+      "notes": [],
+      "reminders": []
+    }
+  ],
+  "highlights": {
+    "family_notes": [
+      {
+        "text": "Andrej má konflikt 16:00–16:45 (matematika vs. baseball) — treba rozhodnúť a zabezpečiť odvoz."
+      }
+    ],
+    "reminders": [
+      {
+        "member": "andrej",
+        "text": "Odvoz na KYKO med do 18:30 (Tišická 396/1)."
+      }
+    ],
+    "bring": [],
+    "weekend": []
+  }
+}

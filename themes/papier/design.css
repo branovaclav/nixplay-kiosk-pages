@@ -1,0 +1,160 @@
+/* A · Papier — calm cool paper planner (not warm cream / terracotta). */
+:root {
+  --bg: #d9e3ea;
+  --paper: #f3f6f8;
+  --ink: #1a2832;
+  --muted: #4d5e6a;
+  --line: #b7c5cf;
+  --accent: #2c5f7a;
+  --focus: #c45c00;
+}
+
+body.theme-papier {
+  color: var(--ink);
+  background:
+    radial-gradient(ellipse at 12% 0%, rgba(44, 95, 122, 0.10), transparent 42%),
+    radial-gradient(ellipse at 90% 100%, rgba(26, 40, 50, 0.06), transparent 40%),
+    repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 23px,
+      rgba(44, 95, 122, 0.035) 23px,
+      rgba(44, 95, 122, 0.035) 24px
+    ),
+    var(--bg);
+  font-family: "Source Sans 3", "Segoe UI", sans-serif;
+  font-weight: 400;
+}
+
+.theme-papier h1,
+.theme-papier h2,
+.theme-papier .tile-title {
+  font-family: "Source Serif 4", Georgia, serif;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.theme-papier .nav-back:focus,
+.theme-papier .lane-head:focus,
+.theme-papier .tile:focus,
+.theme-papier a:focus {
+  outline-color: var(--focus);
+}
+
+.theme-papier .panel {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.7) inset, 0 8px 18px rgba(26, 40, 50, 0.06);
+}
+
+.theme-papier .nav-back {
+  background: var(--paper);
+  border-color: var(--line);
+  color: var(--accent);
+}
+
+.theme-papier .nav-back:focus {
+  border-color: var(--focus);
+}
+
+.theme-papier .sample-flag {
+  background: #e8eef2;
+  color: var(--muted);
+  border: 1px solid var(--line);
+}
+
+.theme-papier .lane-head,
+.theme-papier .lane-head-static {
+  background: rgba(243, 246, 248, 0.7);
+}
+
+.theme-papier .tl-body {
+  background:
+    linear-gradient(90deg, rgba(44, 95, 122, 0.04) 0, rgba 48px),
+    #eef2f5;
+  border: 1px solid var(--line);
+}
+
+.theme-papier .event-block {
+  background: #fff;
+  color: var(--ink);
+  border-width: 1px;
+  border-left-width: 6px;
+  border-radius: 2px;
+  box-shadow: none;
+}
+
+.theme-papier .event-block .ev-time {
+  color: var(--muted);
+}
+
+.theme-papier .event-block.is-conflict {
+  box-shadow: inset 0 0 0 2px #b45309;
+  background-image: repeating-linear-gradient(
+    -45deg,
+    #fff7ed,
+    #fff7ed 5px,
+    #ffedd5 5px,
+    #ffedd5 10px
+  );
+}
+
+.theme-papier .event-block.is-conflict .ev-flags {
+  color: #9a3412;
+}
+
+.theme-papier .allday-chip {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-left-width: 6px;
+  border-radius: 2px;
+}
+
+.theme-papier .tl-now {
+  border-top-color: #9f1239;
+}
+
+.theme-papier .tl-now-label {
+  background: #9f1239;
+}
+
+.theme-papier .agenda-item {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-left-width: 8px;
+  border-radius: 2px;
+}
+
+.theme-papier .ev-status {
+  background: #e8eef2;
+  color: var(--accent);
+}
+
+.theme-papier .tile {
+  background: var(--paper);
+  border-color: var(--line);
+  box-shadow: 0 10px 24px rgba(26, 40, 50, 0.08);
+  color: var(--ink);
+}
+
+.theme-papier .tile-dnes {
+  background:
+    linear-gradient(160deg, rgba(44, 95, 122, 0.12), transparent 55%),
+    var(--paper);
+  border-color: var(--accent);
+}
+
+.theme-papier .tile-member {
+  border-top: 10px solid var(--m);
+}
+
+.theme-papier .empty-state {
+  border: 1px dashed var(--line);
+  border-radius: 2px;
+  background: #fff;
+}
+
+.theme-papier .home-header .eyebrow {
+  color: var(--accent);
+}
