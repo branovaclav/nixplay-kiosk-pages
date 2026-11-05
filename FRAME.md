@@ -35,8 +35,14 @@ The pages in this repo are shown on a self-managed Nixplay Seed 8" photo frame. 
 ## Home page and navigation
 - **Home page:** the kiosk's home URL will be this repo's GitHub Pages `index.html`. Tell the owner the final URL; it gets set on the frame from `../nixplay-kiosk` (the exact URL, including any query string, is baked into a security token).
 - **Back = browser history.** Navigate with real links or `history.pushState`, so back returns where expected. Avoid `location.replace()` for pages you want to come back from.
-- **Auto-redirect at power-on:** never redirect unconditionally from the home page. Back would land on it and redirect again, in a loop. Redirect once per browser session instead:
-  ```js
-  if (!sessionStorage.started) { sessionStorage.started = '1'; location.href = 'recap.html'; }
-  ```
-  sessionStorage survives back and the long-shake home, and resets when the frame restarts.
+- **Auto-redirect to a default page:** never redirect *immediately and unconditionally* from the home page. Back would land on it and redirect again, so home couldn't be used. Either of these works:
+  - **Inactivity timeout (owner's preference):** redirect after a while with no input, and restart the timer on every key, so it never fires while someone is navigating. It also recovers after a power cut or restart, and returns to the default page if someone leaves the frame on home.
+    ```js
+    var t; function arm() { clearTimeout(t); t = setTimeout(function () { location.href = 'recap.html'; }, 60000); }
+    document.addEventListener('keydown', arm, true); arm();
+    ```
+  - **Once per session:**
+    ```js
+    if (!sessionStorage.started) { sessionStorage.started = '1'; location.href = 'recap.html'; }
+    ```
+    sessionStorage survives back and the long-shake home, and resets when the frame restarts.
