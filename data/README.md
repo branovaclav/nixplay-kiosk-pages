@@ -22,6 +22,8 @@ Každý commit, ktorý mení JSON:
 
 Na ráme: `index.html` = najnovší deň s `date >= dnes` (Prague). Rám každých ~5 min kontroluje `version.json` a po večernom deployi sa sám obnoví. Žiadny HTML commit z bota.
 
-Validácia: `python3 tools/validate.py`.
+Validácia: `python3 tools/validate.py` (číta len `data/*.json`, nie `samples/`).
+
+Ukážkové / testovacie dni (napr. „zajtra“ pre lokálny náhľad) dávaj do **`samples/`** — build a validator ich **neberú**, aby sa nestali živou stránkou.
 
 Pages source: GitHub Actions (`site/` artifact).
