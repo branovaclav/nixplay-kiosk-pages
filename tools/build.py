@@ -201,8 +201,8 @@ def contiguous_spans(indices):
     return spans
 
 
-def copy_theme_assets(tid, out_dir):
-    fonts_src = os.path.join(THEMES, tid, "fonts")
+def copy_site_assets(out_dir):
+    fonts_src = os.path.join(THEMES, "_shared", "fonts")
     fonts_dst = os.path.join(out_dir, "fonts")
     if os.path.isdir(fonts_src):
         if os.path.isdir(fonts_dst):
@@ -214,16 +214,27 @@ def copy_theme_assets(tid, out_dir):
             shutil.rmtree(dst)
         if os.path.isdir(src):
             shutil.copytree(src, dst)
-    # shared view.js
     shutil.copy2(os.path.join(THEMES, "_shared", "view.js"), os.path.join(out_dir, "view.js"))
 
 
-def theme_css(tid):
-    meta = theme_meta(tid)
-    parts = [rd(THEMES, "_shared", "base.css")]
-    for name in meta.get("css", ["fonts.css", "design.css"]):
-        parts.append(rd(THEMES, tid, name))
-    return "\n".join(parts)
+def site_css():
+    """Fonts + layout + dark + light (toggle via html.theme-dark|theme-light)."""
+    return "\n".join([
+        rd(THEMES, "_shared", "fonts.css"),
+        rd(THEMES, "_shared", "base.css"),
+        rd(THEMES, "_shared", "dark.css"),
+        rd(THEMES, "_shared", "light.css"),
+    ])
+
+
+def theme_schedule(pack, day):
+    """dark_from / dark_until — day JSON overrides members.json."""
+    sched = dict(pack.get("theme_schedule") or {})
+    sched.update(day.get("theme_schedule") or {})
+    return {
+        "dark_from": sched.get("dark_from") or "19:00",
+        "dark_until": sched.get("dark_until") or "06:30",
+    }
 
 
 def weather_icon_svg(icon):
@@ -615,13 +626,14 @@ def eyebrow_html(people):
     return f'<div class="eyebrow-swap">{"".join(bits)}</div>'
 
 
-def render_day_page(tid, day, pack):
-    meta = theme_meta(tid)
+def render_day_page(day, pack):
     people = people_list(pack)
     people_map = members_by_id(pack)
     family = family_meta(pack)
     start, end = timeline_bounds(day)
     d = day["date"]
+    sched = theme_schedule(pack, day)
+    w = day.get("weather") or {}
 
     calendars = [family_calendar(day, people, start, end)]
     for p in people:
@@ -631,17 +643,18 @@ def render_day_page(tid, day, pack):
 <div class="frame page-day">
   <header class="topbar">
     <div class="home-icon" title="Domov" aria-hidden="true">{house_icon_svg()}</div>
-    {who_header(people, family)}
-    <div class="topbar-main">
+    <div class="topbar-date">
       {eyebrow_html(people)}
       <h1>{esc(fmt_date_sk(d))}</h1>
     </div>
-    <div class="weather" data-icon="{esc((day.get("weather") or {}).get("icon", ""))}">
-      <span class="wx-icon">{weather_icon_svg((day.get("weather") or {}).get("icon", "cloudy"))}</span>
+    <div class="top-divider" aria-hidden="true"></div>
+    {who_header(people, family)}
+    <div class="topbar-spacer"></div>
+    <div class="weather" data-icon="{esc(w.get("icon", ""))}">
+      <span class="wx-icon">{weather_icon_svg(w.get("icon", "cloudy"))}</span>
       <div class="wx-text">
-        <span class="wx-summary">{esc((day.get("weather") or {}).get("summary") or "")}</span>
-        <span class="wx-temps">{esc((day.get("weather") or {}).get("temp_low_c"))}–{esc((day.get("weather") or {}).get("temp_high_c"))} °C</span>
-        {'<span class="sample-flag">ukážka</span>' if (day.get("weather") or {}).get("sample") else ""}
+        <span class="wx-temps">{esc(w.get("temp_low_c"))}–{esc(w.get("temp_high_c"))} °C</span>
+        <span class="wx-summary">{esc(w.get("summary") or "")}</span>
       </div>
     </div>
   </header>
@@ -658,25 +671,27 @@ def render_day_page(tid, day, pack):
 <script src="view.js"></script>
 """
 
-    css = theme_css(tid)
+    css = site_css()
     return f"""<!doctype html>
-<html lang="sk">
+<html lang="sk" class="theme-dark">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=1024, height=768, initial-scale=1">
 <meta name="robots" content="noindex,nofollow">
-<meta name="theme-color" content="{esc(meta.get("theme_color", "#333"))}">
-<title>{esc(fmt_date_sk(d))} — {esc(meta.get("name", tid))}</title>
+<meta name="theme-color" content="#0B1220">
+<title>{esc(fmt_date_sk(d))} — rodinný prehľad</title>
 <style>
 {css}
 </style>
 </head>
-<body class="theme-{esc(tid)} page-day"
+<body class="page-day"
   data-view="rodina"
   data-date="{esc(d)}"
   data-timezone="{esc(day.get("timezone") or "Europe/Prague")}"
   data-fallback-now="{esc(day.get("now") or "")}"
   data-refresh-at="{esc(day.get("refresh_at") or "06:30")}"
+  data-dark-from="{esc(sched["dark_from"])}"
+  data-dark-until="{esc(sched["dark_until"])}"
   data-day-start="{start}"
   data-day-end="{end}"
   data-lock-now="0">
@@ -686,18 +701,19 @@ def render_day_page(tid, day, pack):
 """
 
 
-def render_theme_index(tid, dates, primary):
-    """Picks today's file if present, else primary sample; light redirect."""
-    meta = theme_meta(tid)
+def render_site_index(dates, primary):
     links = "".join(
-        f'<li><a href="{esc(d)}.html">{esc(fmt_date_sk(d))}</a></li>' for d in dates
+        f'<li><a href="{esc(d)}.html">{esc(fmt_date_sk(d))}</a>'
+        f' · <a href="{esc(d)}.html?theme=light">light</a>'
+        f' · <a href="{esc(d)}.html?theme=dark">dark</a></li>'
+        for d in dates
     )
     return f"""<!doctype html>
 <html lang="sk">
 <head>
 <meta charset="utf-8">
 <meta name="robots" content="noindex,nofollow">
-<title>{esc(meta.get("name", tid))} — index</title>
+<title>Denný prehľad — index</title>
 <script>
 (function(){{
   var dates = {json.dumps(dates)};
@@ -708,62 +724,53 @@ def render_theme_index(tid, dates, primary):
   }} catch (e) {{ today = primary; }}
   var target = primary;
   for (var i = 0; i < dates.length; i++) if (dates[i] === today) target = today;
-  location.replace(target + ".html");
+  location.replace(target + ".html" + (location.search || ""));
 }})();
 </script>
 </head>
 <body>
 <p>Presmerovanie na dnešný deň…</p>
 <ul>{links}</ul>
+<p><a href="archive/">Archív starých návrhov (Papier / Farbičky / Večerná)</a></p>
 </body>
 </html>
 """
 
 
-def render_designs_index(metas, dates):
-    cards = []
-    for tid, meta in metas:
-        links = " · ".join(
-            f'<a href="{esc(tid)}/{esc(d)}.html">{esc(fmt_date_short(d))}</a>' for d in dates
-        )
-        cards.append(
-            f"""<li>
-  <a class="card" style="--c:{esc(meta.get("theme_color", "#333"))}" href="{esc(tid)}/{esc(dates[0])}.html">
-    <strong>{esc(meta.get("letter", "?"))} · {esc(meta.get("name", tid))}</strong>
-    <span>{esc(meta.get("blurb", ""))}</span>
-  </a>
-  <p class="card-links">{links} · <a href="{esc(tid)}/index.html">index</a></p>
-</li>"""
-        )
+def render_designs_hub(dates):
+    day_links = "".join(
+        f'<li><strong>{esc(fmt_date_sk(d))}</strong> — '
+        f'<a href="{esc(d)}.html">auto</a> · '
+        f'<a href="{esc(d)}.html?theme=light">light</a> · '
+        f'<a href="{esc(d)}.html?theme=dark">dark</a></li>'
+        for d in dates
+    )
     return f"""<!doctype html>
 <html lang="sk">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex,nofollow">
-<title>Návrhy vzhľadu — denný rodinný prehľad</title>
+<title>Denný prehľad — dark / light</title>
 <style>
   body {{ margin: 0; font: 20px/1.45 system-ui, sans-serif; color: #1a1f24; background: #e7eef2; }}
   main {{ max-width: 820px; margin: 0 auto; padding: 1.6rem 1.2rem 3rem; }}
   h1 {{ font-size: 2rem; margin: .3rem 0 .4rem; }}
   .lede {{ color: #3d4a52; margin: 0 0 1.4rem; }}
-  ul {{ list-style: none; margin: 0; padding: 0; }}
-  li {{ margin: 0 0 1.1rem; }}
-  a.card {{ display: block; text-decoration: none; color: inherit; background: #fff;
-    border-radius: 14px; padding: 1.05rem 1.15rem; border: 2px solid #cfd8de;
-    border-left: 10px solid var(--c); }}
-  a.card strong {{ display: block; font-size: 1.35rem; margin-bottom: .25rem; }}
-  a.card span {{ color: #3d4a52; }}
-  .card-links {{ margin: .45rem 0 0 .2rem; font-size: .95rem; }}
-  .card-links a {{ color: #1f4f6e; }}
+  ul {{ margin: 0; padding-left: 1.2em; }}
+  li {{ margin: 0 0 .6rem; }}
+  a {{ color: #1f4f6e; }}
 </style>
 </head>
 <body>
 <main>
-  <h1>Návrhy vzhľadu denného prehľadu</h1>
-  <p class="lede">Jedna stránka na deň, pohľady Rodina → Braňo → Zuzka → Andrej → Tomáš
-  (Tab / Enter = ďalší). Chromium 81 · 1024×768.</p>
-  <ul>{"".join(cards)}</ul>
+  <h1>Denný rodinný prehľad</h1>
+  <p class="lede">Jedna stránka na deň — režimy <strong>dark</strong> (Večerná) a <strong>light</strong>
+  (tá istá štruktúra, Papier paleta). Prepínanie podľa času Europe/Prague
+  (predvolene dark 19:00–06:30), alebo <code>?theme=light|dark</code>.
+  Pohľady Rodina → Braňo → Zuzka → Andrej → Tomáš (Tab / Enter).</p>
+  <ul>{day_links}</ul>
+  <p><a href="index.html">index (dnes)</a> · <a href="archive/">archív starých A/B/C návrhov</a></p>
 </main>
 </body>
 </html>
@@ -778,25 +785,23 @@ def build():
             days.append(load_json(DATA, name))
     dates = [d["date"] for d in days]
     primary = "2026-11-06" if "2026-11-06" in dates else (dates[0] if dates else None)
-    metas = []
 
-    for tid in theme_ids():
-        meta = theme_meta(tid)
-        metas.append((tid, meta))
-        out = os.path.join(DESIGNS, tid)
-        os.makedirs(out, exist_ok=True)
-        # remove old member/home pages from previous rounds
-        for fn in os.listdir(out):
-            if fn.endswith(".html"):
-                os.remove(os.path.join(out, fn))
-        copy_theme_assets(tid, out)
-        for day in days:
-            write(os.path.join(out, f'{day["date"]}.html'), render_day_page(tid, day, pack))
-        write(os.path.join(out, "index.html"), render_theme_index(tid, dates, primary))
-        print(f"built theme {tid} → designs/{tid}/")
+    os.makedirs(DESIGNS, exist_ok=True)
+    # Remove stale top-level HTML from prior multi-theme layout (keep archive/)
+    for fn in os.listdir(DESIGNS):
+        path = os.path.join(DESIGNS, fn)
+        if fn.endswith(".html") and os.path.isfile(path):
+            os.remove(path)
 
-    write(os.path.join(DESIGNS, "index.html"), render_designs_index(metas, dates))
-    print("built designs/index.html")
+    copy_site_assets(DESIGNS)
+    for day in days:
+        write(os.path.join(DESIGNS, f'{day["date"]}.html'), render_day_page(day, pack))
+        print(f"built designs/{day['date']}.html")
+
+    write(os.path.join(DESIGNS, "index.html"), render_site_index(dates, primary))
+    write(os.path.join(DESIGNS, "hub.html"), render_designs_hub(dates))
+    # Convenience: hub as main listing — also overwrite designs/index? Keep index as today redirect.
+    print("built designs/index.html + hub.html")
 
 
 if __name__ == "__main__":

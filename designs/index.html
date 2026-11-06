@@ -2,49 +2,25 @@
 <html lang="sk">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex,nofollow">
-<title>Návrhy vzhľadu — denný rodinný prehľad</title>
-<style>
-  body { margin: 0; font: 20px/1.45 system-ui, sans-serif; color: #1a1f24; background: #e7eef2; }
-  main { max-width: 820px; margin: 0 auto; padding: 1.6rem 1.2rem 3rem; }
-  h1 { font-size: 2rem; margin: .3rem 0 .4rem; }
-  .lede { color: #3d4a52; margin: 0 0 1.4rem; }
-  ul { list-style: none; margin: 0; padding: 0; }
-  li { margin: 0 0 1.1rem; }
-  a.card { display: block; text-decoration: none; color: inherit; background: #fff;
-    border-radius: 14px; padding: 1.05rem 1.15rem; border: 2px solid #cfd8de;
-    border-left: 10px solid var(--c); }
-  a.card strong { display: block; font-size: 1.35rem; margin-bottom: .25rem; }
-  a.card span { color: #3d4a52; }
-  .card-links { margin: .45rem 0 0 .2rem; font-size: .95rem; }
-  .card-links a { color: #1f4f6e; }
-</style>
+<title>Denný prehľad — index</title>
+<script>
+(function(){
+  var dates = ["2026-11-03", "2026-11-06"];
+  var primary = "2026-11-06";
+  var today;
+  try {
+    today = new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Prague" }).format(new Date());
+  } catch (e) { today = primary; }
+  var target = primary;
+  for (var i = 0; i < dates.length; i++) if (dates[i] === today) target = today;
+  location.replace(target + ".html" + (location.search || ""));
+})();
+</script>
 </head>
 <body>
-<main>
-  <h1>Návrhy vzhľadu denného prehľadu</h1>
-  <p class="lede">Jedna stránka na deň, pohľady Rodina → Braňo → Zuzka → Andrej → Tomáš
-  (Tab / Enter = ďalší). Chromium 81 · 1024×768.</p>
-  <ul><li>
-  <a class="card" style="--c:#E85D04" href="farbicky/2026-11-03.html">
-    <strong>B · Farbičky</strong>
-    <span>Odvážne detské farbičky — silné plochy, jedna stránka s pohľadmi Rodina → osoby.</span>
-  </a>
-  <p class="card-links"><a href="farbicky/2026-11-03.html">3. 11. 2026</a> · <a href="farbicky/2026-11-06.html">6. 11. 2026</a> · <a href="farbicky/index.html">index</a></p>
-</li><li>
-  <a class="card" style="--c:#2C5F7A" href="papier/2026-11-03.html">
-    <strong>A · Papier</strong>
-    <span>Pokojný papierový plánovač — jedna stránka, farebné stĺpce osôb, pohľady Tab/Enter.</span>
-  </a>
-  <p class="card-links"><a href="papier/2026-11-03.html">3. 11. 2026</a> · <a href="papier/2026-11-06.html">6. 11. 2026</a> · <a href="papier/index.html">index</a></p>
-</li><li>
-  <a class="card" style="--c:#0B1220" href="vecerna/2026-11-03.html">
-    <strong>C · Večerná</strong>
-    <span>Tmavá ambientná izba — nízky jas, jantárové akcenty, jedna stránka pre večerný rám.</span>
-  </a>
-  <p class="card-links"><a href="vecerna/2026-11-03.html">3. 11. 2026</a> · <a href="vecerna/2026-11-06.html">6. 11. 2026</a> · <a href="vecerna/index.html">index</a></p>
-</li></ul>
-</main>
+<p>Presmerovanie na dnešný deň…</p>
+<ul><li><a href="2026-11-03.html">utorok 3. november 2026</a> · <a href="2026-11-03.html?theme=light">light</a> · <a href="2026-11-03.html?theme=dark">dark</a></li><li><a href="2026-11-06.html">piatok 6. november 2026</a> · <a href="2026-11-06.html?theme=light">light</a> · <a href="2026-11-06.html?theme=dark">dark</a></li></ul>
+<p><a href="archive/">Archív starých návrhov (Papier / Farbičky / Večerná)</a></p>
 </body>
 </html>

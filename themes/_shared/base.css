@@ -56,7 +56,9 @@ body[data-view="tomas"] .eyebrow-tomas {
   display: block;
 }
 
-/* ---- Top bar ---- */
+/* ---- Top bar ----
+   [home]  date(+kicker)  |  avatar+name  ......  weather
+*/
 .topbar {
   display: -webkit-box;
   display: flex;
@@ -68,9 +70,9 @@ body[data-view="tomas"] .eyebrow-tomas {
 
 .home-icon {
   -webkit-box-flex: 0;
-  flex: 0 0 48px;
-  width: 48px;
-  height: 48px;
+  flex: 0 0 44px;
+  width: 44px;
+  height: 44px;
   display: -webkit-box;
   display: flex;
   -webkit-box-align: center;
@@ -79,17 +81,40 @@ body[data-view="tomas"] .eyebrow-tomas {
   justify-content: center;
   opacity: 0.85;
   pointer-events: none;
+  margin-right: 10px;
 }
 
 .home-glyph { display: block; }
 
+.topbar-date {
+  -webkit-box-flex: 0;
+  flex: 0 0 auto;
+  min-width: 0;
+  margin-right: 14px;
+}
+
+.topbar-date h1 {
+  margin: 2px 0 0;
+  font-size: 28px;
+  line-height: 1.1;
+  white-space: nowrap;
+}
+
+.top-divider {
+  -webkit-box-flex: 0;
+  flex: 0 0 1px;
+  width: 1px;
+  height: 44px;
+  margin-right: 14px;
+  opacity: 0.9;
+}
+
 .view-who {
   position: relative;
   -webkit-box-flex: 0;
-  flex: 0 0 168px;
-  width: 168px;
+  flex: 0 0 180px;
+  width: 180px;
   height: 56px;
-  margin-left: 8px;
   margin-right: 12px;
 }
 
@@ -105,14 +130,14 @@ body[data-view="tomas"] .eyebrow-tomas {
 }
 
 .view-who .who .avatar {
-  width: 52px;
-  height: 52px;
+  width: 48px;
+  height: 48px;
   border: 3px solid var(--m, transparent);
 }
 
 .view-who .who-name {
   margin-left: 10px;
-  font-size: 26px;
+  font-size: 24px;
   font-weight: 700;
   line-height: 1.1;
 }
@@ -126,16 +151,10 @@ body[data-view="tomas"] .who-tomas {
   display: flex;
 }
 
-.topbar-main {
+.topbar-spacer {
   -webkit-box-flex: 1;
   flex: 1 1 auto;
-  min-width: 0;
-}
-
-.topbar h1 {
-  margin: 2px 0 0;
-  font-size: 30px;
-  line-height: 1.1;
+  min-width: 8px;
 }
 
 .weather {
@@ -143,48 +162,62 @@ body[data-view="tomas"] .who-tomas {
   display: flex;
   -webkit-box-align: center;
   align-items: center;
-  text-align: right;
+  -webkit-box-pack: end;
+  justify-content: flex-end;
+  text-align: left;
   white-space: nowrap;
-  margin-left: 12px;
+  margin-left: 8px;
+  height: 52px;
 }
 
 .wx-icon {
-  display: block;
-  width: 40px;
-  height: 40px;
-  margin-right: 10px;
+  display: -webkit-box;
+  display: flex;
+  -webkit-box-align: center;
+  align-items: center;
+  -webkit-box-pack: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  margin-right: 4px;
+  line-height: 0;
+  -webkit-flex-shrink: 0;
+  flex-shrink: 0;
 }
 
 .wx-icon svg {
-  width: 40px;
-  height: 40px;
+  width: 36px;
+  height: 36px;
   display: block;
+  vertical-align: middle;
 }
 
-.wx-text { line-height: 1.2; }
-
-.wx-summary {
-  display: block;
-  font-size: 16px;
-  opacity: 0.85;
+.wx-text {
+  display: -webkit-box;
+  display: flex;
+  -webkit-box-orient: vertical;
+  -webkit-box-direction: normal;
+  flex-direction: column;
+  -webkit-box-pack: center;
+  justify-content: center;
+  line-height: 1.15;
 }
 
 .wx-temps {
   display: block;
-  font-size: 26px;
+  font-size: 24px;
   font-weight: 700;
+  line-height: 1.1;
 }
 
-.sample-flag {
-  display: inline-block;
-  margin-top: 2px;
-  padding: 1px 7px;
-  font-size: 12px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  border-radius: 6px;
+.wx-summary {
+  display: block;
+  font-size: 14px;
+  opacity: 0.85;
+  margin-top: 1px;
 }
+
+/* sample flag intentionally not rendered */
 
 /* ---- Main: calendar + sidebar (flex-basis transition) ---- */
 .day-main {

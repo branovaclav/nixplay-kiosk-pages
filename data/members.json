@@ -49,5 +49,10 @@
     "display_name": "Rodina",
     "color": "#4A6670",
     "avatar": "rodina.svg"
+  },
+  "theme_schedule": {
+    "dark_from": "19:00",
+    "dark_until": "06:30"
   }
 }
+

@@ -1,9 +1,10 @@
 # Denný rodinný prehľad — JSON schéma
 
-Jeden súbor na deň: `data/YYYY-MM-DD.json`. Členovia: `data/members.json`.
+Jeden súbor na deň: `data/YYYY-MM-DD.json`. Členovia + site config: `data/members.json`.
 **Pravidlá:** [`RULES.md`](RULES.md).
 
 Rám zobrazí **jednu stránku na deň** s pohľadmi Rodina → osoby (žiadne samostatné member HTML).
+Dva vizuálne režimy z toho istého JSON: **dark** (Večerná) a **light** (tá istá štruktúra, Papier paleta).
 
 ## `members.json`
 
@@ -23,12 +24,27 @@ Rám zobrazí **jednu stránku na deň** s pohľadmi Rodina → osoby (žiadne s
     "display_name": "Rodina",
     "color": "#4A6670",
     "avatar": "rodina.svg"
+  },
+  "theme_schedule": {
+    "dark_from": "19:00",
+    "dark_until": "06:30"
   }
 }
 ```
 
 Štyria ľudia v pevnom poradí stĺpcov: Braňo, Zuzka, Andrej, Tomáš.
 `family` je meta pre pohľad Rodina (avatar/farba) — **nie** stĺpec kalendára.
+
+### `theme_schedule`
+
+| Pole | Predvolené | Poznámka |
+|---|---|---|
+| `dark_from` | `19:00` | začiatok dark (Europe/Prague) |
+| `dark_until` | `06:30` | koniec dark (exclusive); interval môže prechádzať polnoc |
+
+Deň môže rovnaké polia prebiť v `theme_schedule` vo vlastnom JSON.
+Stránka každú minútu prepočíta režim (prepne `html.theme-dark` / `html.theme-light` bez reloadu).
+Pre screenshoty / test: `?theme=light` alebo `?theme=dark` (zamkne režim).
 
 ## Deň `YYYY-MM-DD.json`
 
@@ -47,6 +63,8 @@ Rám zobrazí **jednu stránku na deň** s pohľadmi Rodina → osoby (žiadne s
 ```
 
 `refresh_at` — `HH:MM` Europe/Prague; stránka sa raz denne obnoví tesne po tomto čase (predvolene `06:30`). Ak `date` ≠ dnešok, skok na `index.html` (dnešný súbor).
+
+`weather.sample` zostáva v dátach (označuje ukážkové počasie), ale **badge UKÁŽKA sa nerenderuje**.
 
 ### Udalosti
 
@@ -110,5 +128,6 @@ Staré pole `member` (string) sa už nepoužíva.
 
 ## Build
 
-`tools/build.py` → `designs/<theme>/<date>.html` (jedna stránka) + `designs/<theme>/index.html` (dnes / fallback).
-Žiadne member HTML. JS: prepínanie pohľadov, now-marker, idle → Rodina, reload ~30 min.
+`tools/build.py` → `designs/<date>.html` (jedna stránka, dark+light CSS) + `designs/index.html` (dnes / fallback) + `designs/hub.html`.
+Žiadne member HTML. JS: pohľady, now-marker, theme podľa času / `?theme=`, idle → Rodina, denný reload.
+Staršie A/B/C návrhy: `designs/archive/` (+ `themes/archive/`).

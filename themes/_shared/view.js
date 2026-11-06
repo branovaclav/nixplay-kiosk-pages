@@ -1,20 +1,24 @@
-/* Chromium 81–safe view cycling for the daily recap page.
+/* Chromium 81–safe view cycling + light/dark theme for the daily recap.
    Views: rodina → branislav → zuzka → andrej → tomas → (cycle).
    Enter / Tab = next; Shift+Tab = previous; Alt+ArrowLeft = Rodina.
-   Idle 60s → rodina. Now-marker every minute (Europe/Prague).
-   Reload once daily at data-refresh-at (default 06:30), plus if page date ≠ today.
+   Theme: html.theme-dark|theme-light from schedule (Europe/Prague) or ?theme=.
+   Idle 60s → rodina. Now-marker every minute. Daily reload at refresh_at.
 */
 (function () {
   var VIEWS = ["rodina", "branislav", "zuzka", "andrej", "tomas"];
   var IDLE_MS = 60000;
   var NOW_MS = 60 * 1000;
   var body = document.body;
+  var root = document.documentElement;
   var idleTimer = null;
   var fallbackNow = body.getAttribute("data-fallback-now") || "";
   var tz = body.getAttribute("data-timezone") || "Europe/Prague";
   var dayStart = parseInt(body.getAttribute("data-day-start") || "420", 10);
   var dayEnd = parseInt(body.getAttribute("data-day-end") || "1260", 10);
   var refreshAt = body.getAttribute("data-refresh-at") || "06:30";
+  var darkFrom = body.getAttribute("data-dark-from") || "19:00";
+  var darkUntil = body.getAttribute("data-dark-until") || "06:30";
+  var themeLocked = null; // "light"|"dark" from ?theme=
 
   function viewIndex(id) {
     for (var i = 0; i < VIEWS.length; i++) if (VIEWS[i] === id) return i;
@@ -138,6 +142,33 @@
     }, IDLE_MS);
   }
 
+  function isDarkAt(mins) {
+    var from = parseHM(darkFrom);
+    var until = parseHM(darkUntil);
+    if (from == null) from = 19 * 60;
+    if (until == null) until = 6 * 60 + 30;
+    // e.g. 19:00–06:30 spans midnight
+    if (from > until) return mins >= from || mins < until;
+    return mins >= from && mins < until;
+  }
+
+  function applyTheme() {
+    var mode = themeLocked;
+    if (!mode) {
+      var hm = pragueHM();
+      var mins = parseHM(hm);
+      if (mins == null) mins = 12 * 60;
+      mode = isDarkAt(mins) ? "dark" : "light";
+    }
+    root.classList.remove("theme-dark", "theme-light");
+    root.classList.add("theme-" + mode);
+    root.setAttribute("data-theme", mode);
+    try {
+      var meta = document.querySelector('meta[name="theme-color"]');
+      if (meta) meta.setAttribute("content", mode === "dark" ? "#0B1220" : "#d9e3ea");
+    } catch (e) {}
+  }
+
   function updateNow() {
     var pageDate = body.getAttribute("data-date") || "";
     var hm = pragueHM();
@@ -159,6 +190,8 @@
       hm = fallbackNow;
       useFallback = true;
     }
+
+    applyTheme();
 
     var mins = parseHM(hm);
     var markers = document.querySelectorAll(".tl-now");
@@ -253,10 +286,13 @@
 
   function boot() {
     var hash = (location.hash || "").replace(/^#/, "");
-    var q = location.search.match(/[?&]view=([a-z]+)/);
+    var qView = location.search.match(/[?&]view=([a-z]+)/);
+    var qTheme = location.search.match(/[?&]theme=(light|dark)/);
+    if (qTheme) themeLocked = qTheme[1];
     var initial = body.getAttribute("data-view") || "rodina";
-    if (q) initial = q[1];
+    if (qView) initial = qView[1];
     else if (hash && viewIndex(hash) >= 0) initial = hash;
+    applyTheme();
     setView(initial);
     armIdle();
     updateNow();

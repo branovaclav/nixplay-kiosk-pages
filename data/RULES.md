@@ -93,7 +93,7 @@ Konflikt: pretínajúce sa timed intervaly **tej istej osoby** v `members` →
 
 ## 5. Štýl textu
 
-Slovak, krátke, 24 h. Bez emoji. Bez tajomstiev (pozri úvod). `weather.sample: true`, kým nie live.
+Slovak, krátke, 24 h. Bez emoji. Bez tajomstiev (pozri úvod). `weather.sample: true`, kým nie live (badge UKÁŽKA sa nerenderuje).
 
 ---
 
@@ -115,6 +115,8 @@ Tab / Enter = ďalší, Shift+Tab = predchádzajúci; **krátky shake (Alt+←) 
 Kalendár: 4 stĺpce osôb (Rodina pohľad) alebo široký stĺpec osoby + úzky „ostatní“ (pohľad člena).
 
 Obnova stránky: raz denne o `refresh_at` (predvolene **06:30** Europe/Prague, po rannom súhrne), plus ak dátum na stránke ≠ dnes → skok na dnešný súbor.
+
+Téma **dark** / **light**: podľa `theme_schedule` (predvolene dark 19:00–06:30 Prague); `?theme=light|dark` na test.
 
 ---
 
