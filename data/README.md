@@ -18,3 +18,5 @@ Ranný **generátor** (bot / skript) každú noc alebo ráno:
 Na ráme je vždy `index.html` = dnešný súbor (ak chýba, najnovší dostupný). Žiadny HTML commit z bota — build beží v CI.
 
 Validácia pred merge / v CI: `python3 tools/validate.py`.
+
+Pages source: GitHub Actions (`site/` artifact).
