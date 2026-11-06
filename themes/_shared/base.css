@@ -100,9 +100,9 @@ body[data-view="tomas"] .eyebrow-tomas {
   display: flex;
   -webkit-box-align: center;
   align-items: center;
-  /* Fixed 78px — larger type fits via tight line-heights, not extra height */
-  padding: 6px 16px;
-  height: 78px;
+  /* 65px + day-main pad-top 15px → cards at y≈80 (same as pre–PR #4) */
+  padding: 2px 16px;
+  height: 65px;
 }
 
 .topbar-date {
@@ -121,7 +121,7 @@ body[data-view="tomas"] .eyebrow-tomas {
 }
 
 .topbar-date h1 {
-  margin: 0;
+  margin: -1px 0 0;
   padding: 0;
   font-size: var(--fs-date);
   line-height: 1;
@@ -133,7 +133,7 @@ body[data-view="tomas"] .eyebrow-tomas {
   -webkit-box-flex: 0;
   flex: 0 0 180px;
   width: 180px;
-  height: 56px;
+  height: 52px;
   margin-right: 12px;
   overflow: visible;
 }
@@ -162,9 +162,9 @@ body[data-view="tomas"] .eyebrow-tomas {
   margin-left: 10px;
   font-size: var(--fs-who);
   font-weight: 700;
-  /* Fixed line-box ≈ avatar height so Fraunces descenders (j/ň/š) clear the clip */
-  line-height: 48px;
-  height: 48px;
+  /* Line-box tall enough for Fraunces descenders inside overflow clip */
+  line-height: 44px;
+  height: 44px;
   padding: 0;
   min-width: 0;
   -webkit-box-flex: 1;
@@ -263,7 +263,7 @@ body[data-view="tomas"] .who-tomas {
   display: flex;
   -webkit-box-align: stretch;
   align-items: stretch;
-  height: 690px; /* 768 − 78 topbar */
+  height: 703px; /* 768 − 65 topbar; pad-top 15 → cards at y≈80 */
   padding: 15px;
   -webkit-box-sizing: border-box;
   box-sizing: border-box;
