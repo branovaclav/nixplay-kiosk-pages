@@ -72,8 +72,8 @@ html.theme-dark .event-block {
 }
 
 html.theme-dark .event-block.is-unconfirmed {
-  border: 2px dashed rgba(255, 255, 255, 0.75);
-  border-left: 4px dashed rgba(255, 255, 255, 0.9);
+  border: 2px dotted rgba(255, 255, 255, 0.75);
+  border-left: 4px dotted rgba(255, 255, 255, 0.9);
   box-shadow: 0 6px 16px rgba(0, 0, 0, 0.35);
 }
 

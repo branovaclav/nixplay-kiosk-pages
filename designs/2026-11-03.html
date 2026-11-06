@@ -157,7 +157,7 @@ body[data-view="tomas"] .eyebrow-tomas {
   -webkit-box-align: center;
   align-items: center;
   /* 65px + day-main pad-top 15px → cards at y≈80 (same as pre–PR #4) */
-  padding: 2px 16px;
+  padding: 0 16px;
   height: 65px;
 }
 
@@ -174,10 +174,14 @@ body[data-view="tomas"] .eyebrow-tomas {
   flex-direction: column;
   -webkit-box-pack: center;
   justify-content: center;
+  /* Stretch full header height, then center kicker+date inside */
+  -webkit-align-self: stretch;
+  align-self: stretch;
+  height: auto;
 }
 
 .topbar-date h1 {
-  margin: -1px 0 0;
+  margin: 0;
   padding: 0;
   font-size: var(--fs-date);
   line-height: 1;
@@ -189,9 +193,11 @@ body[data-view="tomas"] .eyebrow-tomas {
   -webkit-box-flex: 0;
   flex: 0 0 180px;
   width: 180px;
-  height: 52px;
   margin-right: 12px;
   overflow: visible;
+  -webkit-align-self: stretch;
+  align-self: stretch;
+  height: auto;
 }
 
 .view-who .who {
@@ -255,6 +261,9 @@ body[data-view="tomas"] .who-tomas {
   text-align: left;
   white-space: nowrap;
   margin-left: 8px;
+  -webkit-align-self: stretch;
+  align-self: stretch;
+  height: auto;
 }
 
 .wx-icon {
@@ -660,12 +669,13 @@ body[data-view="tomas"] .calendar-member[data-focus="tomas"] {
 .tl-lanes {
   display: -webkit-box;
   display: flex;
-  padding-left: 44px;
+  /* Room for regular hour labels + small clear gap before events */
+  padding-left: 52px;
   z-index: 2;
 }
 
 .tl-span-layer {
-  padding-left: 44px;
+  padding-left: 52px;
   pointer-events: none;
   z-index: 3;
 }
@@ -685,7 +695,7 @@ body[data-view="tomas"] .calendar-member[data-focus="tomas"] {
   top: -16px;
   line-height: 1;
   font-size: var(--fs-hour);
-  font-weight: 700;
+  font-weight: 400;
   opacity: 0.55;
   padding: 0 2px;
   background: var(--tl-bg, transparent);
@@ -781,7 +791,7 @@ body[data-view="tomas"] .calendar-member[data-focus="tomas"] {
 
 .event-block.is-unconfirmed,
 .allday-chip.is-unconfirmed {
-  border-style: dashed;
+  border-style: dotted;
   opacity: 0.92;
 }
 
@@ -920,8 +930,8 @@ html.theme-dark .event-block {
 }
 
 html.theme-dark .event-block.is-unconfirmed {
-  border: 2px dashed rgba(255, 255, 255, 0.75);
-  border-left: 4px dashed rgba(255, 255, 255, 0.9);
+  border: 2px dotted rgba(255, 255, 255, 0.75);
+  border-left: 4px dotted rgba(255, 255, 255, 0.9);
   box-shadow: 0 6px 16px rgba(0, 0, 0, 0.35);
 }
 
@@ -1020,7 +1030,7 @@ html.theme-light .lane-head {
 }
 
 html.theme-light .tl-body {
-  background: linear-gradient(90deg, rgba(44, 95, 122, 0.035) 0, transparent 44px), var(--tl-bg);
+  background: linear-gradient(90deg, rgba(44, 95, 122, 0.035) 0, transparent 52px), var(--tl-bg);
   border: 1px solid var(--line);
 }
 
@@ -1038,8 +1048,8 @@ html.theme-light .event-block {
 }
 
 html.theme-light .event-block.is-unconfirmed {
-  border: 2px dashed var(--m);
-  border-left: 6px dashed var(--m);
+  border: 2px dotted var(--m);
+  border-left: 6px dotted var(--m);
   background: #fff;
 }
 
@@ -1062,7 +1072,7 @@ html.theme-light .allday-chip {
 }
 
 html.theme-light .allday-chip.is-unconfirmed {
-  border-style: dashed;
+  border-style: dotted;
 }
 
 html.theme-light .tl-now { border-top-color: var(--now); }

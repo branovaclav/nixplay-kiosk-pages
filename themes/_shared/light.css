@@ -63,7 +63,7 @@ html.theme-light .lane-head {
 }
 
 html.theme-light .tl-body {
-  background: linear-gradient(90deg, rgba(44, 95, 122, 0.035) 0, transparent 44px), var(--tl-bg);
+  background: linear-gradient(90deg, rgba(44, 95, 122, 0.035) 0, transparent 52px), var(--tl-bg);
   border: 1px solid var(--line);
 }
 
@@ -81,8 +81,8 @@ html.theme-light .event-block {
 }
 
 html.theme-light .event-block.is-unconfirmed {
-  border: 2px dashed var(--m);
-  border-left: 6px dashed var(--m);
+  border: 2px dotted var(--m);
+  border-left: 6px dotted var(--m);
   background: #fff;
 }
 
@@ -105,7 +105,7 @@ html.theme-light .allday-chip {
 }
 
 html.theme-light .allday-chip.is-unconfirmed {
-  border-style: dashed;
+  border-style: dotted;
 }
 
 html.theme-light .tl-now { border-top-color: var(--now); }
