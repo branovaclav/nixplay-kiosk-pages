@@ -1,0 +1,18 @@
+{
+  "id": "papier",
+  "name": "Papier",
+  "letter": "A",
+  "theme_color": "#2C5F7A",
+  "blurb": "Pokojný papierový plánovač — jedna stránka, farebné stĺpce osôb, pohľady Tab/Enter.",
+  "css": ["fonts.css", "design.css"],
+  "fonts": [
+    "source-serif-4-regular.woff2",
+    "source-serif-4-regular-ext.woff2",
+    "source-serif-4-bold.woff2",
+    "source-serif-4-bold-ext.woff2",
+    "source-sans-3-regular.woff2",
+    "source-sans-3-regular-ext.woff2",
+    "source-sans-3-semibold.woff2",
+    "source-sans-3-semibold-ext.woff2"
+  ]
+}

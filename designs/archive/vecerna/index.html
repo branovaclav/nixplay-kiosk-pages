@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="sk">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex,nofollow">
+<title>Večerná — index</title>
+<script>
+(function(){
+  var dates = ["2026-11-03", "2026-11-06"];
+  var primary = "2026-11-06";
+  var today;
+  try {
+    today = new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Prague" }).format(new Date());
+  } catch (e) { today = primary; }
+  var target = primary;
+  for (var i = 0; i < dates.length; i++) if (dates[i] === today) target = today;
+  location.replace(target + ".html");
+})();
+</script>
+</head>
+<body>
+<p>Presmerovanie na dnešný deň…</p>
+<ul><li><a href="2026-11-03.html">utorok 3. november 2026</a></li><li><a href="2026-11-06.html">piatok 6. november 2026</a></li></ul>
+</body>
+</html>

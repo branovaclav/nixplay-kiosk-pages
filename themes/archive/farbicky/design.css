@@ -1,0 +1,102 @@
+/* B · Farbičky — bold colorful kid-friendly */
+:root {
+  --bg0: #fff3d6;
+  --bg1: #ffe0a8;
+  --ink: #1c1208;
+  --panel: #fffdf8;
+  --focus: #1d4ed8;
+}
+
+body.theme-farbicky {
+  color: var(--ink);
+  background:
+    radial-gradient(circle at 8% 18%, #ffd166 0, #ffd166 60px, transparent 62px),
+    radial-gradient(circle at 92% 12%, #4cc9f0 0, #4cc9f0 48px, transparent 50px),
+    radial-gradient(circle at 86% 78%, #ef476f 0, #ef476f 56px, transparent 58px),
+    linear-gradient(155deg, var(--bg0), var(--bg1));
+  font-family: "Nunito", "Segoe UI", sans-serif;
+  font-weight: 700;
+}
+
+.theme-farbicky h1,
+.theme-farbicky h2,
+.theme-farbicky .who-name,
+.theme-farbicky .lane-name,
+.theme-farbicky .sidebar-title {
+  font-weight: 800;
+}
+
+.theme-farbicky .panel {
+  background: var(--panel);
+  border: 4px solid #1c1208;
+  border-radius: 22px;
+  box-shadow: 8px 8px 0 #1c1208;
+}
+
+.theme-farbicky .home-icon { color: #1c1208; }
+
+.theme-farbicky .sample-flag {
+  background: #ef476f;
+  color: #fff;
+  border-radius: 999px;
+}
+
+.theme-farbicky .wx-icon { color: #e85d04; }
+
+.theme-farbicky .lane-head {
+  background: #fff;
+  border: 3px solid #1c1208;
+  border-radius: 16px;
+  box-shadow: 3px 3px 0 #1c1208;
+  border-bottom-width: 6px;
+  border-bottom-color: var(--m);
+}
+
+.theme-farbicky img.avatar { border: 3px solid #1c1208; }
+
+.theme-farbicky .tl-body {
+  background: #fff;
+  border: 3px solid #1c1208;
+  border-radius: 16px;
+}
+
+.theme-farbicky .event-block {
+  border: 3px solid #1c1208;
+  border-radius: 12px;
+  box-shadow: 3px 3px 0 rgba(28, 18, 8, 0.25);
+  font-weight: 800;
+}
+
+.theme-farbicky .event-block.is-conflict {
+  box-shadow: 3px 3px 0 #1c1208, inset 0 0 0 3px #ffd166;
+}
+
+.theme-farbicky .allday-chip {
+  background: #fff;
+  border: 3px solid #1c1208;
+  border-radius: 14px;
+  box-shadow: 3px 3px 0 #1c1208;
+}
+
+.theme-farbicky .tl-now { border-top-color: #ef476f; border-top-width: 4px; }
+.theme-farbicky .tl-now-label {
+  background: #ef476f;
+  border: 2px solid #1c1208;
+  border-radius: 999px;
+}
+
+.theme-farbicky .outlook-box {
+  background: #ffd166;
+  border: 3px solid #1c1208;
+  border-style: solid;
+  box-shadow: 4px 4px 0 #1c1208;
+}
+
+.theme-farbicky .ev-status {
+  background: #ffd166;
+  color: #1c1208;
+  border: 2px solid #1c1208;
+  border-radius: 999px;
+}
+
+.theme-farbicky .who-name { font-size: 28px; }

@@ -1,0 +1,682 @@
+/* Single-page daily recap — Chromium 81.
+   Avoid: flex gap, inset, aspect-ratio, :is(), :where(), :focus-visible, :has(), dvh.
+   Animate flex-basis/width (not grid-template-columns). */
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 1024px;
+  height: 768px;
+  overflow: hidden;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  font-size: 20px;
+  line-height: 1.35;
+}
+
+img.avatar {
+  display: block;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: #ddd;
+}
+
+.frame {
+  width: 1024px;
+  height: 768px;
+  overflow: hidden;
+  position: relative;
+}
+
+.eyebrow {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.1;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  opacity: 0.75;
+}
+
+.eyebrow-swap { position: relative; min-height: 0; line-height: 1.1; }
+
+.eyebrow-swap .eyebrow {
+  display: none;
+}
+
+body[data-view="rodina"] .eyebrow-rodina,
+body[data-view="branislav"] .eyebrow-branislav,
+body[data-view="zuzka"] .eyebrow-zuzka,
+body[data-view="andrej"] .eyebrow-andrej,
+body[data-view="tomas"] .eyebrow-tomas {
+  display: block;
+}
+
+/* ---- Top bar ----
+   [home]  date(+kicker)  |  avatar+name  ......  weather
+*/
+.topbar {
+  display: -webkit-box;
+  display: flex;
+  -webkit-box-align: center;
+  align-items: center;
+  padding: 8px 16px;
+  height: 78px;
+}
+
+.home-icon {
+  -webkit-box-flex: 0;
+  flex: 0 0 44px;
+  width: 44px;
+  height: 44px;
+  display: -webkit-box;
+  display: flex;
+  -webkit-box-align: center;
+  align-items: center;
+  -webkit-box-pack: center;
+  justify-content: center;
+  opacity: 0.85;
+  pointer-events: none;
+  margin-right: 10px;
+}
+
+.home-glyph { display: block; }
+
+.topbar-date {
+  -webkit-box-flex: 0;
+  flex: 0 0 auto;
+  min-width: 0;
+  margin-right: 14px;
+  display: -webkit-box;
+  display: flex;
+  -webkit-box-orient: vertical;
+  -webkit-box-direction: normal;
+  flex-direction: column;
+  -webkit-box-pack: center;
+  justify-content: center;
+}
+
+.topbar-date h1 {
+  /* ~5–6px visual gap under kicker (halfway R5↔R6) */
+  margin: -1px 0 0;
+  padding: 0;
+  font-size: 28px;
+  line-height: 1.05;
+  white-space: nowrap;
+}
+
+.top-divider {
+  -webkit-box-flex: 0;
+  flex: 0 0 1px;
+  width: 1px;
+  height: 44px;
+  margin-right: 14px;
+  opacity: 0.9;
+}
+
+.view-who {
+  position: relative;
+  -webkit-box-flex: 0;
+  flex: 0 0 180px;
+  width: 180px;
+  height: 56px;
+  margin-right: 12px;
+}
+
+.view-who .who {
+  position: absolute;
+  left: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  display: none;
+  -webkit-box-align: center;
+  align-items: center;
+}
+
+.view-who .who .avatar {
+  width: 48px;
+  height: 48px;
+  border: 3px solid var(--m, transparent);
+}
+
+.view-who .who-name {
+  margin-left: 10px;
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+body[data-view="rodina"] .who-rodina,
+body[data-view="branislav"] .who-branislav,
+body[data-view="zuzka"] .who-zuzka,
+body[data-view="andrej"] .who-andrej,
+body[data-view="tomas"] .who-tomas {
+  display: -webkit-box;
+  display: flex;
+}
+
+.topbar-spacer {
+  -webkit-box-flex: 1;
+  flex: 1 1 auto;
+  min-width: 8px;
+}
+
+.weather {
+  display: -webkit-box;
+  display: flex;
+  -webkit-box-align: center;
+  align-items: center;
+  -webkit-box-pack: end;
+  justify-content: flex-end;
+  text-align: left;
+  white-space: nowrap;
+  margin-left: 8px;
+}
+
+.wx-icon {
+  display: -webkit-box;
+  display: flex;
+  -webkit-box-align: center;
+  align-items: center;
+  -webkit-box-pack: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  margin-right: 4px;
+  line-height: 0;
+  -webkit-flex-shrink: 0;
+  flex-shrink: 0;
+  /* optical: weather glyphs sit low in their viewBox */
+  -webkit-transform: translateY(-3px);
+  transform: translateY(-3px);
+}
+
+.wx-icon svg {
+  width: 36px;
+  height: 36px;
+  display: block;
+  vertical-align: middle;
+}
+
+.wx-text {
+  display: -webkit-box;
+  display: flex;
+  -webkit-box-orient: vertical;
+  -webkit-box-direction: normal;
+  flex-direction: column;
+  -webkit-box-pack: center;
+  justify-content: center;
+  line-height: 1.15;
+}
+
+.wx-temps {
+  display: block;
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.wx-summary {
+  display: block;
+  font-size: 14px;
+  opacity: 0.85;
+  margin-top: 1px;
+}
+
+/* sample flag intentionally not rendered */
+
+/* ---- Main: calendar + sidebar (flex-basis transition) ---- */
+.day-main {
+  display: -webkit-box;
+  display: flex;
+  -webkit-box-align: stretch;
+  align-items: stretch;
+  height: 678px;
+  padding: 0 14px 12px;
+}
+
+.cal-panel,
+.sidebar-panel {
+  -webkit-transition: -webkit-flex-basis 0.3s ease, flex-basis 0.3s ease, width 0.3s ease;
+  transition: flex-basis 0.3s ease, width 0.3s ease;
+  overflow: hidden;
+}
+
+.cal-panel {
+  -webkit-box-flex: 0;
+  flex: 0 0 700px;
+  width: 700px;
+  margin-right: 12px;
+  padding: 10px 12px;
+}
+
+.sidebar-panel {
+  -webkit-box-flex: 0;
+  flex: 0 0 284px;
+  width: 284px;
+  padding: 12px 14px;
+  display: -webkit-box;
+  display: flex;
+  -webkit-box-orient: vertical;
+  -webkit-box-direction: normal;
+  flex-direction: column;
+}
+
+/* Member views: calendar narrower, sidebar wider */
+body[data-view="branislav"] .cal-panel,
+body[data-view="zuzka"] .cal-panel,
+body[data-view="andrej"] .cal-panel,
+body[data-view="tomas"] .cal-panel {
+  flex-basis: 560px;
+  width: 560px;
+}
+
+body[data-view="branislav"] .sidebar-panel,
+body[data-view="zuzka"] .sidebar-panel,
+body[data-view="andrej"] .sidebar-panel,
+body[data-view="tomas"] .sidebar-panel {
+  flex-basis: 424px;
+  width: 424px;
+}
+
+.panel {
+  border-radius: 12px;
+}
+
+.sidebar-title {
+  margin: 0 0 8px;
+  font-size: 20px;
+}
+
+.sidebar-main {
+  -webkit-box-flex: 1;
+  flex: 1 1 auto;
+  overflow: hidden;
+  min-height: 0;
+}
+
+.hl-block { margin-bottom: 10px; }
+
+.hl-block h3 {
+  margin: 0 0 4px;
+  font-size: 14px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  opacity: 0.7;
+}
+
+.hl-block ul,
+.outlook-box ul {
+  margin: 0;
+  padding: 0 0 0 1.05em;
+}
+
+.hl-block li,
+.outlook-box li {
+  margin: 0 0 6px;
+  font-size: 15px;
+  line-height: 1.3;
+}
+
+.hl-who {
+  display: inline-block;
+  padding: 1px 7px;
+  margin-right: 4px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #fff;
+  background: var(--m);
+  vertical-align: baseline;
+}
+
+/* text vs detail */
+.item-detail { display: none; }
+.item-text { display: inline; }
+
+body[data-view="branislav"] .item-text,
+body[data-view="zuzka"] .item-text,
+body[data-view="andrej"] .item-text,
+body[data-view="tomas"] .item-text {
+  display: none;
+}
+
+body[data-view="branislav"] .item-detail,
+body[data-view="zuzka"] .item-detail,
+body[data-view="andrej"] .item-detail,
+body[data-view="tomas"] .item-detail {
+  display: inline;
+}
+
+/* Family view: hide detail-only items (family: false / level: detail) */
+body[data-view="rodina"] li[data-family="0"] {
+  display: none;
+}
+
+/* Member view: hide items tagged to someone else */
+body[data-view="branislav"] li[data-member]:not([data-member=""]):not([data-member="branislav"]),
+body[data-view="zuzka"] li[data-member]:not([data-member=""]):not([data-member="zuzka"]),
+body[data-view="andrej"] li[data-member]:not([data-member=""]):not([data-member="andrej"]),
+body[data-view="tomas"] li[data-member]:not([data-member=""]):not([data-member="tomas"]) {
+  display: none;
+}
+
+.empty-inline {
+  margin: 0;
+  opacity: 0.65;
+  font-size: 16px;
+}
+
+/* Outlook = distinct box */
+.outlook-box {
+  -webkit-box-flex: 0;
+  flex: 0 0 auto;
+  margin-top: 10px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 2px dashed rgba(0, 0, 0, 0.2);
+}
+
+.outlook-box h3 {
+  margin: 0 0 6px;
+  font-size: 15px;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+/* ---- Untimed strip ---- */
+.allday-row {
+  display: -webkit-box;
+  display: flex;
+  -webkit-box-orient: horizontal;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+  min-height: 0;
+}
+
+.allday-chip {
+  margin: 0 8px 8px 0;
+  padding: 7px 10px;
+  border-radius: 10px;
+  border-left: 6px solid var(--m);
+  font-size: 14px;
+  max-width: 100%;
+}
+
+.allday-chip .chip-meta {
+  display: block;
+  opacity: 0.75;
+  font-size: 12px;
+  margin-top: 2px;
+}
+
+/* Member view: filter untimed chips */
+body[data-view="branislav"] .allday-chip:not(.mem-branislav),
+body[data-view="zuzka"] .allday-chip:not(.mem-zuzka),
+body[data-view="andrej"] .allday-chip:not(.mem-andrej),
+body[data-view="tomas"] .allday-chip:not(.mem-tomas) {
+  display: none;
+}
+
+/* ---- Calendars: show one mode ---- */
+.calendars { position: relative; }
+
+.calendar { display: none; }
+
+body[data-view="rodina"] .calendar-family { display: block; }
+
+body[data-view="branislav"] .calendar-member[data-focus="branislav"],
+body[data-view="zuzka"] .calendar-member[data-focus="zuzka"],
+body[data-view="andrej"] .calendar-member[data-focus="andrej"],
+body[data-view="tomas"] .calendar-member[data-focus="tomas"] {
+  display: block;
+}
+
+.lane-heads {
+  display: -webkit-box;
+  display: flex;
+  margin-bottom: 4px;
+}
+
+.lane-head {
+  -webkit-box-flex: 1;
+  flex: 1 1 0;
+  width: 0;
+  display: -webkit-box;
+  display: flex;
+  -webkit-box-align: center;
+  align-items: center;
+  -webkit-box-pack: center;
+  justify-content: center;
+  padding: 4px;
+  margin-right: 6px;
+  border-radius: 10px;
+  border-bottom: 4px solid var(--m, transparent);
+  min-height: 52px;
+}
+
+.lane-heads .lane-head:last-child { margin-right: 0; }
+
+.lane-name {
+  margin-left: 8px;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.lane-head-others {
+  border-bottom-color: rgba(0, 0, 0, 0.2);
+  opacity: 0.55;
+}
+
+.lane-head-others .lane-name {
+  margin-left: 0;
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.lane-heads-2 .lane-head-focus {
+  -webkit-box-flex: 3;
+  flex: 3 1 0;
+}
+
+.lane-heads-2 .lane-head-others {
+  -webkit-box-flex: 1;
+  flex: 1 1 0;
+}
+
+.tl-body {
+  position: relative;
+  height: 470px;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.tl-hours,
+.tl-lanes,
+.tl-span-layer {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+}
+
+.tl-hours { z-index: 1; }
+
+.tl-lanes {
+  display: -webkit-box;
+  display: flex;
+  padding-left: 44px;
+  z-index: 2;
+}
+
+.tl-span-layer {
+  padding-left: 44px;
+  pointer-events: none;
+  z-index: 3;
+}
+
+.tl-hour {
+  position: absolute;
+  left: 0;
+  right: 0;
+  border-top: 1px solid rgba(0, 0, 0, 0.12);
+  height: 0;
+}
+
+.tl-hour-label {
+  position: absolute;
+  left: 4px;
+  /* sit fully above the hour rule (was -10px → line struck through digits) */
+  top: -14px;
+  line-height: 1;
+  font-size: 12px;
+  font-weight: 700;
+  opacity: 0.55;
+  padding: 0 2px;
+  background: var(--tl-bg, transparent);
+  font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  font-variant-numeric: tabular-nums;
+  -webkit-font-feature-settings: "zero" 0;
+  font-feature-settings: "zero" 0;
+}
+
+.lane-col {
+  position: relative;
+  -webkit-box-flex: 1;
+  flex: 1 1 0;
+  width: 0;
+  margin-right: 6px;
+  height: 100%;
+}
+
+.tl-lanes .lane-col:last-child { margin-right: 0; }
+
+.tl-lanes-2 .lane-col-focus {
+  -webkit-box-flex: 3;
+  flex: 3 1 0;
+}
+
+.tl-lanes-2 .lane-col-others {
+  -webkit-box-flex: 1;
+  flex: 1 1 0;
+  opacity: 0.42;
+}
+
+.event-block {
+  position: absolute;
+  padding: 3px 5px;
+  overflow: hidden; /* never clip mid-glyph — JS hides lines that don't fit */
+  border-radius: 8px;
+  border: 2px solid var(--m);
+  background: var(--m);
+  color: #fff;
+  font-size: 13px;
+  line-height: 1.15;
+  z-index: 2;
+}
+
+.event-block.is-span {
+  z-index: 4;
+  pointer-events: none;
+}
+
+.event-block .ev-time {
+  display: block;
+  font-size: 11px;
+  font-weight: 700;
+  opacity: 0.9;
+  /* Atkinson’s default zero is slashed — reads as a strikethrough on times */
+  font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  font-variant-numeric: tabular-nums;
+  -webkit-font-feature-settings: "zero" 0;
+  font-feature-settings: "zero" 0;
+}
+
+.event-block .ev-title {
+  display: block;
+  font-weight: 700;
+  font-size: 14px;
+}
+
+.event-block .ev-loc,
+.event-block .ev-status,
+.event-block .ev-flags {
+  display: block;
+  font-size: 11px;
+  opacity: 0.9;
+}
+
+.event-block.is-short .ev-time { display: inline; margin-right: 4px; }
+.event-block.is-short .ev-title { display: inline; font-size: 13px; }
+.event-block.is-short .ev-loc,
+.event-block.is-short .ev-status,
+.event-block.is-short .ev-flags { display: none; }
+
+.event-block.is-unconfirmed,
+.allday-chip.is-unconfirmed {
+  border-style: dashed;
+  opacity: 0.92;
+}
+
+.event-block.is-conflict,
+.allday-chip.is-conflict {
+  box-shadow: inset 0 0 0 3px #f5c518;
+  background-image: repeating-linear-gradient(
+    -45deg,
+    transparent,
+    transparent 6px,
+    rgba(0, 0, 0, 0.12) 6px,
+    rgba(0, 0, 0, 0.12) 12px
+  );
+}
+
+.event-block.is-past {
+  opacity: 0.38;
+  -webkit-filter: grayscale(0.25);
+  filter: grayscale(0.25);
+}
+
+.tl-now {
+  position: absolute;
+  left: 36px;
+  right: 0;
+  height: 0;
+  border-top: 3px solid #e11d48;
+  z-index: 6;
+  pointer-events: none;
+}
+
+.tl-now-label {
+  position: absolute;
+  right: 6px;
+  top: -20px;
+  padding: 1px 7px;
+  border-radius: 6px;
+  background: #e11d48;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  font-variant-numeric: tabular-nums;
+  -webkit-font-feature-settings: "zero" 0;
+  font-feature-settings: "zero" 0;
+}
+
+.ev-status,
+.ev-flags {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 1px 6px;
+  border-radius: 5px;
+  font-size: 12px;
+  font-weight: 700;
+  vertical-align: middle;
+}

@@ -1,0 +1,114 @@
+{
+  "date": "2026-11-03",
+  "locale": "sk-SK",
+  "timezone": "Europe/Prague",
+  "title": "Utorok (vzorka — hustý deň)",
+  "now": "14:45",
+  "refresh_at": "06:30",
+  "weather": {
+    "sample": true,
+    "summary": "Zamračené",
+    "temp_high_c": 9,
+    "temp_low_c": 3,
+    "icon": "cloudy"
+  },
+  "timeline": {
+    "start": "07:00",
+    "end": "21:00"
+  },
+  "events": [
+    {
+      "id": "andrej-math-prep",
+      "members": ["andrej"],
+      "title": "Príprava z matematiky",
+      "start": "15:15",
+      "end": "16:45",
+      "all_day": false,
+      "location": "Gymnázium Českolipská",
+      "status": "confirmed",
+      "flags": ["conflict", "needs-ride"],
+      "conflict_with": ["andrej-baseball-uvltavy"],
+      "notes": [],
+      "reminders": []
+    },
+    {
+      "id": "andrej-baseball-uvltavy",
+      "members": ["andrej"],
+      "title": "Baseball SaBaT",
+      "start": "16:00",
+      "end": "18:00",
+      "all_day": false,
+      "location": "U Vltavy 816/1",
+      "status": "confirmed",
+      "flags": ["conflict", "needs-ride"],
+      "conflict_with": ["andrej-math-prep"],
+      "notes": [],
+      "reminders": []
+    },
+    {
+      "id": "brano-bike",
+      "members": ["branislav"],
+      "title": "Bicykel",
+      "start": "16:00",
+      "end": "19:00",
+      "all_day": false,
+      "location": "",
+      "status": "confirmed",
+      "flags": [],
+      "conflict_with": [],
+      "notes": [],
+      "reminders": []
+    },
+    {
+      "id": "andrej-rehab",
+      "members": ["andrej"],
+      "title": "Konzultácia rehabilitácie",
+      "start": "18:30",
+      "end": "19:30",
+      "all_day": false,
+      "location": "KYKO med, Tišická 396/1",
+      "status": "confirmed",
+      "flags": ["needs-ride"],
+      "conflict_with": [],
+      "notes": [],
+      "reminders": []
+    },
+    {
+      "id": "rodina-trash",
+      "members": ["branislav", "zuzka", "andrej", "tomas"],
+      "title": "Vyniesť odpadky",
+      "start": "20:00",
+      "end": "20:15",
+      "all_day": false,
+      "location": "doma",
+      "status": "todo",
+      "flags": [],
+      "conflict_with": [],
+      "notes": [],
+      "reminders": []
+    }
+  ],
+  "sections": [
+    {
+      "id": "rodina",
+      "title": "Rodina",
+      "items": [
+        {
+          "member": "andrej",
+          "text": "Rozhodnúť konflikt matematika vs baseball + odvoz.",
+          "detail": "Andrej 16:00–16:45: konflikt prípravy z matematiky a baseballu SaBaT. Rozhodnúť, ktorý ide, a zabezpečiť odvoz."
+        }
+      ]
+    },
+    {
+      "id": "vyhlad",
+      "title": "Zajtra",
+      "items": [
+        {
+          "text": "St 4. 11. — bežný školský deň.",
+          "detail": "Streda 4. 11. — bežný školský deň, nič navyše."
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,103 @@
+/* C · Večerná — dark ambient living-room */
+:root {
+  --bg: #0b1220;
+  --panel: #141c2c;
+  --panel2: #1a2438;
+  --ink: #e8eef7;
+  --muted: #9aa8bc;
+  --amber: #e7b56a;
+  --line: rgba(231, 181, 106, 0.22);
+  --focus: #f5d78e;
+}
+
+body.theme-vecerna {
+  color: var(--ink);
+  background:
+    radial-gradient(ellipse at 20% 0%, rgba(231, 181, 106, 0.14), transparent 42%),
+    radial-gradient(ellipse at 100% 80%, rgba(60, 90, 140, 0.25), transparent 45%),
+    linear-gradient(180deg, #0e1626 0%, var(--bg) 40%, #080d16 100%);
+  font-family: "Atkinson Hyperlegible", "Segoe UI", sans-serif;
+}
+
+.theme-vecerna h1,
+.theme-vecerna h2,
+.theme-vecerna .who-name,
+.theme-vecerna .sidebar-title {
+  font-family: "Fraunces", Georgia, serif;
+  font-weight: 600;
+  color: #f4efe6;
+}
+
+.theme-vecerna .eyebrow { color: var(--amber); opacity: 1; }
+
+.theme-vecerna .panel {
+  background: rgba(20, 28, 44, 0.92);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
+}
+
+.theme-vecerna .home-icon { color: var(--amber); }
+
+.theme-vecerna .wx-icon { color: var(--amber); }
+.theme-vecerna .wx-summary,
+.theme-vecerna .wx-temps { color: var(--ink); }
+.theme-vecerna .wx-summary { color: var(--muted); }
+
+.theme-vecerna .sample-flag {
+  background: rgba(231, 181, 106, 0.15);
+  color: var(--amber);
+  border: 1px solid var(--line);
+}
+
+.theme-vecerna .lane-head {
+  background: rgba(26, 36, 56, 0.9);
+  color: var(--ink);
+}
+
+.theme-vecerna .tl-body {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.02), transparent 30%), #0f1726;
+  border: 1px solid var(--line);
+}
+
+.theme-vecerna .tl-hour { border-top-color: rgba(154, 168, 188, 0.18); }
+.theme-vecerna .tl-hour-label { color: var(--muted); opacity: 1; }
+
+.theme-vecerna .event-block {
+  border-width: 0;
+  border-left: 4px solid rgba(255, 255, 255, 0.35);
+  border-radius: 10px;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.35);
+}
+
+.theme-vecerna .event-block.is-conflict {
+  box-shadow: 0 0 0 2px var(--amber), 0 6px 16px rgba(0, 0, 0, 0.35);
+}
+
+.theme-vecerna .allday-chip {
+  background: var(--panel2);
+  border: 1px solid var(--line);
+  color: var(--ink);
+}
+
+.theme-vecerna .tl-now { border-top-color: var(--amber); }
+.theme-vecerna .tl-now-label { background: var(--amber); color: #1a1208; }
+
+.theme-vecerna .outlook-box {
+  background: rgba(231, 181, 106, 0.08);
+  border-color: rgba(231, 181, 106, 0.45);
+  border-style: solid;
+}
+
+.theme-vecerna .outlook-box h3 { color: var(--amber); }
+
+.theme-vecerna .hl-block h3 { color: var(--amber); opacity: 1; }
+
+.theme-vecerna .ev-status {
+  background: rgba(231, 181, 106, 0.16);
+  color: var(--amber);
+}
+
+.theme-vecerna .lane-head-others { opacity: 0.5; border-bottom-color: var(--line); }
+
+.theme-vecerna .empty-inline { color: var(--muted); opacity: 1; }

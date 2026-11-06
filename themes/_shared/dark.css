@@ -1,0 +1,111 @@
+/* Dark mode — Večerná palette (html.theme-dark) */
+html.theme-dark {
+  --bg: #0b1220;
+  --panel: #141c2c;
+  --panel2: #1a2438;
+  --ink: #e8eef7;
+  --muted: #9aa8bc;
+  --accent: #e7b56a;
+  --line: rgba(231, 181, 106, 0.22);
+  --focus: #f5d78e;
+  --tl-bg: #0f1726;
+  --tl-hour: rgba(154, 168, 188, 0.18);
+  --chip-bg: #1a2438;
+  --now: #e7b56a;
+  --now-ink: #1a1208;
+  /* barely above panel (#141c2c) — subtle lift only */
+  --head-bg: #1a2438;
+  --page-bg:
+    radial-gradient(ellipse at 20% 0%, rgba(231, 181, 106, 0.14), transparent 42%),
+    radial-gradient(ellipse at 100% 80%, rgba(60, 90, 140, 0.25), transparent 45%),
+    linear-gradient(180deg, #0e1626 0%, #0b1220 40%, #080d16 100%);
+}
+
+html.theme-dark body {
+  color: var(--ink);
+  background: var(--page-bg);
+  font-family: "Atkinson Hyperlegible", "Segoe UI", sans-serif;
+}
+
+html.theme-dark h1,
+html.theme-dark h2,
+html.theme-dark .who-name,
+html.theme-dark .sidebar-title {
+  font-family: "Fraunces", Georgia, serif;
+  font-weight: 600;
+  color: #f4efe6;
+}
+
+html.theme-dark .eyebrow { color: var(--accent); opacity: 1; }
+
+html.theme-dark .panel {
+  background: rgba(20, 28, 44, 0.92);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
+}
+
+html.theme-dark .home-icon { color: var(--accent); }
+html.theme-dark .wx-icon { color: var(--accent); }
+html.theme-dark .wx-temps { color: var(--ink); }
+html.theme-dark .wx-summary { color: var(--muted); }
+
+html.theme-dark .top-divider { background: var(--line); }
+
+html.theme-dark .lane-head {
+  background: var(--head-bg);
+  color: var(--ink);
+}
+
+html.theme-dark .tl-body {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.02), transparent 30%), var(--tl-bg);
+  border: 1px solid var(--line);
+}
+
+html.theme-dark .tl-hour { border-top-color: var(--tl-hour); }
+html.theme-dark .tl-hour-label { color: var(--muted); opacity: 1; }
+
+html.theme-dark .event-block {
+  border-width: 0;
+  border-left: 4px solid rgba(255, 255, 255, 0.35);
+  border-radius: 10px;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.35);
+  background: var(--m);
+  color: #fff;
+}
+
+html.theme-dark .event-block.is-unconfirmed {
+  border: 2px dashed rgba(255, 255, 255, 0.75);
+  border-left: 4px dashed rgba(255, 255, 255, 0.9);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.35);
+}
+
+html.theme-dark .event-block.is-conflict {
+  box-shadow: 0 0 0 2px var(--accent), 0 6px 16px rgba(0, 0, 0, 0.35);
+}
+
+html.theme-dark .allday-chip {
+  background: var(--chip-bg);
+  border: 1px solid var(--line);
+  color: var(--ink);
+}
+
+html.theme-dark .tl-now { border-top-color: var(--now); }
+html.theme-dark .tl-now-label { background: var(--now); color: var(--now-ink); }
+
+html.theme-dark .outlook-box {
+  background: rgba(231, 181, 106, 0.08);
+  border-color: rgba(231, 181, 106, 0.45);
+  border-style: solid;
+}
+
+html.theme-dark .outlook-box h3,
+html.theme-dark .hl-block h3 { color: var(--accent); opacity: 1; }
+
+html.theme-dark .ev-status {
+  background: rgba(231, 181, 106, 0.16);
+  color: var(--accent);
+}
+
+html.theme-dark .lane-head-others { opacity: 0.5; border-bottom-color: var(--line); }
+html.theme-dark .empty-inline { color: var(--muted); opacity: 1; }

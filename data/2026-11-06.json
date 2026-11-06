@@ -1,0 +1,145 @@
+{
+  "date": "2026-11-06",
+  "locale": "sk-SK",
+  "timezone": "Europe/Prague",
+  "title": "Dnes",
+  "now": "09:30",
+  "refresh_at": "06:30",
+  "weather": {
+    "sample": true,
+    "summary": "Polojasno",
+    "temp_high_c": 12,
+    "temp_low_c": 4,
+    "icon": "partly-cloudy"
+  },
+  "timeline": {
+    "start": "07:00",
+    "end": "21:00"
+  },
+  "events": [
+    {
+      "id": "tomas-tripartita",
+      "members": ["tomas"],
+      "title": "Tripartita",
+      "start": "13:00",
+      "end": "13:30",
+      "all_day": false,
+      "location": "ZŠ Trojská",
+      "status": "confirmed",
+      "flags": [],
+      "conflict_with": [],
+      "notes": ["Stretnutie rodič – učiteľ – dieťa."],
+      "reminders": [
+        "Lístok so školským e-mailom a heslom vložiť do peračníka (informatika sa tento a budúci týždeň prihlasuje cez e-mail)."
+      ]
+    },
+    {
+      "id": "brano-jami",
+      "members": ["branislav"],
+      "title": "Jakub Víšek — JAMI Gardens",
+      "start": null,
+      "end": null,
+      "all_day": false,
+      "location": "doma",
+      "status": "unconfirmed",
+      "flags": ["time-tbd"],
+      "conflict_with": [],
+      "notes": ["Príde ráno; zatiaľ nie je v kalendári."],
+      "reminders": [],
+      "time_note": "čas potvrdí telefonát"
+    },
+    {
+      "id": "brano-tenis",
+      "members": ["branislav"],
+      "title": "Tenis",
+      "start": "14:00",
+      "end": "15:00",
+      "all_day": false,
+      "location": "",
+      "status": "unconfirmed",
+      "flags": [],
+      "conflict_with": [],
+      "notes": [],
+      "reminders": []
+    },
+    {
+      "id": "brano-sportisimo",
+      "members": ["branislav"],
+      "title": "Vyzdvihnúť balík Sportisimo",
+      "start": null,
+      "end": null,
+      "all_day": false,
+      "location": "OC Krakov Bohnice",
+      "status": "todo",
+      "flags": ["pickup"],
+      "conflict_with": [],
+      "notes": [
+        "Do zatváracej doby dnes.",
+        "Kód v SMS.",
+        "Možno predĺžiť do stredy 11. 11."
+      ],
+      "reminders": [],
+      "time_note": "do zatváracej doby"
+    },
+    {
+      "id": "andrej-baseball",
+      "members": ["andrej"],
+      "title": "Baseball",
+      "start": "17:00",
+      "end": "19:00",
+      "all_day": false,
+      "location": "telocvičňa Českolipská",
+      "status": "confirmed",
+      "flags": [],
+      "conflict_with": [],
+      "notes": [
+        "Vchod bočným vchodom, nie hlavným.",
+        "Málo parkovania — parkovacia zóna Praha 9."
+      ],
+      "reminders": []
+    }
+  ],
+  "sections": [
+    {
+      "id": "rodina",
+      "title": "Rodina",
+      "items": [
+        {
+          "text": "Skontrolovať kontá na obedoch — škola hlási nezrovnalosti.",
+          "detail": "Škola prosí rodičov skontrolovať kontá na obedoch detí. Našli sa nezrovnalosti vo platbách; overiť zostatok pre Andreja aj Tomáša."
+        }
+      ]
+    },
+    {
+      "id": "pripomienky",
+      "title": "Pripomienky",
+      "items": [
+        {
+          "member": "andrej",
+          "text": "Diplom Finančnej gramotnosti do portfólia.",
+          "detail": "Diplom z Finančnej gramotnosti odložiť do portfólia na gymnázium — nestratiť medzi školskými papiermi."
+        },
+        {
+          "member": "branislav",
+          "family": false,
+          "text": "Predĺžiť Sportisimo vyzdvihnutie do stredy, ak nestihneš dnes.",
+          "detail": "Ak nestihneš Sportisimo dnes do zatváracej doby, predĺžiť vyzdvihnutie do stredy 11. 11. (kód je v SMS)."
+        }
+      ]
+    },
+    {
+      "id": "vyhlad",
+      "title": "Víkend",
+      "items": [
+        {
+          "text": "So 7. 11. — nič naplánované.",
+          "detail": "Sobota 7. 11. — nič naplánované."
+        },
+        {
+          "text": "Ne 8. 11. — SaBaT brigáda (rodina).",
+          "detail": "Nedeľa 8. 11. — celodenná SaBaT brigáda, rodinný program."
+        }
+      ]
+    }
+  ]
+}
