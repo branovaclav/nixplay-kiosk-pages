@@ -636,10 +636,18 @@ def who_header(people, family):
     return f'<div class="view-who">{"".join(parts)}</div>'
 
 
-def eyebrow_html(people):
+def rodina_eyebrow_label(day_iso, today_iso=None):
+    """Rodina kicker: 'Zajtra' when the page is a future day, else 'Rodinný prehľad'."""
+    today = today_iso or prague_today_iso()
+    if day_iso and today and day_iso > today:
+        return "Zajtra"
+    return "Rodinný prehľad"
+
+
+def eyebrow_html(people, day_iso=None):
     """Kicker above the date — changes with the active view."""
     bits = [
-        '<p class="eyebrow eyebrow-rodina" data-who="rodina">Rodinný prehľad</p>'
+        f'<p class="eyebrow eyebrow-rodina" data-who="rodina">{esc(rodina_eyebrow_label(day_iso))}</p>'
     ]
     for p in people:
         label = ROLE_EYEBROW.get(p.get("role"), p["display_name"])
@@ -661,6 +669,8 @@ def render_day_page(day, pack):
     d = day["date"]
     sched = theme_schedule(pack, day)
     w = day.get("weather") or {}
+    today = prague_today_iso()
+    is_future = bool(d and today and d > today)
 
     calendars = [family_calendar(day, people, start, end)]
     for p in people:
@@ -671,7 +681,7 @@ def render_day_page(day, pack):
   <header class="topbar">
     <div class="home-icon" title="Domov" aria-hidden="true">{house_icon_svg()}</div>
     <div class="topbar-date">
-      {eyebrow_html(people)}
+      {eyebrow_html(people, d)}
       <h1>{esc(fmt_date_sk(d))}</h1>
     </div>
     <div class="top-divider" aria-hidden="true"></div>
@@ -711,9 +721,10 @@ def render_day_page(day, pack):
 {css}
 </style>
 </head>
-<body class="page-day"
+<body class="page-day{" is-future-day" if is_future else ""}"
   data-view="rodina"
   data-date="{esc(d)}"
+  data-day-role="{esc("tomorrow" if is_future else "today")}"
   data-timezone="{esc(day.get("timezone") or "Europe/Prague")}"
   data-fallback-now="{esc(day.get("now") or "")}"
   data-refresh-at="{esc(day.get("refresh_at") or "06:30")}"
@@ -744,15 +755,29 @@ def prague_today_iso():
 
 
 def pick_primary_day(days):
-    """Today's file if present, else newest by date field."""
+    """Newest day file with date >= today (Prague); else newest overall.
+
+    Evening generator writes tomorrow's JSON — that file should show from
+    the evening push until morning catches up.
+    """
     if not days:
         return None
     by_date = {d["date"]: d for d in days if d.get("date")}
     today = prague_today_iso()
-    if today in by_date:
-        return by_date[today]
+    upcoming = sorted(k for k in by_date if k >= today)
+    if upcoming:
+        return by_date[upcoming[-1]]  # newest today-or-later
     newest = sorted(by_date.keys())[-1]
     return by_date[newest]
+
+
+def write_version_json(out_dir, day):
+    """Tiny build id for the frame to poll (evening push → reload)."""
+    payload = {
+        "id": datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ"),
+        "date": day.get("date"),
+    }
+    write(os.path.join(out_dir, "version.json"), json.dumps(payload, ensure_ascii=False) + "\n")
 
 
 def clear_html_files(dir_path):
@@ -771,6 +796,7 @@ def write_production_site(day, pack):
     os.makedirs(SITE, exist_ok=True)
     copy_site_assets(SITE)
     write(os.path.join(SITE, "index.html"), render_day_page(day, pack))
+    write_version_json(SITE, day)
     # Pages: skip Jekyll so _files / dots are fine; also copy root .nojekyll
     nojekyll_src = os.path.join(ROOT, ".nojekyll")
     nojekyll_dst = os.path.join(SITE, ".nojekyll")
@@ -778,7 +804,7 @@ def write_production_site(day, pack):
         shutil.copy2(nojekyll_src, nojekyll_dst)
     else:
         write(nojekyll_dst, "")
-    print(f"built site/index.html ← {day['date']}")
+    print(f"built site/index.html ← {day['date']} (+ version.json)")
 
 
 def write_local_designs(days, pack, primary):
@@ -795,6 +821,7 @@ def write_local_designs(days, pack, primary):
         print(f"built designs/{day['date']}.html")
     # designs/index.html mirrors production (same primary day page)
     write(os.path.join(DESIGNS, "index.html"), render_day_page(primary, pack))
+    write_version_json(DESIGNS, primary)
     print("built designs/index.html (same as site/)")
 
 

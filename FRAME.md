@@ -8,6 +8,7 @@ The pages in this repo are shown on a self-managed Nixplay Seed 8" photo frame. 
   - Pages on the home page's origin stay fullscreen; other sites show a slim Chromium bar at the top.
 - **Weak hardware** (512 MB RAM, 4× Cortex-A7). Keep pages light: little JS, few animations, images ≤ ~1024 px.
 - **Pages run unattended for days.** Refresh data periodically and avoid leaks. The screen may later be switched off when nobody is around.
+- **Two generator runs / day (Europe/Prague):** morning (~06:55) writes **today’s** JSON; evening (~18:55) writes **tomorrow’s**. The live page shows the newest day file with `date >= today`, so tomorrow’s plan appears the same evening. Frame polls `version.json` ~every 5 min and reloads on change; also reloads after `refresh_at` and when the page date falls behind Prague today (not when the page is tomorrow). Morning may reuse the evening file unchanged (no commit).
 - **Not available in Chromium 81:**
   - CSS: flex `gap` (84), `inset` (87), `aspect-ratio` (88), `:focus-visible` (86), `:is()`/`:where()` (88), `:has()`, container queries, `dvh`.
   - JS: `String.replaceAll`, `Promise.any`, `??=` (85), `Array.at` (92), `structuredClone`, top-level `await`.
@@ -18,6 +19,7 @@ The pages in this repo are shown on a self-managed Nixplay Seed 8" photo frame. 
   - Default **`mode: "sun"`**: NOAA sunrise/sunset for `lat`/`lon` in `theme_schedule` (Prague 50.08, 14.42), no network. Light from sunrise→sunset (optional minute offsets); dark otherwise. CET/CEST via `Intl` + Europe/Prague.
   - Fallback **`mode: "fixed"`** (or if sun math fails): `dark_from` / `dark_until` (default 19:00–06:30).
   - Screenshots/tests: `?theme=light` or `?theme=dark`.
+- **Tomorrow on screen:** if `data-date` is after Prague today, Rodina kicker reads **Zajtra** and the live „teraz“ marker is hidden.
 
 ## Input: gestures arrive as `keydown` events
 | Gesture on the frame | Event | Browser default |

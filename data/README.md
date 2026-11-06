@@ -7,16 +7,23 @@
 | `RULES.md` | Kuchárka pre generátor / autora |
 | `SCHEMA.md` | JSON schéma |
 
-## Ako vzniká denný súbor
+## Dva behy denne (Europe/Prague)
 
-Ranný **generátor** (bot / skript) každú noc alebo ráno:
+| Beh | Približne | Súbor | Poznámka |
+|---|---|---|---|
+| **Ráno** | ~06:55 | `data/<dnes>.json` | Prehľad na **dnes**. Ak večerný beh už pripravil ten istý súbor ako „zajtra“ a nič sa nezmenilo, **žiadny commit** (reuse). |
+| **Večer** | ~18:55 | `data/<zajtra>.json` | Prehľad na **zajtra**. Po pushi sa stránka hneď prepne na zajtra (najnovší súbor s dátumom ≥ dnes). |
 
-1. Zloží `data/YYYY-MM-DD.json` podľa [`RULES.md`](RULES.md) (Europe/Prague).
-2. Commitne ho do `main` (jeden commit; staršie súbory **staršie ako ~14 dní** v tom istom commite zmaže).
-3. Push na `main` spustí GitHub Action → `tools/validate.py` + `tools/build.py` → deploy `site/` na Pages.
+Každý commit, ktorý mení JSON:
 
-Na ráme je vždy `index.html` = dnešný súbor (ak chýba, najnovší dostupný). Žiadny HTML commit z bota — build beží v CI.
+1. Zapisuje / aktualizuje `data/YYYY-MM-DD.json` podľa [`RULES.md`](RULES.md).
+2. V tom istom commite **vymaže** súbory staršie než **~14 dní**.
+3. Push na `main` → Action `validate` + `build` → Pages (`site/index.html` + `site/version.json`).
 
-Validácia pred merge / v CI: `python3 tools/validate.py`.
+Na ráme: `index.html` = najnovší deň s `date >= dnes` (Prague). Rám každých ~5 min kontroluje `version.json` a po večernom deployi sa sám obnoví. Žiadny HTML commit z bota.
+
+Validácia: `python3 tools/validate.py` (číta len `data/*.json`, nie `samples/`).
+
+Ukážkové / testovacie dni (napr. „zajtra“ pre lokálny náhľad) dávaj do **`samples/`** — build a validator ich **neberú**, aby sa nestali živou stránkou.
 
 Pages source: GitHub Actions (`site/` artifact).

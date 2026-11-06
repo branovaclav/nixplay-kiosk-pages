@@ -26,6 +26,8 @@
   var themeLocked = null; // "light"|"dark" from ?theme=
   var lastSunKey = "";
   var cachedSun = null; // { rise, set } minutes from local midnight
+  var VERSION_MS = 5 * 60 * 1000;
+  var knownVersionId = null;
 
   function viewIndex(id) {
     for (var i = 0; i < VIEWS.length; i++) if (VIEWS[i] === id) return i;
@@ -317,16 +319,34 @@
     } catch (e) {}
   }
 
+  /** pageDate > Prague today → evening “tomorrow” plan is on screen. */
+  function isFuturePage() {
+    var pageDate = body.getAttribute("data-date") || "";
+    var today = pragueToday();
+    return !!(pageDate && today && pageDate > today);
+  }
+
+  function syncFutureDayChrome() {
+    var future = isFuturePage();
+    if (future) body.classList.add("is-future-day");
+    else body.classList.remove("is-future-day");
+    body.setAttribute("data-day-role", future ? "tomorrow" : "today");
+    var rodinaEyebrow = document.querySelector(".eyebrow-rodina");
+    if (rodinaEyebrow) {
+      rodinaEyebrow.textContent = future ? "Zajtra" : "Rodinný prehľad";
+    }
+  }
+
   function updateNow() {
     var pageDate = body.getAttribute("data-date") || "";
     var hm = pragueHM();
     var useFallback = false;
-    if (pageDate) {
-      var today = pragueToday();
-      if (today && today !== pageDate && fallbackNow) {
-        hm = fallbackNow;
-        useFallback = true;
-      }
+    var today = pragueToday();
+    var future = !!(pageDate && today && pageDate > today);
+    // Stale past day (page < today): keep sample fallback for demos if any
+    if (pageDate && today && pageDate < today && fallbackNow) {
+      hm = fallbackNow;
+      useFallback = true;
     }
     var q = location.search || "";
     var m = q.match(/[?&]now=(\d{1,2}:\d{2})/);
@@ -339,12 +359,14 @@
       useFallback = true;
     }
 
+    syncFutureDayChrome();
     applyTheme();
 
     var mins = parseHM(hm);
     var markers = document.querySelectorAll(".tl-now");
     var i;
-    if (mins == null || mins < dayStart || mins > dayEnd) {
+    // Tomorrow's plan: no live "now" line
+    if (future || mins == null || mins < dayStart || mins > dayEnd) {
       for (i = 0; i < markers.length; i++) markers[i].style.display = "none";
     } else {
       var pct = ((mins - dayStart) / (dayEnd - dayStart)) * 100;
@@ -360,7 +382,7 @@
     for (i = 0; i < blocks.length; i++) {
       var endMin = parseInt(blocks[i].getAttribute("data-end-min"), 10);
       var cn = (blocks[i].className || "").replace(/\bis-past\b/g, "").replace(/\s+/g, " ");
-      if (!isNaN(endMin) && mins != null && endMin <= mins) cn += " is-past";
+      if (!future && !isNaN(endMin) && mins != null && endMin <= mins) cn += " is-past";
       blocks[i].className = cn.replace(/^\s|\s$/g, "");
     }
     body.setAttribute("data-now-source", useFallback ? "fallback" : "live");
@@ -380,31 +402,54 @@
     return deltaMin * 60 * 1000 - nowSec * 1000;
   }
 
-  function goToTodayPage() {
-    // index.html picks today's file; same folder as this page
+  function softReload() {
     try {
-      location.replace("index.html");
+      location.reload();
     } catch (e) {
-      location.href = "index.html";
+      location.href = location.href;
     }
   }
 
   function armDailyRefresh() {
-    // If this page is not today's date, roll forward (new day published).
+    // Only bail when the page is *past* (page date < Prague today).
+    // Tomorrow's evening file (page > today) must stay — no redirect loop.
     var pageDate = body.getAttribute("data-date") || "";
     var today = pragueToday();
-    if (pageDate && today && pageDate !== today) {
-      // Demospages with ?now= stay put (screenshots / frozen samples).
-      if (!/[?&]now=/.test(location.search || "") && body.getAttribute("data-lock-now") !== "1") {
-        goToTodayPage();
-        return;
-      }
+    var frozen =
+      /[?&]now=/.test(location.search || "") || body.getAttribute("data-lock-now") === "1";
+    if (pageDate && today && pageDate < today && !frozen) {
+      softReload(); // index.html rebuilt to today/tomorrow
+      return;
     }
     var wait = msUntilRefresh();
     if (wait < 5000) wait = 5000;
     setTimeout(function () {
-      location.reload();
+      softReload();
     }, wait);
+  }
+
+  /** Poll site/version.json so evening Pages deploys reach the frame quickly. */
+  function armVersionPoll() {
+    if (typeof fetch !== "function") return;
+    function check() {
+      var url = "version.json?_=" + String(Date.now());
+      fetch(url)
+        .then(function (r) {
+          if (!r || !r.ok) return null;
+          return r.json();
+        })
+        .then(function (data) {
+          if (!data || !data.id) return;
+          if (knownVersionId == null) {
+            knownVersionId = data.id;
+            return;
+          }
+          if (data.id !== knownVersionId) softReload();
+        })
+        .catch(function () {});
+    }
+    check();
+    setInterval(check, VERSION_MS);
   }
 
   function onKey(e) {
@@ -446,6 +491,7 @@
     updateNow();
     setInterval(updateNow, NOW_MS);
     armDailyRefresh();
+    armVersionPoll();
     document.addEventListener("keydown", onKey, true);
     window.addEventListener("resize", fitEventBlocks);
   }

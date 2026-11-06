@@ -710,6 +710,11 @@ body[data-view="tomas"] .calendar-member[data-focus="tomas"] {
   pointer-events: none;
 }
 
+/* Evening “tomorrow” plan — no live now marker */
+body.is-future-day .tl-now {
+  display: none !important;
+}
+
 .tl-now-label {
   position: absolute;
   right: 6px;
@@ -987,6 +992,7 @@ html.theme-light .empty-inline { color: var(--muted); }
 <body class="page-day"
   data-view="rodina"
   data-date="2026-11-03"
+  data-day-role="today"
   data-timezone="Europe/Prague"
   data-fallback-now="14:45"
   data-refresh-at="06:30"
