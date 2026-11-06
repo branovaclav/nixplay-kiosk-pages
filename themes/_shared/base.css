@@ -159,6 +159,12 @@ body[data-view="tomas"] .eyebrow-tomas {
   font-size: var(--fs-who);
   font-weight: 700;
   line-height: 1;
+  min-width: 0;
+  -webkit-box-flex: 1;
+  flex: 1 1 auto;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 body[data-view="rodina"] .who-rodina,
@@ -241,15 +247,19 @@ body[data-view="tomas"] .who-tomas {
 
 /* sample flag intentionally not rendered */
 
-/* ---- Main: calendar + sidebar (flex-basis transition) ---- */
+/* ---- Main: calendar + sidebar (flex-basis transition) ----
+   Outer gaps (header→cards, cards→screen bottom, L/R) = --page-pad.
+   Cards stretch; .tl-body flex-grows so hour % fill available height
+   (including when all-day chips wrap to extra rows). */
 .day-main {
   display: -webkit-box;
   display: flex;
   -webkit-box-align: stretch;
   align-items: stretch;
-  /* Fill below 78px topbar; equal pad all sides (= former side pad) */
-  height: 690px;
-  padding: 14px;
+  height: 690px; /* 768 − 78 topbar */
+  padding: 15px;
+  -webkit-box-sizing: border-box;
+  box-sizing: border-box;
 }
 
 .cal-panel,
@@ -257,15 +267,23 @@ body[data-view="tomas"] .who-tomas {
   -webkit-transition: -webkit-flex-basis 0.3s ease, flex-basis 0.3s ease, width 0.3s ease;
   transition: flex-basis 0.3s ease, width 0.3s ease;
   overflow: hidden;
+  min-height: 0;
+  -webkit-box-sizing: border-box;
+  box-sizing: border-box;
 }
 
 .cal-panel {
   -webkit-box-flex: 0;
-  /* Rodina: sidebar +2% page again (≈20px); calendar shrinks to match */
-  flex: 0 0 649px;
-  width: 649px;
+  /* Rodina: wider sidebar (~335px), calendar the rest */
+  flex: 0 0 647px;
+  width: 647px;
   margin-right: 12px;
   padding: 10px 12px;
+  display: -webkit-box;
+  display: flex;
+  -webkit-box-orient: vertical;
+  -webkit-box-direction: normal;
+  flex-direction: column;
 }
 
 .sidebar-panel {
@@ -280,21 +298,19 @@ body[data-view="tomas"] .who-tomas {
   flex-direction: column;
 }
 
-/* Member views: main area 50/50 */
+/* Member views: exactly equal outer card widths (gap 12px between) */
 body[data-view="branislav"] .cal-panel,
 body[data-view="zuzka"] .cal-panel,
 body[data-view="andrej"] .cal-panel,
-body[data-view="tomas"] .cal-panel {
-  flex-basis: 492px;
-  width: 492px;
-}
-
+body[data-view="tomas"] .cal-panel,
 body[data-view="branislav"] .sidebar-panel,
 body[data-view="zuzka"] .sidebar-panel,
 body[data-view="andrej"] .sidebar-panel,
 body[data-view="tomas"] .sidebar-panel {
-  flex-basis: 492px;
-  width: 492px;
+  -webkit-box-flex: 0;
+  flex: 0 0 calc((100% - 12px) / 2);
+  width: calc((100% - 12px) / 2);
+  max-width: calc((100% - 12px) / 2);
 }
 
 .panel {
@@ -415,6 +431,8 @@ body[data-view="tomas"] li[data-member]:not([data-member=""]):not([data-member="
   flex-wrap: wrap;
   margin-bottom: 8px;
   min-height: 0;
+  -webkit-flex-shrink: 0;
+  flex-shrink: 0;
 }
 
 .allday-chip {
@@ -453,24 +471,38 @@ body[data-view="tomas"] .allday-chip:not(.mem-tomas) {
   display: none;
 }
 
-/* ---- Calendars: show one mode ---- */
-.calendars { position: relative; }
+/* ---- Calendars: show one mode; fill leftover height under chips ---- */
+.calendars {
+  position: relative;
+  -webkit-box-flex: 1;
+  flex: 1 1 auto;
+  min-height: 0;
+}
 
-.calendar { display: none; }
+.calendar {
+  display: none;
+  height: 100%;
+  -webkit-box-orient: vertical;
+  -webkit-box-direction: normal;
+  flex-direction: column;
+  min-height: 0;
+}
 
-body[data-view="rodina"] .calendar-family { display: block; }
-
+body[data-view="rodina"] .calendar-family,
 body[data-view="branislav"] .calendar-member[data-focus="branislav"],
 body[data-view="zuzka"] .calendar-member[data-focus="zuzka"],
 body[data-view="andrej"] .calendar-member[data-focus="andrej"],
 body[data-view="tomas"] .calendar-member[data-focus="tomas"] {
-  display: block;
+  display: -webkit-box;
+  display: flex;
 }
 
 .lane-heads {
   display: -webkit-box;
   display: flex;
   margin-bottom: 4px;
+  -webkit-flex-shrink: 0;
+  flex-shrink: 0;
 }
 
 .lane-head {
@@ -488,15 +520,26 @@ body[data-view="tomas"] .calendar-member[data-focus="tomas"] {
   border-radius: 10px;
   border-bottom: 4px solid var(--m, transparent);
   min-height: 52px;
+  min-width: 0;
+  overflow: hidden;
 }
 
 .lane-heads .lane-head:last-child { margin-right: 0; }
+
+.lane-head .avatar {
+  -webkit-flex-shrink: 0;
+  flex-shrink: 0;
+}
 
 .lane-name {
   margin-left: 8px;
   font-size: var(--fs-lane);
   font-weight: 700;
   line-height: 1.1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .lane-head-others {
@@ -523,8 +566,11 @@ body[data-view="tomas"] .calendar-member[data-focus="tomas"] {
 
 .tl-body {
   position: relative;
-  /* Gained from equal outer padding + filling frame below topbar */
-  height: 482px;
+  /* Fills leftover under chips + lane heads; hour lines stay % of this box */
+  -webkit-box-flex: 1;
+  flex: 1 1 auto;
+  height: auto;
+  min-height: 0;
   border-radius: 10px;
   overflow: hidden;
 }
@@ -619,8 +665,18 @@ body[data-view="tomas"] .calendar-member[data-focus="tomas"] {
   pointer-events: none;
 }
 
-.event-block .ev-time {
+.event-block .ev-time,
+.event-block .ev-title,
+.event-block .ev-loc,
+.event-block .ev-status,
+.event-block .ev-flags {
   display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.event-block .ev-time {
   font-size: var(--fs-ev-time);
   font-weight: 700;
   opacity: 0.9;
@@ -632,7 +688,6 @@ body[data-view="tomas"] .calendar-member[data-focus="tomas"] {
 }
 
 .event-block .ev-title {
-  display: block;
   font-weight: 700;
   font-size: var(--fs-ev-title);
 }
@@ -640,7 +695,6 @@ body[data-view="tomas"] .calendar-member[data-focus="tomas"] {
 .event-block .ev-loc,
 .event-block .ev-status,
 .event-block .ev-flags {
-  display: block;
   font-size: var(--fs-ev-flags);
   opacity: 0.9;
 }
