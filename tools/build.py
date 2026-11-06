@@ -257,9 +257,18 @@ def weather_html(w):
     )
 
 
-def highlight_items(items, members_map):
-    if not items:
-        return '<p class="empty-inline">Žiadne</p>'
+def day_sections(day):
+    """Dynamic sidebar/chat sections; skip empties (RULES: never write empty)."""
+    out = []
+    for sec in day.get("sections") or []:
+        items = [it for it in (sec.get("items") or []) if (it.get("text") if isinstance(it, dict) else it)]
+        if not items:
+            continue
+        out.append({"id": sec.get("id") or "", "title": sec.get("title") or "", "items": items})
+    return out
+
+
+def section_items_html(items, members_map, show_member=True):
     lis = []
     for it in items:
         if isinstance(it, str):
@@ -267,7 +276,7 @@ def highlight_items(items, members_map):
         else:
             text, mid = it.get("text", ""), it.get("member")
         who = ""
-        if mid and mid in members_map:
+        if show_member and mid and mid in members_map:
             m = members_map[mid]
             who = (
                 f'<span class="hl-who" style="--m:{esc(m["color"])}">'
@@ -275,6 +284,44 @@ def highlight_items(items, members_map):
             )
         lis.append(f"<li>{who}{esc(text)}</li>")
     return "<ul>\n" + "\n".join(lis) + "\n</ul>"
+
+
+def render_sections_panel(day, members_map, panel_title="Dôležité"):
+    sections = day_sections(day)
+    if not sections:
+        return (
+            f'<aside class="panel highlights-panel sidebar-panel" aria-label="{esc(panel_title)}">'
+            f"<h2>{esc(panel_title)}</h2>"
+            f'<p class="empty-inline">Žiadne poznámky na dnes.</p>'
+            f"</aside>"
+        )
+    blocks = []
+    for sec in sections:
+        blocks.append(
+            f'<section class="hl-block" data-section="{esc(sec["id"])}">'
+            f"<h3>{esc(sec['title'])}</h3>"
+            f"{section_items_html(sec['items'], members_map)}"
+            f"</section>"
+        )
+    return (
+        f'<aside class="panel highlights-panel sidebar-panel" aria-label="{esc(panel_title)}">'
+        f"<h2>{esc(panel_title)}</h2>"
+        + "".join(blocks)
+        + "</aside>"
+    )
+
+
+def member_sections(day, mid):
+    """Sections that contain at least one item for this member (grouped under section titles)."""
+    out = []
+    for sec in day_sections(day):
+        items = []
+        for it in sec["items"]:
+            if isinstance(it, dict) and it.get("member") == mid:
+                items.append(it)
+        if items:
+            out.append({"id": sec["id"], "title": sec["title"], "items": items})
+    return out
 
 
 def nav_back(href, label="Späť"):
@@ -415,8 +462,8 @@ def render_timeline(day, members, page_date):
 def render_overview(tid, day, members):
     mmap = members_by_id(members)
     d = day["date"]
-    hl = day.get("highlights", {})
     timeline = render_timeline(day, members, d)
+    sidebar = render_sections_panel(day, mmap, panel_title="Dôležité")
     body = f"""
 <div class="frame page-overview">
   <header class="topbar">
@@ -431,25 +478,7 @@ def render_overview(tid, day, members):
     <section class="panel timeline-panel" aria-label="Časová os">
       {timeline}
     </section>
-    <aside class="panel highlights-panel" aria-label="Dôležité">
-      <h2>Dôležité</h2>
-      <section class="hl-block">
-        <h3>Rodina</h3>
-        {highlight_items(hl.get("family_notes"), mmap)}
-      </section>
-      <section class="hl-block">
-        <h3>Pripomienky</h3>
-        {highlight_items(hl.get("reminders"), mmap)}
-      </section>
-      <section class="hl-block">
-        <h3>Zobrať / vybaviť</h3>
-        {highlight_items(hl.get("bring"), mmap)}
-      </section>
-      <section class="hl-block">
-        <h3>Víkend</h3>
-        {highlight_items(hl.get("weekend"), mmap)}
-      </section>
-    </aside>
+    {sidebar}
   </div>
 </div>
 """
@@ -460,20 +489,6 @@ def member_events(day, mid):
     return [e for e in day.get("events", []) if e.get("member") == mid]
 
 
-def member_highlights(day, mid):
-    """Pripomienky viazané na člena + pripomienky pri jeho udalostiach (nie duplicitné notes)."""
-    hl = day.get("highlights", {})
-    out = []
-    for key in ("reminders", "bring"):
-        for it in hl.get(key, []):
-            if isinstance(it, dict) and it.get("member") == mid:
-                out.append(it)
-    for e in member_events(day, mid):
-        for r in e.get("reminders", []):
-            out.append({"text": r})
-    return out
-
-
 def render_member(tid, day, members, mid):
     mmap = members_by_id(members)
     m = mmap[mid]
@@ -481,7 +496,7 @@ def render_member(tid, day, members, mid):
     events = member_events(day, mid)
     timed = [e for e in events if e.get("start") and not e.get("all_day")]
     floating = [e for e in events if e.get("all_day") or not e.get("start")]
-    notes = member_highlights(day, mid)
+    sec_for_member = member_sections(day, mid)
 
     agenda = []
     for e in sorted(timed, key=lambda x: parse_hhmm(x["start"])):
@@ -537,7 +552,20 @@ def render_member(tid, day, members, mid):
     else:
         agenda_html = '<div class="agenda">' + "".join(agenda) + "</div>"
 
-    notes_html = highlight_items(notes, mmap) if notes else '<p class="empty-inline">Žiadne zvláštne poznámky.</p>'
+    if sec_for_member:
+        notes_parts = []
+        for sec in sec_for_member:
+            notes_parts.append(
+                f'<section class="hl-block" data-section="{esc(sec["id"])}">'
+                f"<h3>{esc(sec['title'])}</h3>"
+                # Member page: already filtered to this person — no chip needed.
+                f"{section_items_html(sec['items'], mmap, show_member=False)}"
+                f"</section>"
+            )
+        notes_html = "".join(notes_parts)
+    else:
+        notes_html = '<p class="empty-inline">Žiadne položky v sekciách pre túto osobu.</p>'
+
     meta_bits = []
     for k, label in (("school", "škola"), ("grade", "trieda"), ("club", "krúžok")):
         if m.get("meta", {}).get(k):
@@ -562,8 +590,8 @@ def render_member(tid, day, members, mid):
       <h2>Agenda</h2>
       {agenda_html}
     </section>
-    <aside class="panel" aria-label="Poznámky">
-      <h2>Poznámky a pripomienky</h2>
+    <aside class="panel sidebar-panel" aria-label="Sekcie">
+      <h2>Zo dňa</h2>
       {notes_html}
     </aside>
   </div>

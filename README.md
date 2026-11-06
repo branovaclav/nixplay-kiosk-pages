@@ -25,7 +25,8 @@ data/YYYY-MM-DD.json  +  themes/<id>/  →  tools/build.py  →  designs/<id>/*.
 python3 tools/build.py
 ```
 
-Schéma: [`data/SCHEMA.md`](data/SCHEMA.md). Vzor obsahu/prezentácie podľa
+Pravidlá obsahu: [`data/RULES.md`](data/RULES.md) · schéma: [`data/SCHEMA.md`](data/SCHEMA.md).
+Sidebar je dynamické `sections[]` (žiadne fixné kľúče). Vzor podľa
 [kucharka-recepty](https://github.com/branovaclav/kucharka-recepty).
 
 GitHub Action (`.github/workflows/build.yml`) je **stub** — bez deployu Pages.

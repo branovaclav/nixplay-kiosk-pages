@@ -182,8 +182,13 @@ a:focus {
   line-height: 1.3;
 }
 
-.page-overview .highlights-panel {
+.page-overview .highlights-panel,
+.page-overview .sidebar-panel {
   overflow: hidden;
+}
+
+.sidebar-panel .hl-block:last-child {
+  margin-bottom: 0;
 }
 
 .hl-who {
@@ -880,9 +885,9 @@ body.theme-vecerna {
       <h2>Agenda</h2>
       <div class="agenda"><article class="agenda-item" style="--m:#1F6AA5"><div class="agenda-time">16:00–19:00</div><div class="agenda-body"><h3>Bicykel</h3></div></article></div>
     </section>
-    <aside class="panel" aria-label="Poznámky">
-      <h2>Poznámky a pripomienky</h2>
-      <p class="empty-inline">Žiadne zvláštne poznámky.</p>
+    <aside class="panel sidebar-panel" aria-label="Sekcie">
+      <h2>Zo dňa</h2>
+      <p class="empty-inline">Žiadne položky v sekciách pre túto osobu.</p>
     </aside>
   </div>
 </div>

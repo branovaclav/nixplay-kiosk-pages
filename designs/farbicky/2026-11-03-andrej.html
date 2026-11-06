@@ -182,8 +182,13 @@ a:focus {
   line-height: 1.3;
 }
 
-.page-overview .highlights-panel {
+.page-overview .highlights-panel,
+.page-overview .sidebar-panel {
   overflow: hidden;
+}
+
+.sidebar-panel .hl-block:last-child {
+  margin-bottom: 0;
 }
 
 .hl-who {
@@ -862,13 +867,13 @@ body.theme-farbicky {
   <div class="member-grid">
     <section class="panel" aria-label="Agenda">
       <h2>Agenda</h2>
-      <div class="agenda"><article class="agenda-item is-conflict" style="--m:#2F7D4A"><div class="agenda-time">15:15–16:45</div><div class="agenda-body"><h3>Príprava z matematiky<span class="ev-flags">konflikt · odvoz</span></h3><p class="agenda-loc">Gymnázium Českolipská</p><ul class="agenda-notes"><li>Prekrýva sa s baseballom — treba odvoz / rozhodnúť.</li></ul></div></article><article class="agenda-item is-conflict" style="--m:#2F7D4A"><div class="agenda-time">16:00–18:00</div><div class="agenda-body"><h3>Baseball SaBaT<span class="ev-flags">konflikt · odvoz</span></h3><p class="agenda-loc">U Vltavy 816/1</p><ul class="agenda-notes"><li>Prekrýva sa s prípravou z matematiky.</li></ul></div></article><article class="agenda-item" style="--m:#2F7D4A"><div class="agenda-time">18:30–19:30</div><div class="agenda-body"><h3>Konzultácia rehabilitácie<span class="ev-flags">odvoz</span></h3><p class="agenda-loc">KYKO med, Tišická 396/1</p></div></article></div>
+      <div class="agenda"><article class="agenda-item is-conflict" style="--m:#2F7D4A"><div class="agenda-time">15:15–16:45</div><div class="agenda-body"><h3>Príprava z matematiky<span class="ev-flags">konflikt · odvoz</span></h3><p class="agenda-loc">Gymnázium Českolipská</p></div></article><article class="agenda-item is-conflict" style="--m:#2F7D4A"><div class="agenda-time">16:00–18:00</div><div class="agenda-body"><h3>Baseball SaBaT<span class="ev-flags">konflikt · odvoz</span></h3><p class="agenda-loc">U Vltavy 816/1</p></div></article><article class="agenda-item" style="--m:#2F7D4A"><div class="agenda-time">18:30–19:30</div><div class="agenda-body"><h3>Konzultácia rehabilitácie<span class="ev-flags">odvoz</span></h3><p class="agenda-loc">KYKO med, Tišická 396/1</p></div></article></div>
     </section>
-    <aside class="panel" aria-label="Poznámky">
-      <h2>Poznámky a pripomienky</h2>
-      <ul>
-<li><span class="hl-who" style="--m:#2F7D4A">Andrej</span> Odvoz na KYKO med do 18:30 (Tišická 396/1).</li>
-</ul>
+    <aside class="panel sidebar-panel" aria-label="Sekcie">
+      <h2>Zo dňa</h2>
+      <section class="hl-block" data-section="rodina"><h3>Rodina</h3><ul>
+<li>Rozhodnúť konflikt 16:00–16:45 (matematika vs. baseball) a zabezpečiť odvoz.</li>
+</ul></section>
     </aside>
   </div>
 </div>

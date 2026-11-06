@@ -28,6 +28,7 @@ designs/<id>/*.html   (and designs/index.html)
 python3 tools/build.py
 ```
 
+Content cookbook: [`data/RULES.md`](data/RULES.md) (where facts go, no duplication, sections, chat derivation).
 Schema draft: [`data/SCHEMA.md`](data/SCHEMA.md).
 Pattern inspired by [kucharka-recepty](https://github.com/branovaclav/kucharka-recepty) (JSON content → theme → static HTML).
 

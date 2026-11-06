@@ -182,8 +182,13 @@ a:focus {
   line-height: 1.3;
 }
 
-.page-overview .highlights-panel {
+.page-overview .highlights-panel,
+.page-overview .sidebar-panel {
   overflow: hidden;
+}
+
+.sidebar-panel .hl-block:last-child {
+  margin-bottom: 0;
 }
 
 .hl-who {
@@ -866,14 +871,11 @@ body.theme-papier {
   <div class="member-grid">
     <section class="panel" aria-label="Agenda">
       <h2>Agenda</h2>
-      <div class="agenda"><article class="agenda-item is-unconfirmed" style="--m:#1F6AA5"><div class="agenda-time">14:00–15:00</div><div class="agenda-body"><h3>Tenis<span class="ev-status">treba potvrdiť</span></h3><ul class="agenda-notes"><li>Treba potvrdiť.</li></ul></div></article><article class="agenda-item is-floating is-unconfirmed" style="--m:#1F6AA5"><div class="agenda-time">čas potvrdí telefonát</div><div class="agenda-body"><h3>Jakub Víšek — JAMI Gardens<span class="ev-status">treba potvrdiť</span></h3><p class="agenda-loc">doma</p><ul class="agenda-notes"><li>Príde ráno; čas ešte potvrdí telefonát. Zatiaľ nie je v kalendári.</li></ul></div></article><article class="agenda-item is-floating" style="--m:#1F6AA5"><div class="agenda-time">do zatváracej doby</div><div class="agenda-body"><h3>Vyzdvihnúť Sportisimo<span class="ev-status">úloha</span></h3><p class="agenda-loc">OC Krakov Bohnice</p><ul class="agenda-notes"><li>Do zatváracej doby dnes.</li><li>Kód vyzdvihnutia: 7717040101</li><li>Možno predĺžiť do stredy 11. 11.</li></ul></div></article></div>
+      <div class="agenda"><article class="agenda-item is-unconfirmed" style="--m:#1F6AA5"><div class="agenda-time">14:00–15:00</div><div class="agenda-body"><h3>Tenis<span class="ev-status">treba potvrdiť</span></h3></div></article><article class="agenda-item is-floating is-unconfirmed" style="--m:#1F6AA5"><div class="agenda-time">čas potvrdí telefonát</div><div class="agenda-body"><h3>Jakub Víšek — JAMI Gardens<span class="ev-status">treba potvrdiť</span></h3><p class="agenda-loc">doma</p><ul class="agenda-notes"><li>Príde ráno; zatiaľ nie je v kalendári.</li></ul></div></article><article class="agenda-item is-floating" style="--m:#1F6AA5"><div class="agenda-time">do zatváracej doby</div><div class="agenda-body"><h3>Vyzdvihnúť Sportisimo<span class="ev-status">úloha</span></h3><p class="agenda-loc">OC Krakov Bohnice</p><ul class="agenda-notes"><li>Do zatváracej doby dnes.</li><li>Kód vyzdvihnutia: 7717040101</li><li>Možno predĺžiť do stredy 11. 11.</li></ul></div></article></div>
     </section>
-    <aside class="panel" aria-label="Poznámky">
-      <h2>Poznámky a pripomienky</h2>
-      <ul>
-<li><span class="hl-who" style="--m:#1F6AA5">Braňo</span> Potvrdiť tenis 14:00–15:00.</li>
-<li><span class="hl-who" style="--m:#1F6AA5">Braňo</span> Kód Sportisimo 7717040101 — OC Krakov Bohnice.</li>
-</ul>
+    <aside class="panel sidebar-panel" aria-label="Sekcie">
+      <h2>Zo dňa</h2>
+      <p class="empty-inline">Žiadne položky v sekciách pre túto osobu.</p>
     </aside>
   </div>
 </div>

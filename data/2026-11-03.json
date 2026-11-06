@@ -27,7 +27,7 @@
       "status": "confirmed",
       "flags": ["conflict", "needs-ride"],
       "conflict_with": ["andrej-baseball-uvltavy"],
-      "notes": ["Prekrýva sa s baseballom — treba odvoz / rozhodnúť."],
+      "notes": [],
       "reminders": []
     },
     {
@@ -41,7 +41,7 @@
       "status": "confirmed",
       "flags": ["conflict", "needs-ride"],
       "conflict_with": ["andrej-math-prep"],
-      "notes": ["Prekrýva sa s prípravou z matematiky."],
+      "notes": [],
       "reminders": []
     },
     {
@@ -87,19 +87,16 @@
       "reminders": []
     }
   ],
-  "highlights": {
-    "family_notes": [
-      {
-        "text": "Andrej má konflikt 16:00–16:45 (matematika vs. baseball) — treba rozhodnúť a zabezpečiť odvoz."
-      }
-    ],
-    "reminders": [
-      {
-        "member": "andrej",
-        "text": "Odvoz na KYKO med do 18:30 (Tišická 396/1)."
-      }
-    ],
-    "bring": [],
-    "weekend": []
-  }
+  "sections": [
+    {
+      "id": "rodina",
+      "title": "Rodina",
+      "items": [
+        {
+          "member": "andrej",
+          "text": "Rozhodnúť konflikt 16:00–16:45 (matematika vs. baseball) a zabezpečiť odvoz."
+        }
+      ]
+    }
+  ]
 }

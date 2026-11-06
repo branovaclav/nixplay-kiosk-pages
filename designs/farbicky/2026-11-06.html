@@ -182,8 +182,13 @@ a:focus {
   line-height: 1.3;
 }
 
-.page-overview .highlights-panel {
+.page-overview .highlights-panel,
+.page-overview .sidebar-panel {
   overflow: hidden;
+}
+
+.sidebar-panel .hl-block:last-child {
+  margin-bottom: 0;
 }
 
 .hl-who {
@@ -870,36 +875,14 @@ body.theme-farbicky {
 </div>
 
     </section>
-    <aside class="panel highlights-panel" aria-label="Dôležité">
-      <h2>Dôležité</h2>
-      <section class="hl-block">
-        <h3>Rodina</h3>
-        <ul>
+    <aside class="panel highlights-panel sidebar-panel" aria-label="Dôležité"><h2>Dôležité</h2><section class="hl-block" data-section="rodina"><h3>Rodina</h3><ul>
 <li>Škola prosí rodičov skontrolovať kontá na obedoch — našli sa nezrovnalosti.</li>
-</ul>
-      </section>
-      <section class="hl-block">
-        <h3>Pripomienky</h3>
-        <ul>
+</ul></section><section class="hl-block" data-section="pripomienky"><h3>Pripomienky</h3><ul>
 <li><span class="hl-who" style="--m:#2F7D4A">Andrej</span> Diplom z Finančnej gramotnosti odložiť do portfólia na gymnázium.</li>
-<li><span class="hl-who" style="--m:#D97706">Tomáš</span> Lístok s e-mailom a heslom do peračníka (informatika).</li>
-<li><span class="hl-who" style="--m:#1F6AA5">Braňo</span> Potvrdiť tenis 14:00–15:00.</li>
-</ul>
-      </section>
-      <section class="hl-block">
-        <h3>Zobrať / vybaviť</h3>
-        <ul>
-<li><span class="hl-who" style="--m:#1F6AA5">Braňo</span> Kód Sportisimo 7717040101 — OC Krakov Bohnice.</li>
-</ul>
-      </section>
-      <section class="hl-block">
-        <h3>Víkend</h3>
-        <ul>
+</ul></section><section class="hl-block" data-section="vyhlad"><h3>Výhľad</h3><ul>
 <li>Sobota 7. 11. — nič naplánované.</li>
 <li>Nedeľa 8. 11. — celodenná SaBaT brigáda (rodinný program).</li>
-</ul>
-      </section>
-    </aside>
+</ul></section></aside>
   </div>
 </div>
 

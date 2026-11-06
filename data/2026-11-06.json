@@ -43,7 +43,7 @@
       "status": "unconfirmed",
       "flags": ["time-tbd"],
       "conflict_with": [],
-      "notes": ["Príde ráno; čas ešte potvrdí telefonát. Zatiaľ nie je v kalendári."],
+      "notes": ["Príde ráno; zatiaľ nie je v kalendári."],
       "reminders": [],
       "time_note": "čas potvrdí telefonát"
     },
@@ -58,7 +58,7 @@
       "status": "unconfirmed",
       "flags": [],
       "conflict_with": [],
-      "notes": ["Treba potvrdiť."],
+      "notes": [],
       "reminders": []
     },
     {
@@ -98,39 +98,37 @@
       "reminders": []
     }
   ],
-  "highlights": {
-    "family_notes": [
-      {
-        "text": "Škola prosí rodičov skontrolovať kontá na obedoch — našli sa nezrovnalosti."
-      }
-    ],
-    "reminders": [
-      {
-        "member": "andrej",
-        "text": "Diplom z Finančnej gramotnosti odložiť do portfólia na gymnázium."
-      },
-      {
-        "member": "tomas",
-        "text": "Lístok s e-mailom a heslom do peračníka (informatika)."
-      },
-      {
-        "member": "branislav",
-        "text": "Potvrdiť tenis 14:00–15:00."
-      }
-    ],
-    "bring": [
-      {
-        "member": "branislav",
-        "text": "Kód Sportisimo 7717040101 — OC Krakov Bohnice."
-      }
-    ],
-    "weekend": [
-      {
-        "text": "Sobota 7. 11. — nič naplánované."
-      },
-      {
-        "text": "Nedeľa 8. 11. — celodenná SaBaT brigáda (rodinný program)."
-      }
-    ]
-  }
+  "sections": [
+    {
+      "id": "rodina",
+      "title": "Rodina",
+      "items": [
+        {
+          "text": "Škola prosí rodičov skontrolovať kontá na obedoch — našli sa nezrovnalosti."
+        }
+      ]
+    },
+    {
+      "id": "pripomienky",
+      "title": "Pripomienky",
+      "items": [
+        {
+          "member": "andrej",
+          "text": "Diplom z Finančnej gramotnosti odložiť do portfólia na gymnázium."
+        }
+      ]
+    },
+    {
+      "id": "vyhlad",
+      "title": "Výhľad",
+      "items": [
+        {
+          "text": "Sobota 7. 11. — nič naplánované."
+        },
+        {
+          "text": "Nedeľa 8. 11. — celodenná SaBaT brigáda (rodinný program)."
+        }
+      ]
+    }
+  ]
 }
