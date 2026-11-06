@@ -37,12 +37,13 @@ img.avatar {
 .eyebrow {
   margin: 0;
   font-size: 14px;
+  line-height: 1.1;
   letter-spacing: 0.06em;
   text-transform: uppercase;
   opacity: 0.75;
 }
 
-.eyebrow-swap { position: relative; min-height: 1.2em; }
+.eyebrow-swap { position: relative; min-height: 0; line-height: 1.1; }
 
 .eyebrow-swap .eyebrow {
   display: none;
@@ -64,7 +65,7 @@ body[data-view="tomas"] .eyebrow-tomas {
   display: flex;
   -webkit-box-align: center;
   align-items: center;
-  padding: 10px 16px 8px;
+  padding: 8px 16px;
   height: 78px;
 }
 
@@ -91,12 +92,20 @@ body[data-view="tomas"] .eyebrow-tomas {
   flex: 0 0 auto;
   min-width: 0;
   margin-right: 14px;
+  display: -webkit-box;
+  display: flex;
+  -webkit-box-orient: vertical;
+  -webkit-box-direction: normal;
+  flex-direction: column;
+  -webkit-box-pack: center;
+  justify-content: center;
 }
 
 .topbar-date h1 {
-  margin: 2px 0 0;
+  margin: -4px 0 0;
+  padding: 0;
   font-size: 28px;
-  line-height: 1.1;
+  line-height: 1.05;
   white-space: nowrap;
 }
 
@@ -167,7 +176,6 @@ body[data-view="tomas"] .who-tomas {
   text-align: left;
   white-space: nowrap;
   margin-left: 8px;
-  height: 52px;
 }
 
 .wx-icon {
@@ -183,6 +191,9 @@ body[data-view="tomas"] .who-tomas {
   line-height: 0;
   -webkit-flex-shrink: 0;
   flex-shrink: 0;
+  /* optical: weather glyphs sit low in their viewBox */
+  -webkit-transform: translateY(-3px);
+  transform: translateY(-3px);
 }
 
 .wx-icon svg {

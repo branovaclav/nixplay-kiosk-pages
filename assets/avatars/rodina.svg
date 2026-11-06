@@ -1,5 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256" role="img" aria-label="Rodina">
-  <rect width="256" height="256" rx="48" fill="#4A6670"/>
-  <path fill="#E8EEF0" d="M128 48 L220 128 H188 V208 H148 V150 H108 V208 H68 V128 H36 Z"/>
+  <rect width="256" height="256" rx="48" fill="#6B4C9A"/>
+  <!-- back-left person -->
+  <circle cx="78" cy="98" r="32" fill="#EDE6F7"/>
+  <ellipse cx="78" cy="198" rx="48" ry="42" fill="#EDE6F7"/>
+  <!-- back-right person -->
+  <circle cx="178" cy="98" r="32" fill="#EDE6F7"/>
+  <ellipse cx="178" cy="198" rx="48" ry="42" fill="#EDE6F7"/>
+  <!-- front-center person (slightly larger) -->
+  <circle cx="128" cy="108" r="38" fill="#F7F2FC"/>
+  <ellipse cx="128" cy="210" rx="58" ry="48" fill="#F7F2FC"/>
 </svg>

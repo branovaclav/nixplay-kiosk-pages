@@ -145,7 +145,7 @@ def family_meta(pack):
     return pack.get("family") or {
         "id": "rodina",
         "display_name": "Rodina",
-        "color": "#4A6670",
+        "color": "#6B4C9A",
         "avatar": "rodina.svg",
     }
 
@@ -363,7 +363,7 @@ def family_calendar(day, people, start, end):
         short = (ee - s) <= 45
         # color: if all four → family slate; else first member color
         if len(mids) >= 4:
-            color = "#4A6670"
+            color = "#6B4C9A"
         else:
             color = next(p["color"] for p in people if p["id"] == mids[0])
         for lo, hi in spans:
@@ -483,7 +483,7 @@ def untimed_strip(day, people_map):
     for e in floating:
         mids = expand_members(event_members(e))
         # color from first member
-        color = "#4A6670"
+        color = "#6B4C9A"
         label = "Rodina"
         if mids:
             m = people_map.get(mids[0], {})
@@ -596,7 +596,7 @@ ROLE_EYEBROW = {
 
 def who_header(people, family):
     parts = [
-        f'<div class="who who-rodina" data-who="rodina" style="--m:{esc(family.get("color", "#4A6670"))}">'
+        f'<div class="who who-rodina" data-who="rodina" style="--m:{esc(family.get("color", "#6B4C9A"))}">'
         f'<img class="avatar" src="avatars/{esc(family["avatar"])}" alt="" width="52" height="52">'
         f'<span class="who-name">{esc(family["display_name"])}</span></div>'
     ]

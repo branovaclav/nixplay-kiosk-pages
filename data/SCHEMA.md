@@ -22,7 +22,7 @@ Dva vizuálne režimy z toho istého JSON: **dark** (Večerná) a **light** (tá
   "family": {
     "id": "rodina",
     "display_name": "Rodina",
-    "color": "#4A6670",
+    "color": "#6B4C9A",
     "avatar": "rodina.svg"
   },
   "theme_schedule": {

@@ -93,12 +93,13 @@ img.avatar {
 .eyebrow {
   margin: 0;
   font-size: 14px;
+  line-height: 1.1;
   letter-spacing: 0.06em;
   text-transform: uppercase;
   opacity: 0.75;
 }
 
-.eyebrow-swap { position: relative; min-height: 1.2em; }
+.eyebrow-swap { position: relative; min-height: 0; line-height: 1.1; }
 
 .eyebrow-swap .eyebrow {
   display: none;
@@ -120,7 +121,7 @@ body[data-view="tomas"] .eyebrow-tomas {
   display: flex;
   -webkit-box-align: center;
   align-items: center;
-  padding: 10px 16px 8px;
+  padding: 8px 16px;
   height: 78px;
 }
 
@@ -147,12 +148,20 @@ body[data-view="tomas"] .eyebrow-tomas {
   flex: 0 0 auto;
   min-width: 0;
   margin-right: 14px;
+  display: -webkit-box;
+  display: flex;
+  -webkit-box-orient: vertical;
+  -webkit-box-direction: normal;
+  flex-direction: column;
+  -webkit-box-pack: center;
+  justify-content: center;
 }
 
 .topbar-date h1 {
-  margin: 2px 0 0;
+  margin: -4px 0 0;
+  padding: 0;
   font-size: 28px;
-  line-height: 1.1;
+  line-height: 1.05;
   white-space: nowrap;
 }
 
@@ -223,7 +232,6 @@ body[data-view="tomas"] .who-tomas {
   text-align: left;
   white-space: nowrap;
   margin-left: 8px;
-  height: 52px;
 }
 
 .wx-icon {
@@ -239,6 +247,9 @@ body[data-view="tomas"] .who-tomas {
   line-height: 0;
   -webkit-flex-shrink: 0;
   flex-shrink: 0;
+  /* optical: weather glyphs sit low in their viewBox */
+  -webkit-transform: translateY(-3px);
+  transform: translateY(-3px);
 }
 
 .wx-icon svg {
@@ -720,7 +731,7 @@ html.theme-dark {
   --chip-bg: #1a2438;
   --now: #e7b56a;
   --now-ink: #1a1208;
-  --head-bg: rgba(26, 36, 56, 0.9);
+  --head-bg: #364a66;
   --page-bg:
     radial-gradient(ellipse at 20% 0%, rgba(231, 181, 106, 0.14), transparent 42%),
     radial-gradient(ellipse at 100% 80%, rgba(60, 90, 140, 0.25), transparent 45%),
@@ -761,6 +772,7 @@ html.theme-dark .top-divider { background: var(--line); }
 html.theme-dark .lane-head {
   background: var(--head-bg);
   color: var(--ink);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.04) inset;
 }
 
 html.theme-dark .tl-body {
@@ -826,7 +838,7 @@ html.theme-light {
   --chip-bg: #ffffff;
   --now: #9f1239;
   --now-ink: #fff;
-  --head-bg: rgba(243, 246, 248, 0.85);
+  --head-bg: #fcfdfe;
   --page-bg:
     radial-gradient(ellipse at 12% 0%, rgba(44, 95, 122, 0.10), transparent 42%),
     repeating-linear-gradient(
@@ -873,6 +885,8 @@ html.theme-light .top-divider { background: var(--line); }
 html.theme-light .lane-head {
   background: var(--head-bg);
   color: var(--ink);
+  border: 1px solid rgba(183, 197, 207, 0.55);
+  border-bottom: 4px solid var(--m, transparent);
 }
 
 html.theme-light .tl-body {
@@ -953,7 +967,7 @@ html.theme-light .empty-inline { color: var(--muted); }
       <h1>utorok 3. november 2026</h1>
     </div>
     <div class="top-divider" aria-hidden="true"></div>
-    <div class="view-who"><div class="who who-rodina" data-who="rodina" style="--m:#4A6670"><img class="avatar" src="avatars/rodina.svg" alt="" width="52" height="52"><span class="who-name">Rodina</span></div><div class="who who-branislav" data-who="branislav" style="--m:#1F6AA5"><img class="avatar" src="avatars/branislav.svg" alt="" width="52" height="52"><span class="who-name">Braňo</span></div><div class="who who-zuzka" data-who="zuzka" style="--m:#C45C4A"><img class="avatar" src="avatars/zuzka.svg" alt="" width="52" height="52"><span class="who-name">Zuzka</span></div><div class="who who-andrej" data-who="andrej" style="--m:#2F7D4A"><img class="avatar" src="avatars/andrej.svg" alt="" width="52" height="52"><span class="who-name">Andrej</span></div><div class="who who-tomas" data-who="tomas" style="--m:#D97706"><img class="avatar" src="avatars/tomas.svg" alt="" width="52" height="52"><span class="who-name">Tomáš</span></div></div>
+    <div class="view-who"><div class="who who-rodina" data-who="rodina" style="--m:#6B4C9A"><img class="avatar" src="avatars/rodina.svg" alt="" width="52" height="52"><span class="who-name">Rodina</span></div><div class="who who-branislav" data-who="branislav" style="--m:#1F6AA5"><img class="avatar" src="avatars/branislav.svg" alt="" width="52" height="52"><span class="who-name">Braňo</span></div><div class="who who-zuzka" data-who="zuzka" style="--m:#C45C4A"><img class="avatar" src="avatars/zuzka.svg" alt="" width="52" height="52"><span class="who-name">Zuzka</span></div><div class="who who-andrej" data-who="andrej" style="--m:#2F7D4A"><img class="avatar" src="avatars/andrej.svg" alt="" width="52" height="52"><span class="who-name">Andrej</span></div><div class="who who-tomas" data-who="tomas" style="--m:#D97706"><img class="avatar" src="avatars/tomas.svg" alt="" width="52" height="52"><span class="who-name">Tomáš</span></div></div>
     <div class="topbar-spacer"></div>
     <div class="weather" data-icon="cloudy">
       <span class="wx-icon"><svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -975,7 +989,7 @@ html.theme-light .empty-inline { color: var(--muted); }
   <div class="tl-body">
     <div class="tl-hours"><div class="tl-hour" style="top:0.000%"><span class="tl-hour-label">07:00</span></div><div class="tl-hour" style="top:7.143%"><span class="tl-hour-label">08:00</span></div><div class="tl-hour" style="top:14.286%"><span class="tl-hour-label">09:00</span></div><div class="tl-hour" style="top:21.429%"><span class="tl-hour-label">10:00</span></div><div class="tl-hour" style="top:28.571%"><span class="tl-hour-label">11:00</span></div><div class="tl-hour" style="top:35.714%"><span class="tl-hour-label">12:00</span></div><div class="tl-hour" style="top:42.857%"><span class="tl-hour-label">13:00</span></div><div class="tl-hour" style="top:50.000%"><span class="tl-hour-label">14:00</span></div><div class="tl-hour" style="top:57.143%"><span class="tl-hour-label">15:00</span></div><div class="tl-hour" style="top:64.286%"><span class="tl-hour-label">16:00</span></div><div class="tl-hour" style="top:71.429%"><span class="tl-hour-label">17:00</span></div><div class="tl-hour" style="top:78.571%"><span class="tl-hour-label">18:00</span></div><div class="tl-hour" style="top:85.714%"><span class="tl-hour-label">19:00</span></div><div class="tl-hour" style="top:92.857%"><span class="tl-hour-label">20:00</span></div><div class="tl-hour" style="top:100.000%"><span class="tl-hour-label">21:00</span></div></div>
     <div class="tl-lanes tl-lanes-4"><div class="lane-col" data-person="branislav" style="--m:#1F6AA5"><div class="event-block" style="top:64.286%;height:21.429%;left:0.000%;width:100.000%;--m:#1F6AA5" data-members="branislav" data-end-min="1140"><span class="ev-time">16:00–19:00</span><span class="ev-title">Bicykel</span></div></div><div class="lane-col" data-person="zuzka" style="--m:#C45C4A"></div><div class="lane-col" data-person="andrej" style="--m:#2F7D4A"><div class="event-block is-conflict" style="top:58.929%;height:10.714%;left:0.000%;width:100.000%;--m:#2F7D4A" data-members="andrej" data-end-min="1005"><span class="ev-time">15:15–16:45</span><span class="ev-title">Príprava z matematiky</span><span class="ev-loc">Gymnázium Českolipská</span><span class="ev-flags">konflikt · odvoz</span></div><div class="event-block is-conflict" style="top:64.286%;height:14.286%;left:50.000%;width:50.000%;--m:#2F7D4A" data-members="andrej" data-end-min="1080"><span class="ev-time">16:00–18:00</span><span class="ev-title">Baseball SaBaT</span><span class="ev-loc">U Vltavy 816/1</span><span class="ev-flags">konflikt · odvoz</span></div><div class="event-block" style="top:82.143%;height:8.500%;left:0.000%;width:100.000%;--m:#2F7D4A" data-members="andrej" data-end-min="1170"><span class="ev-time">18:30–19:30</span><span class="ev-title">Konzultácia rehabilitácie</span><span class="ev-loc">KYKO med, Tišická 396/1</span><span class="ev-flags">odvoz</span></div></div><div class="lane-col" data-person="tomas" style="--m:#D97706"></div></div>
-    <div class="tl-span-layer"><div class="event-block is-short is-todo is-span" style="top:92.857%;height:8.500%;left:0.000%;width:100.000%;--m:#4A6670" data-members="branislav,zuzka,andrej,tomas" data-end-min="1215"><span class="ev-time">20:00–20:15</span><span class="ev-title">Vyniesť odpadky</span><span class="ev-loc">doma</span><span class="ev-status">úloha</span></div></div>
+    <div class="tl-span-layer"><div class="event-block is-short is-todo is-span" style="top:92.857%;height:8.500%;left:0.000%;width:100.000%;--m:#6B4C9A" data-members="branislav,zuzka,andrej,tomas" data-end-min="1215"><span class="ev-time">20:00–20:15</span><span class="ev-title">Vyniesť odpadky</span><span class="ev-loc">doma</span><span class="ev-status">úloha</span></div></div>
     <div class="tl-now" style="top:0"><span class="tl-now-label">teraz</span></div>
   </div>
 </div>

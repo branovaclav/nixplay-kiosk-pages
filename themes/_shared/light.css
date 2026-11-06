@@ -14,7 +14,7 @@ html.theme-light {
   --chip-bg: #ffffff;
   --now: #9f1239;
   --now-ink: #fff;
-  --head-bg: rgba(243, 246, 248, 0.85);
+  --head-bg: #fcfdfe;
   --page-bg:
     radial-gradient(ellipse at 12% 0%, rgba(44, 95, 122, 0.10), transparent 42%),
     repeating-linear-gradient(
@@ -61,6 +61,8 @@ html.theme-light .top-divider { background: var(--line); }
 html.theme-light .lane-head {
   background: var(--head-bg);
   color: var(--ink);
+  border: 1px solid rgba(183, 197, 207, 0.55);
+  border-bottom: 4px solid var(--m, transparent);
 }
 
 html.theme-light .tl-body {
