@@ -13,7 +13,8 @@ html.theme-dark {
   --chip-bg: #1a2438;
   --now: #e7b56a;
   --now-ink: #1a1208;
-  --head-bg: #364a66;
+  /* barely above panel (#141c2c) — subtle lift only */
+  --head-bg: #1a2438;
   --page-bg:
     radial-gradient(ellipse at 20% 0%, rgba(231, 181, 106, 0.14), transparent 42%),
     radial-gradient(ellipse at 100% 80%, rgba(60, 90, 140, 0.25), transparent 45%),
@@ -54,7 +55,6 @@ html.theme-dark .top-divider { background: var(--line); }
 html.theme-dark .lane-head {
   background: var(--head-bg);
   color: var(--ink);
-  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.04) inset;
 }
 
 html.theme-dark .tl-body {
@@ -72,6 +72,12 @@ html.theme-dark .event-block {
   box-shadow: 0 6px 16px rgba(0, 0, 0, 0.35);
   background: var(--m);
   color: #fff;
+}
+
+html.theme-dark .event-block.is-unconfirmed {
+  border: 2px dashed rgba(255, 255, 255, 0.75);
+  border-left: 4px dashed rgba(255, 255, 255, 0.9);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.35);
 }
 
 html.theme-dark .event-block.is-conflict {

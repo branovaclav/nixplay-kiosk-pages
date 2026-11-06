@@ -61,7 +61,7 @@ html.theme-light .top-divider { background: var(--line); }
 html.theme-light .lane-head {
   background: var(--head-bg);
   color: var(--ink);
-  border: 1px solid rgba(183, 197, 207, 0.55);
+  border: none;
   border-bottom: 4px solid var(--m, transparent);
 }
 
@@ -83,6 +83,12 @@ html.theme-light .event-block {
   box-shadow: none;
 }
 
+html.theme-light .event-block.is-unconfirmed {
+  border: 2px dashed var(--m);
+  border-left: 6px dashed var(--m);
+  background: #fff;
+}
+
 html.theme-light .event-block .ev-time { color: var(--muted); }
 
 html.theme-light .event-block.is-conflict {
@@ -99,6 +105,10 @@ html.theme-light .allday-chip {
   border: 1px solid var(--line);
   border-left-width: 6px;
   color: var(--ink);
+}
+
+html.theme-light .allday-chip.is-unconfirmed {
+  border-style: dashed;
 }
 
 html.theme-light .tl-now { border-top-color: var(--now); }

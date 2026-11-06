@@ -158,7 +158,8 @@ body[data-view="tomas"] .eyebrow-tomas {
 }
 
 .topbar-date h1 {
-  margin: -4px 0 0;
+  /* ~5–6px visual gap under kicker (halfway R5↔R6) */
+  margin: -1px 0 0;
   padding: 0;
   font-size: 28px;
   line-height: 1.05;
@@ -563,6 +564,15 @@ body[data-view="tomas"] .calendar-member[data-focus="tomas"] {
   left: 0;
 }
 
+.tl-hours { z-index: 1; }
+
+.tl-lanes {
+  display: -webkit-box;
+  display: flex;
+  padding-left: 44px;
+  z-index: 2;
+}
+
 .tl-span-layer {
   padding-left: 44px;
   pointer-events: none;
@@ -580,16 +590,18 @@ body[data-view="tomas"] .calendar-member[data-focus="tomas"] {
 .tl-hour-label {
   position: absolute;
   left: 4px;
-  top: -10px;
+  /* sit fully above the hour rule (was -10px → line struck through digits) */
+  top: -14px;
+  line-height: 1;
   font-size: 12px;
   font-weight: 700;
   opacity: 0.55;
-}
-
-.tl-lanes {
-  display: -webkit-box;
-  display: flex;
-  padding-left: 44px;
+  padding: 0 2px;
+  background: var(--tl-bg, transparent);
+  font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  font-variant-numeric: tabular-nums;
+  -webkit-font-feature-settings: "zero" 0;
+  font-feature-settings: "zero" 0;
 }
 
 .lane-col {
@@ -637,6 +649,11 @@ body[data-view="tomas"] .calendar-member[data-focus="tomas"] {
   font-size: 11px;
   font-weight: 700;
   opacity: 0.9;
+  /* Atkinson’s default zero is slashed — reads as a strikethrough on times */
+  font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  font-variant-numeric: tabular-nums;
+  -webkit-font-feature-settings: "zero" 0;
+  font-feature-settings: "zero" 0;
 }
 
 .event-block .ev-title {
@@ -703,6 +720,10 @@ body[data-view="tomas"] .calendar-member[data-focus="tomas"] {
   color: #fff;
   font-size: 12px;
   font-weight: 700;
+  font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  font-variant-numeric: tabular-nums;
+  -webkit-font-feature-settings: "zero" 0;
+  font-feature-settings: "zero" 0;
 }
 
 .ev-status,
@@ -731,7 +752,8 @@ html.theme-dark {
   --chip-bg: #1a2438;
   --now: #e7b56a;
   --now-ink: #1a1208;
-  --head-bg: #364a66;
+  /* barely above panel (#141c2c) — subtle lift only */
+  --head-bg: #1a2438;
   --page-bg:
     radial-gradient(ellipse at 20% 0%, rgba(231, 181, 106, 0.14), transparent 42%),
     radial-gradient(ellipse at 100% 80%, rgba(60, 90, 140, 0.25), transparent 45%),
@@ -772,7 +794,6 @@ html.theme-dark .top-divider { background: var(--line); }
 html.theme-dark .lane-head {
   background: var(--head-bg);
   color: var(--ink);
-  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.04) inset;
 }
 
 html.theme-dark .tl-body {
@@ -790,6 +811,12 @@ html.theme-dark .event-block {
   box-shadow: 0 6px 16px rgba(0, 0, 0, 0.35);
   background: var(--m);
   color: #fff;
+}
+
+html.theme-dark .event-block.is-unconfirmed {
+  border: 2px dashed rgba(255, 255, 255, 0.75);
+  border-left: 4px dashed rgba(255, 255, 255, 0.9);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.35);
 }
 
 html.theme-dark .event-block.is-conflict {
@@ -885,7 +912,7 @@ html.theme-light .top-divider { background: var(--line); }
 html.theme-light .lane-head {
   background: var(--head-bg);
   color: var(--ink);
-  border: 1px solid rgba(183, 197, 207, 0.55);
+  border: none;
   border-bottom: 4px solid var(--m, transparent);
 }
 
@@ -907,6 +934,12 @@ html.theme-light .event-block {
   box-shadow: none;
 }
 
+html.theme-light .event-block.is-unconfirmed {
+  border: 2px dashed var(--m);
+  border-left: 6px dashed var(--m);
+  background: #fff;
+}
+
 html.theme-light .event-block .ev-time { color: var(--muted); }
 
 html.theme-light .event-block.is-conflict {
@@ -923,6 +956,10 @@ html.theme-light .allday-chip {
   border: 1px solid var(--line);
   border-left-width: 6px;
   color: var(--ink);
+}
+
+html.theme-light .allday-chip.is-unconfirmed {
+  border-style: dashed;
 }
 
 html.theme-light .tl-now { border-top-color: var(--now); }
