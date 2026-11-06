@@ -58,6 +58,41 @@
    Avoid: flex gap, inset, aspect-ratio, :is(), :where(), :focus-visible, :has(), dvh.
    Animate flex-basis/width (not grid-template-columns). */
 
+/*
+  Frame type scale (shared dark/light) — bump here for the 8" kiosk.
+  --fs-kicker / --fs-date / --fs-who / --fs-wx-*   top bar
+  --fs-lane / --fs-lane-other / --fs-chip*         lane heads + untimed chips
+  --fs-hour / --fs-now / --fs-ev*                  timeline + event cards
+  --fs-side-* / --fs-tag / --fs-outlook-* / --fs-empty / --fs-flags
+  --fs-base                                        body
+*/
+:root {
+  --fs-base: 20px;
+  --fs-kicker: 20px;
+  --fs-date: 36px;
+  --fs-who: 30px;
+  --fs-wx-temp: 34px;
+  --fs-wx-text: 20px;
+  --fs-lane: 20px;
+  --fs-lane-other: 18px;
+  --fs-chip: 18px;
+  --fs-chip-meta: 15px;
+  --fs-hour: 15px;
+  --fs-now: 15px;
+  --fs-ev: 16px;
+  --fs-ev-time: 14px;
+  --fs-ev-title: 18px;
+  --fs-ev-title-short: 16px;
+  --fs-ev-flags: 14px;
+  --fs-side-title: 29px;
+  --fs-side-section: 20px;
+  --fs-side-item: 21px;
+  --fs-tag: 17px;
+  --fs-outlook-title: 21px;
+  --fs-empty: 23px;
+  --fs-flags: 15px;
+}
+
 *, *::before, *::after { box-sizing: border-box; }
 
 html, body {
@@ -70,7 +105,7 @@ html, body {
 }
 
 body {
-  font-size: 20px;
+  font-size: var(--fs-base);
   line-height: 1.35;
 }
 
@@ -92,14 +127,14 @@ img.avatar {
 
 .eyebrow {
   margin: 0;
-  font-size: 14px;
-  line-height: 1.1;
+  font-size: var(--fs-kicker);
+  line-height: 1;
   letter-spacing: 0.06em;
   text-transform: uppercase;
   opacity: 0.75;
 }
 
-.eyebrow-swap { position: relative; min-height: 0; line-height: 1.1; }
+.eyebrow-swap { position: relative; min-height: 0; line-height: 1; }
 
 .eyebrow-swap .eyebrow {
   display: none;
@@ -114,40 +149,24 @@ body[data-view="tomas"] .eyebrow-tomas {
 }
 
 /* ---- Top bar ----
-   [home]  date(+kicker)  |  avatar+name  ......  weather
+   date(+kicker)   avatar+name  ......  weather
 */
 .topbar {
   display: -webkit-box;
   display: flex;
   -webkit-box-align: center;
   align-items: center;
-  padding: 8px 16px;
-  height: 78px;
+  /* Full y=0..80 region above cards — content centered in this box */
+  padding: 0 16px;
+  height: 80px;
 }
-
-.home-icon {
-  -webkit-box-flex: 0;
-  flex: 0 0 44px;
-  width: 44px;
-  height: 44px;
-  display: -webkit-box;
-  display: flex;
-  -webkit-box-align: center;
-  align-items: center;
-  -webkit-box-pack: center;
-  justify-content: center;
-  opacity: 0.85;
-  pointer-events: none;
-  margin-right: 10px;
-}
-
-.home-glyph { display: block; }
 
 .topbar-date {
   -webkit-box-flex: 0;
   flex: 0 0 auto;
   min-width: 0;
-  margin-right: 14px;
+  /* Gap to view-who (replaces old divider + home icon) */
+  margin-right: 36px;
   display: -webkit-box;
   display: flex;
   -webkit-box-orient: vertical;
@@ -155,24 +174,18 @@ body[data-view="tomas"] .eyebrow-tomas {
   flex-direction: column;
   -webkit-box-pack: center;
   justify-content: center;
+  /* Stretch full header height, then center kicker+date inside */
+  -webkit-align-self: stretch;
+  align-self: stretch;
+  height: auto;
 }
 
 .topbar-date h1 {
-  /* ~5–6px visual gap under kicker (halfway R5↔R6) */
-  margin: -1px 0 0;
+  margin: 0;
   padding: 0;
-  font-size: 28px;
-  line-height: 1.05;
+  font-size: var(--fs-date);
+  line-height: 1;
   white-space: nowrap;
-}
-
-.top-divider {
-  -webkit-box-flex: 0;
-  flex: 0 0 1px;
-  width: 1px;
-  height: 44px;
-  margin-right: 14px;
-  opacity: 0.9;
 }
 
 .view-who {
@@ -180,8 +193,11 @@ body[data-view="tomas"] .eyebrow-tomas {
   -webkit-box-flex: 0;
   flex: 0 0 180px;
   width: 180px;
-  height: 56px;
   margin-right: 12px;
+  overflow: visible;
+  -webkit-align-self: stretch;
+  align-self: stretch;
+  height: auto;
 }
 
 .view-who .who {
@@ -193,19 +209,31 @@ body[data-view="tomas"] .eyebrow-tomas {
   display: none;
   -webkit-box-align: center;
   align-items: center;
+  overflow: visible;
 }
 
 .view-who .who .avatar {
   width: 48px;
   height: 48px;
   border: 3px solid var(--m, transparent);
+  -webkit-flex-shrink: 0;
+  flex-shrink: 0;
 }
 
 .view-who .who-name {
   margin-left: 10px;
-  font-size: 24px;
+  font-size: var(--fs-who);
   font-weight: 700;
-  line-height: 1.1;
+  /* Line-box tall enough for Fraunces descenders inside overflow clip */
+  line-height: 44px;
+  height: 44px;
+  padding: 0;
+  min-width: 0;
+  -webkit-box-flex: 1;
+  flex: 1 1 auto;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 body[data-view="rodina"] .who-rodina,
@@ -233,6 +261,9 @@ body[data-view="tomas"] .who-tomas {
   text-align: left;
   white-space: nowrap;
   margin-left: 8px;
+  -webkit-align-self: stretch;
+  align-self: stretch;
+  height: auto;
 }
 
 .wx-icon {
@@ -248,9 +279,6 @@ body[data-view="tomas"] .who-tomas {
   line-height: 0;
   -webkit-flex-shrink: 0;
   flex-shrink: 0;
-  /* optical: weather glyphs sit low in their viewBox */
-  -webkit-transform: translateY(-3px);
-  transform: translateY(-3px);
 }
 
 .wx-icon svg {
@@ -268,54 +296,69 @@ body[data-view="tomas"] .who-tomas {
   flex-direction: column;
   -webkit-box-pack: center;
   justify-content: center;
-  line-height: 1.15;
+  line-height: 1;
 }
 
 .wx-temps {
   display: block;
-  font-size: 24px;
+  font-size: var(--fs-wx-temp);
   font-weight: 700;
-  line-height: 1.1;
+  line-height: 1;
 }
 
 .wx-summary {
   display: block;
-  font-size: 14px;
+  font-size: var(--fs-wx-text);
   opacity: 0.85;
-  margin-top: 1px;
+  margin-top: 0;
+  line-height: 1.05;
 }
 
 /* sample flag intentionally not rendered */
 
-/* ---- Main: calendar + sidebar (flex-basis transition) ---- */
+/* ---- Main: calendar + sidebar (flex-basis transition) ----
+   Outer gaps (header→cards, cards→screen bottom, L/R) = --page-pad.
+   Cards stretch; .tl-body flex-grows so hour % fill available height
+   (including when all-day chips wrap to extra rows). */
 .day-main {
   display: -webkit-box;
   display: flex;
   -webkit-box-align: stretch;
   align-items: stretch;
-  height: 678px;
-  padding: 0 14px 12px;
+  /* 768 − 80 topbar; pad-top 0 so cards sit at y=80; L/R/B stay 15 */
+  height: 688px;
+  padding: 0 15px 15px;
+  -webkit-box-sizing: border-box;
+  box-sizing: border-box;
 }
 
 .cal-panel,
 .sidebar-panel {
-  -webkit-transition: -webkit-flex-basis 0.3s ease, flex-basis 0.3s ease, width 0.3s ease;
-  transition: flex-basis 0.3s ease, width 0.3s ease;
+  /* No width transition — mid-animation frames looked like unequal cards */
   overflow: hidden;
+  min-height: 0;
+  -webkit-box-sizing: border-box;
+  box-sizing: border-box;
 }
 
 .cal-panel {
   -webkit-box-flex: 0;
-  flex: 0 0 700px;
-  width: 700px;
+  /* Rodina: wider sidebar (~335px), calendar the rest; gap 12 */
+  flex: 0 0 647px;
+  width: 647px;
   margin-right: 12px;
   padding: 10px 12px;
+  display: -webkit-box;
+  display: flex;
+  -webkit-box-orient: vertical;
+  -webkit-box-direction: normal;
+  flex-direction: column;
 }
 
 .sidebar-panel {
   -webkit-box-flex: 0;
-  flex: 0 0 284px;
-  width: 284px;
+  flex: 0 0 335px;
+  width: 335px;
   padding: 12px 14px;
   display: -webkit-box;
   display: flex;
@@ -324,21 +367,27 @@ body[data-view="tomas"] .who-tomas {
   flex-direction: column;
 }
 
-/* Member views: calendar narrower, sidebar wider */
+/* Member views: equal cards, 15px outer pad + 15px gap → 489.5 each
+   (15 + 489.5 + 15 + 489.5 + 15 = 1024). Explicit px — % calc was unreliable. */
 body[data-view="branislav"] .cal-panel,
 body[data-view="zuzka"] .cal-panel,
 body[data-view="andrej"] .cal-panel,
 body[data-view="tomas"] .cal-panel {
-  flex-basis: 560px;
-  width: 560px;
+  -webkit-box-flex: 0;
+  flex: 0 0 489.5px;
+  width: 489.5px;
+  max-width: 489.5px;
+  margin-right: 15px;
 }
 
 body[data-view="branislav"] .sidebar-panel,
 body[data-view="zuzka"] .sidebar-panel,
 body[data-view="andrej"] .sidebar-panel,
 body[data-view="tomas"] .sidebar-panel {
-  flex-basis: 424px;
-  width: 424px;
+  -webkit-box-flex: 0;
+  flex: 0 0 489.5px;
+  width: 489.5px;
+  max-width: 489.5px;
 }
 
 .panel {
@@ -347,7 +396,8 @@ body[data-view="tomas"] .sidebar-panel {
 
 .sidebar-title {
   margin: 0 0 8px;
-  font-size: 20px;
+  font-size: var(--fs-side-title);
+  line-height: 1.15;
 }
 
 .sidebar-main {
@@ -361,10 +411,11 @@ body[data-view="tomas"] .sidebar-panel {
 
 .hl-block h3 {
   margin: 0 0 4px;
-  font-size: 14px;
+  font-size: var(--fs-side-section);
   letter-spacing: 0.04em;
   text-transform: uppercase;
   opacity: 0.7;
+  line-height: 1.15;
 }
 
 .hl-block ul,
@@ -376,8 +427,10 @@ body[data-view="tomas"] .sidebar-panel {
 .hl-block li,
 .outlook-box li {
   margin: 0 0 6px;
-  font-size: 15px;
+  font-size: var(--fs-side-item);
   line-height: 1.3;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
 }
 
 .hl-who {
@@ -385,7 +438,7 @@ body[data-view="tomas"] .sidebar-panel {
   padding: 1px 7px;
   margin-right: 4px;
   border-radius: 999px;
-  font-size: 12px;
+  font-size: var(--fs-tag);
   font-weight: 700;
   color: #fff;
   background: var(--m);
@@ -426,7 +479,7 @@ body[data-view="tomas"] li[data-member]:not([data-member=""]):not([data-member="
 .empty-inline {
   margin: 0;
   opacity: 0.65;
-  font-size: 16px;
+  font-size: var(--fs-empty);
 }
 
 /* Outlook = distinct box */
@@ -441,9 +494,10 @@ body[data-view="tomas"] li[data-member]:not([data-member=""]):not([data-member="
 
 .outlook-box h3 {
   margin: 0 0 6px;
-  font-size: 15px;
+  font-size: var(--fs-outlook-title);
   letter-spacing: 0.03em;
   text-transform: uppercase;
+  line-height: 1.15;
 }
 
 /* ---- Untimed strip ---- */
@@ -454,6 +508,8 @@ body[data-view="tomas"] li[data-member]:not([data-member=""]):not([data-member="
   flex-wrap: wrap;
   margin-bottom: 8px;
   min-height: 0;
+  -webkit-flex-shrink: 0;
+  flex-shrink: 0;
 }
 
 .allday-chip {
@@ -461,14 +517,26 @@ body[data-view="tomas"] li[data-member]:not([data-member=""]):not([data-member="
   padding: 7px 10px;
   border-radius: 10px;
   border-left: 6px solid var(--m);
-  font-size: 14px;
-  max-width: 100%;
+  font-size: var(--fs-chip);
+  /* ≥2 chips per row; extra chips wrap to further rows */
+  max-width: calc(50% - 8px);
+  -webkit-box-sizing: border-box;
+  box-sizing: border-box;
+  line-height: 1.25;
+  overflow: hidden;
+}
+
+.allday-chip .chip-line,
+.allday-chip .chip-meta {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .allday-chip .chip-meta {
-  display: block;
   opacity: 0.75;
-  font-size: 12px;
+  font-size: var(--fs-chip-meta);
   margin-top: 2px;
 }
 
@@ -480,24 +548,38 @@ body[data-view="tomas"] .allday-chip:not(.mem-tomas) {
   display: none;
 }
 
-/* ---- Calendars: show one mode ---- */
-.calendars { position: relative; }
+/* ---- Calendars: show one mode; fill leftover height under chips ---- */
+.calendars {
+  position: relative;
+  -webkit-box-flex: 1;
+  flex: 1 1 auto;
+  min-height: 0;
+}
 
-.calendar { display: none; }
+.calendar {
+  display: none;
+  height: 100%;
+  -webkit-box-orient: vertical;
+  -webkit-box-direction: normal;
+  flex-direction: column;
+  min-height: 0;
+}
 
-body[data-view="rodina"] .calendar-family { display: block; }
-
+body[data-view="rodina"] .calendar-family,
 body[data-view="branislav"] .calendar-member[data-focus="branislav"],
 body[data-view="zuzka"] .calendar-member[data-focus="zuzka"],
 body[data-view="andrej"] .calendar-member[data-focus="andrej"],
 body[data-view="tomas"] .calendar-member[data-focus="tomas"] {
-  display: block;
+  display: -webkit-box;
+  display: flex;
 }
 
 .lane-heads {
   display: -webkit-box;
   display: flex;
   margin-bottom: 4px;
+  -webkit-flex-shrink: 0;
+  flex-shrink: 0;
 }
 
 .lane-head {
@@ -515,14 +597,26 @@ body[data-view="tomas"] .calendar-member[data-focus="tomas"] {
   border-radius: 10px;
   border-bottom: 4px solid var(--m, transparent);
   min-height: 52px;
+  min-width: 0;
+  overflow: hidden;
 }
 
 .lane-heads .lane-head:last-child { margin-right: 0; }
 
+.lane-head .avatar {
+  -webkit-flex-shrink: 0;
+  flex-shrink: 0;
+}
+
 .lane-name {
   margin-left: 8px;
-  font-size: 16px;
+  font-size: var(--fs-lane);
   font-weight: 700;
+  line-height: 1.1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .lane-head-others {
@@ -532,7 +626,7 @@ body[data-view="tomas"] .calendar-member[data-focus="tomas"] {
 
 .lane-head-others .lane-name {
   margin-left: 0;
-  font-size: 14px;
+  font-size: var(--fs-lane-other);
   text-transform: uppercase;
   letter-spacing: 0.04em;
 }
@@ -549,7 +643,11 @@ body[data-view="tomas"] .calendar-member[data-focus="tomas"] {
 
 .tl-body {
   position: relative;
-  height: 470px;
+  /* Fills leftover under chips + lane heads; hour lines stay % of this box */
+  -webkit-box-flex: 1;
+  flex: 1 1 auto;
+  height: auto;
+  min-height: 0;
   border-radius: 10px;
   overflow: hidden;
 }
@@ -569,12 +667,13 @@ body[data-view="tomas"] .calendar-member[data-focus="tomas"] {
 .tl-lanes {
   display: -webkit-box;
   display: flex;
-  padding-left: 44px;
+  /* Room for regular hour labels + small clear gap before events */
+  padding-left: 52px;
   z-index: 2;
 }
 
 .tl-span-layer {
-  padding-left: 44px;
+  padding-left: 52px;
   pointer-events: none;
   z-index: 3;
 }
@@ -591,10 +690,10 @@ body[data-view="tomas"] .calendar-member[data-focus="tomas"] {
   position: absolute;
   left: 4px;
   /* sit fully above the hour rule (was -10px → line struck through digits) */
-  top: -14px;
+  top: -16px;
   line-height: 1;
-  font-size: 12px;
-  font-weight: 700;
+  font-size: var(--fs-hour);
+  font-weight: 400;
   opacity: 0.55;
   padding: 0 2px;
   background: var(--tl-bg, transparent);
@@ -628,13 +727,13 @@ body[data-view="tomas"] .calendar-member[data-focus="tomas"] {
 
 .event-block {
   position: absolute;
-  padding: 3px 5px;
+  padding: 2px 5px;
   overflow: hidden; /* never clip mid-glyph — JS hides lines that don't fit */
   border-radius: 8px;
   border: 2px solid var(--m);
   background: var(--m);
   color: #fff;
-  font-size: 13px;
+  font-size: var(--fs-ev);
   line-height: 1.15;
   z-index: 2;
 }
@@ -644,10 +743,20 @@ body[data-view="tomas"] .calendar-member[data-focus="tomas"] {
   pointer-events: none;
 }
 
-.event-block .ev-time {
+.event-block .ev-time,
+.event-block .ev-title,
+.event-block .ev-loc,
+.event-block .ev-status,
+.event-block .ev-flags {
   display: block;
-  font-size: 11px;
-  font-weight: 700;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.event-block .ev-time {
+  font-size: var(--fs-ev-time);
+  font-weight: 400;
   opacity: 0.9;
   /* Atkinson’s default zero is slashed — reads as a strikethrough on times */
   font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
@@ -657,28 +766,37 @@ body[data-view="tomas"] .calendar-member[data-focus="tomas"] {
 }
 
 .event-block .ev-title {
-  display: block;
   font-weight: 700;
-  font-size: 14px;
+  font-size: var(--fs-ev-title);
 }
 
 .event-block .ev-loc,
 .event-block .ev-status,
 .event-block .ev-flags {
-  display: block;
-  font-size: 11px;
+  font-size: var(--fs-ev-flags);
   opacity: 0.9;
 }
 
-.event-block.is-short .ev-time { display: inline; margin-right: 4px; }
-.event-block.is-short .ev-title { display: inline; font-size: 13px; }
+.event-block.is-short .ev-time { display: none; }
+.event-block.is-short .ev-title {
+  display: block;
+  font-size: var(--fs-ev-title-short);
+  line-height: 1.1;
+}
 .event-block.is-short .ev-loc,
 .event-block.is-short .ev-status,
 .event-block.is-short .ev-flags { display: none; }
 
-.event-block.is-unconfirmed,
+/* Unconfirmed: uniform dashed outline (no thick left stripe) */
+.event-block.is-unconfirmed {
+  border-style: dashed;
+  border-left-width: 2px;
+  opacity: 0.92;
+}
+
 .allday-chip.is-unconfirmed {
   border-style: dashed;
+  border-left-width: 1px;
   opacity: 0.92;
 }
 
@@ -718,17 +836,18 @@ body.is-future-day .tl-now {
 .tl-now-label {
   position: absolute;
   right: 6px;
-  top: -20px;
+  top: -22px;
   padding: 1px 7px;
   border-radius: 6px;
   background: #e11d48;
   color: #fff;
-  font-size: 12px;
+  font-size: var(--fs-now);
   font-weight: 700;
   font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
   font-variant-numeric: tabular-nums;
   -webkit-font-feature-settings: "zero" 0;
   font-feature-settings: "zero" 0;
+  line-height: 1.2;
 }
 
 .ev-status,
@@ -737,7 +856,7 @@ body.is-future-day .tl-now {
   margin-left: 6px;
   padding: 1px 6px;
   border-radius: 5px;
-  font-size: 12px;
+  font-size: var(--fs-flags);
   font-weight: 700;
   vertical-align: middle;
 }
@@ -789,12 +908,9 @@ html.theme-dark .panel {
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
 }
 
-html.theme-dark .home-icon { color: var(--accent); }
 html.theme-dark .wx-icon { color: var(--accent); }
 html.theme-dark .wx-temps { color: var(--ink); }
 html.theme-dark .wx-summary { color: var(--muted); }
-
-html.theme-dark .top-divider { background: var(--line); }
 
 html.theme-dark .lane-head {
   background: var(--head-bg);
@@ -819,8 +935,8 @@ html.theme-dark .event-block {
 }
 
 html.theme-dark .event-block.is-unconfirmed {
+  /* Uniform dashed — no thick left stripe */
   border: 2px dashed rgba(255, 255, 255, 0.75);
-  border-left: 4px dashed rgba(255, 255, 255, 0.9);
   box-shadow: 0 6px 16px rgba(0, 0, 0, 0.35);
 }
 
@@ -832,6 +948,11 @@ html.theme-dark .allday-chip {
   background: var(--chip-bg);
   border: 1px solid var(--line);
   color: var(--ink);
+}
+
+html.theme-dark .allday-chip.is-unconfirmed {
+  border-style: dashed;
+  border-left-width: 1px;
 }
 
 html.theme-dark .tl-now { border-top-color: var(--now); }
@@ -907,12 +1028,9 @@ html.theme-light .panel {
   box-shadow: 0 1px 0 rgba(255, 255, 255, 0.7) inset, 0 8px 18px rgba(26, 40, 50, 0.06);
 }
 
-html.theme-light .home-icon { color: var(--accent); }
 html.theme-light .wx-icon { color: var(--accent); }
 html.theme-light .wx-temps { color: var(--ink); }
 html.theme-light .wx-summary { color: var(--muted); }
-
-html.theme-light .top-divider { background: var(--line); }
 
 html.theme-light .lane-head {
   background: var(--head-bg);
@@ -922,7 +1040,7 @@ html.theme-light .lane-head {
 }
 
 html.theme-light .tl-body {
-  background: linear-gradient(90deg, rgba(44, 95, 122, 0.035) 0, transparent 44px), var(--tl-bg);
+  background: linear-gradient(90deg, rgba(44, 95, 122, 0.035) 0, transparent 52px), var(--tl-bg);
   border: 1px solid var(--line);
 }
 
@@ -940,8 +1058,8 @@ html.theme-light .event-block {
 }
 
 html.theme-light .event-block.is-unconfirmed {
+  /* Uniform dashed — no thick left stripe */
   border: 2px dashed var(--m);
-  border-left: 6px dashed var(--m);
   background: #fff;
 }
 
@@ -965,6 +1083,7 @@ html.theme-light .allday-chip {
 
 html.theme-light .allday-chip.is-unconfirmed {
   border-style: dashed;
+  border-left-width: 1px;
 }
 
 html.theme-light .tl-now { border-top-color: var(--now); }
@@ -1009,12 +1128,10 @@ html.theme-light .empty-inline { color: var(--muted); }
 
 <div class="frame page-day">
   <header class="topbar">
-    <div class="home-icon" title="Domov" aria-hidden="true"><svg class="home-glyph" xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path fill="currentColor" d="M12 3.2 21 11h-2.5v8.5h-5V13H10.5v6.5h-5V11H3L12 3.2z"/></svg></div>
     <div class="topbar-date">
       <div class="eyebrow-swap"><p class="eyebrow eyebrow-rodina" data-who="rodina">Rodinný prehľad</p><p class="eyebrow eyebrow-branislav" data-who="branislav">Otec</p><p class="eyebrow eyebrow-zuzka" data-who="zuzka">Mama</p><p class="eyebrow eyebrow-andrej" data-who="andrej">5. ročník</p><p class="eyebrow eyebrow-tomas" data-who="tomas">2.A</p></div>
       <h1>piatok 6. november 2026</h1>
     </div>
-    <div class="top-divider" aria-hidden="true"></div>
     <div class="view-who"><div class="who who-rodina" data-who="rodina" style="--m:#6B4C9A"><img class="avatar" src="avatars/rodina.svg" alt="" width="52" height="52"><span class="who-name">Rodina</span></div><div class="who who-branislav" data-who="branislav" style="--m:#1F6AA5"><img class="avatar" src="avatars/branislav.svg" alt="" width="52" height="52"><span class="who-name">Braňo</span></div><div class="who who-zuzka" data-who="zuzka" style="--m:#C45C4A"><img class="avatar" src="avatars/zuzka.svg" alt="" width="52" height="52"><span class="who-name">Zuzka</span></div><div class="who who-andrej" data-who="andrej" style="--m:#2F7D4A"><img class="avatar" src="avatars/andrej.svg" alt="" width="52" height="52"><span class="who-name">Andrej</span></div><div class="who who-tomas" data-who="tomas" style="--m:#D97706"><img class="avatar" src="avatars/tomas.svg" alt="" width="52" height="52"><span class="who-name">Tomáš</span></div></div>
     <div class="topbar-spacer"></div>
     <div class="weather" data-icon="partly-cloudy">
@@ -1029,7 +1146,7 @@ html.theme-light .empty-inline { color: var(--muted); }
   </header>
   <div class="day-main">
     <section class="panel cal-panel">
-      <div class="allday-row"><div class="allday-chip is-unconfirmed mem-branislav" style="--m:#1F6AA5" data-members="branislav"><strong>Braňo</strong> Jakub Víšek — JAMI Gardens<span class="chip-meta">čas potvrdí telefonát · treba potvrdiť</span></div><div class="allday-chip mem-branislav" style="--m:#1F6AA5" data-members="branislav"><strong>Braňo</strong> Vyzdvihnúť balík Sportisimo<span class="chip-meta">do zatváracej doby · úloha</span></div></div>
+      <div class="allday-row"><div class="allday-chip is-unconfirmed mem-branislav" style="--m:#1F6AA5" data-members="branislav"><span class="chip-line"><strong>Braňo</strong> Jakub Víšek — JAMI Gardens</span><span class="chip-meta">čas potvrdí telefonát · treba potvrdiť</span></div><div class="allday-chip mem-branislav" style="--m:#1F6AA5" data-members="branislav"><span class="chip-line"><strong>Braňo</strong> Vyzdvihnúť balík Sportisimo</span><span class="chip-meta">do zatváracej doby · úloha</span></div></div>
       <div class="calendars">
         
 <div class="calendar calendar-family" data-mode="family">

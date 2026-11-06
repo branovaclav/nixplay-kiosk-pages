@@ -269,15 +269,6 @@ def weather_icon_svg(icon):
     return raw
 
 
-def house_icon_svg():
-    return (
-        '<svg class="home-glyph" xmlns="http://www.w3.org/2000/svg" width="36" height="36" '
-        'viewBox="0 0 24 24" aria-hidden="true" focusable="false">'
-        '<path fill="currentColor" d="M12 3.2 21 11h-2.5v8.5h-5V13H10.5v6.5h-5V11H3L12 3.2z"/>'
-        "</svg>"
-    )
-
-
 def event_block_html(ev, color, top, height, left_pct, width_pct, extra_class="", short=False):
     s = parse_hhmm(ev.get("start"))
     e = parse_hhmm(ev.get("end")) or ((s + 30) if s is not None else None)
@@ -524,7 +515,7 @@ def untimed_strip(day, people_map):
         chips.append(
             f'<div class="allday-chip{conflict}{unconf} {mem_classes}" style="--m:{esc(color)}" '
             f'data-members="{esc(",".join(mids))}">'
-            f"<strong>{esc(label)}</strong> {esc(e['title'])}"
+            f'<span class="chip-line"><strong>{esc(label)}</strong> {esc(e["title"])}</span>'
             f'<span class="chip-meta">{esc(fmt_range(e))}'
             f'{(" · " + status) if status else ""}</span></div>'
         )
@@ -686,12 +677,10 @@ def render_day_page(day, pack):
     body = f"""
 <div class="frame page-day">
   <header class="topbar">
-    <div class="home-icon" title="Domov" aria-hidden="true">{house_icon_svg()}</div>
     <div class="topbar-date">
       {eyebrow_html(people, d)}
       <h1>{esc(fmt_date_sk(d))}</h1>
     </div>
-    <div class="top-divider" aria-hidden="true"></div>
     {who_header(people, family)}
     <div class="topbar-spacer"></div>
     <div class="weather" data-icon="{esc(w.get("icon", ""))}">

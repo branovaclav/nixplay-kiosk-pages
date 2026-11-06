@@ -51,12 +51,9 @@ html.theme-light .panel {
   box-shadow: 0 1px 0 rgba(255, 255, 255, 0.7) inset, 0 8px 18px rgba(26, 40, 50, 0.06);
 }
 
-html.theme-light .home-icon { color: var(--accent); }
 html.theme-light .wx-icon { color: var(--accent); }
 html.theme-light .wx-temps { color: var(--ink); }
 html.theme-light .wx-summary { color: var(--muted); }
-
-html.theme-light .top-divider { background: var(--line); }
 
 html.theme-light .lane-head {
   background: var(--head-bg);
@@ -66,7 +63,7 @@ html.theme-light .lane-head {
 }
 
 html.theme-light .tl-body {
-  background: linear-gradient(90deg, rgba(44, 95, 122, 0.035) 0, transparent 44px), var(--tl-bg);
+  background: linear-gradient(90deg, rgba(44, 95, 122, 0.035) 0, transparent 52px), var(--tl-bg);
   border: 1px solid var(--line);
 }
 
@@ -84,8 +81,8 @@ html.theme-light .event-block {
 }
 
 html.theme-light .event-block.is-unconfirmed {
+  /* Uniform dashed — no thick left stripe */
   border: 2px dashed var(--m);
-  border-left: 6px dashed var(--m);
   background: #fff;
 }
 
@@ -109,6 +106,7 @@ html.theme-light .allday-chip {
 
 html.theme-light .allday-chip.is-unconfirmed {
   border-style: dashed;
+  border-left-width: 1px;
 }
 
 html.theme-light .tl-now { border-top-color: var(--now); }
