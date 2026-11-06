@@ -99,6 +99,16 @@
           "detail": "Andrej 16:00–16:45: konflikt prípravy z matematiky a baseballu SaBaT. Rozhodnúť, ktorý ide, a zabezpečiť odvoz."
         }
       ]
+    },
+    {
+      "id": "vyhlad",
+      "title": "Zajtra",
+      "items": [
+        {
+          "text": "St 4. 11. — bežný školský deň.",
+          "detail": "Streda 4. 11. — bežný školský deň, nič navyše."
+        }
+      ]
     }
   ]
 }

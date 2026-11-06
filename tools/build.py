@@ -521,9 +521,15 @@ def day_sections(day):
 
 
 def is_outlook(sec):
+    """Outlook box: id vyhlad, or dynamic title Zajtra / Víkend / Pondelok."""
     sid = (sec.get("id") or "").lower()
     title = (sec.get("title") or "").lower()
-    return sid == "vyhlad" or "víkend" in title or "zajtra" in title
+    return (
+        sid == "vyhlad"
+        or "víkend" in title
+        or "zajtra" in title
+        or "pondelok" in title
+    )
 
 
 def sidebar_html(day, people_map):

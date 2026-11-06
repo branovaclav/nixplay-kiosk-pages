@@ -70,14 +70,25 @@ Fakt práve raz. Status `unconfirmed` namiesto sidebar „potvrdiť“. Kódy / 
 | `rodina` | Rodina |
 | `pripomienky` | Pripomienky |
 | `zobrat` | Zobrať / vybaviť |
-| `vyhlad` | **Zajtra / Víkend** |
+| `vyhlad` | **dynamický** — pozri nižšie |
 
-`Zajtra / Víkend` sa na ráme kreslí ako **samostatný box** (oddelený od ostatných sekcií).
+Sekcia `vyhlad` sa na ráme kreslí ako **samostatný box** (oddelený od ostatných sekcií).
+**Title nikdy nie je** `Zajtra / Víkend`. Generátor zapíše title podľa dňa v týždni
+(`date` v JSON, Europe/Prague):
+
+| Deň `date` | `title` | Obsah položiek |
+|---|---|---|
+| Po–Št | **Zajtra** | nasledujúci deň |
+| Pia | **Víkend** | sobota + nedeľa |
+| So | **Pondelok** | pondelok (prípadne aj nedeľné položky, ak sú relevantné) |
+| Ne | **Zajtra** | pondelok |
+
+Víkend (So+Ne) sa počíta ako **jeden deň** voči „ďalšiemu“ pracovnému dňu → po sobote aj nedeľi je výhľad na pondelok.
 
 Nový title OK, keď lepšie sedí (1–3 slová). Max **4 sekcie**, ~**8 položiek** spolu;
 `text` ≤ ~100 znakov, `detail` ≤ ~220.
 
-Poradie: Rodina / detský šport → Pripomienky detí → osobné → Zajtra / Víkend na konci.
+Poradie: Rodina / detský šport → Pripomienky detí → osobné → výhľad (`vyhlad`) na konci.
 
 ---
 
@@ -127,4 +138,4 @@ Téma **dark** / **light**: podľa `theme_schedule` (predvolene dark 19:00–06:
 - [ ] Žiadne kódy / heslá / presná adresa
 - [ ] `unconfirmed` namiesto sidebar „potvrdiť“
 - [ ] Konflikty označené na oboch stranách
-- [ ] Outlook title: **Zajtra / Víkend**
+- [ ] Outlook `vyhlad` title podľa dňa: Po–Št/Ne **Zajtra**, Pia **Víkend**, So **Pondelok** (nikdy „Zajtra / Víkend“)

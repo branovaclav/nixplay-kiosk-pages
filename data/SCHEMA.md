@@ -100,15 +100,10 @@ Staré pole `member` (string) sa už nepoužíva.
 ```json
 {
   "id": "vyhlad",
-  "title": "Zajtra / Víkend",
+  "title": "Víkend",
   "items": [
     { "text": "So — voľno.", "detail": "Sobota — nič naplánované." },
-    {
-      "member": "branislav",
-      "family": false,
-      "text": "Osobný detail len v pohľade Braňo.",
-      "detail": "Dlhší text…"
-    }
+    { "text": "Ne — brigáda.", "detail": "Nedeľa — rodinný program." }
   ]
 }
 ```
@@ -120,7 +115,9 @@ Staré pole `member` (string) sa už nepoužíva.
 | `member` | voliteľný filter pre pohľad člena |
 | `family` | `false` = skryť v Rodina (ekvivalent `level: "detail"`) |
 
-Štandardné title: Rodina, Pripomienky, Zobrať / vybaviť, **Zajtra / Víkend**.
+Štandardné title: Rodina, Pripomienky, Zobrať / vybaviť; **`vyhlad` title je dynamický**
+(Po–Št/Ne → `Zajtra`, Pia → `Víkend`, So → `Pondelok`). Nikdy `Zajtra / Víkend`.
+Pozri [`RULES.md`](RULES.md) §3.
 
 ### Počasie `icon`
 
