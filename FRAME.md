@@ -7,7 +7,9 @@ The pages in this repo are shown on a self-managed Nixplay Seed 8" photo frame. 
 - **Chromium 81** (2020; the newest that runs on the frame's Android 4.4), in **fullscreen kiosk mode**: no address bar, tabs or system bars.
   - Pages on the home page's origin stay fullscreen; other sites show a slim Chromium bar at the top.
 - **Weak hardware** (512 MB RAM, 4× Cortex-A7). Keep pages light: little JS, few animations, images ≤ ~1024 px.
-- **Pages run unattended for days.** Refresh data periodically and avoid leaks. The screen may later be switched off when nobody is around.
+- **Pages run unattended for days.** Refresh data periodically and avoid leaks.
+  - The frame boots straight into the home page (~20 s after power-on) and reopens it if the browser closes.
+  - The backlight goes off after 5 min without motion in the room and comes back on at motion. The page keeps running in the dark, so don't rely on visibility events.
 - **Two generator runs / day (Europe/Prague):** evening (~18:55) is the **main** generator (writes tomorrow’s JSON); morning (~06:55) only re-checks calendars and commits if something meaningful changed. The same day file serves evening-before and day-of; relative labels are client-side. Live page = newest day with `date >= today`. Frame polls `version.json` ~every 5 min; also reloads after `refresh_at` and when the page date falls behind Prague today (not when it is tomorrow).
 - **Not available in Chromium 81:**
   - CSS: flex `gap` (84), `inset` (87), `aspect-ratio` (88), `:focus-visible` (86), `:is()`/`:where()` (88), `:has()`, container queries, `dvh`.
