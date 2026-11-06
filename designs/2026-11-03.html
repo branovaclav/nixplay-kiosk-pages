@@ -69,8 +69,8 @@
 :root {
   --fs-base: 20px;
   --fs-kicker: 20px;
-  --fs-date: 40px;
-  --fs-who: 34px;
+  --fs-date: 36px;
+  --fs-who: 30px;
   --fs-wx-temp: 34px;
   --fs-wx-text: 20px;
   --fs-lane: 20px;
@@ -149,7 +149,7 @@ body[data-view="tomas"] .eyebrow-tomas {
 }
 
 /* ---- Top bar ----
-   [home]  date(+kicker)  |  avatar+name  ......  weather
+   date(+kicker)   avatar+name  ......  weather
 */
 .topbar {
   display: -webkit-box;
@@ -161,29 +161,12 @@ body[data-view="tomas"] .eyebrow-tomas {
   height: 78px;
 }
 
-.home-icon {
-  -webkit-box-flex: 0;
-  flex: 0 0 44px;
-  width: 44px;
-  height: 44px;
-  display: -webkit-box;
-  display: flex;
-  -webkit-box-align: center;
-  align-items: center;
-  -webkit-box-pack: center;
-  justify-content: center;
-  opacity: 0.85;
-  pointer-events: none;
-  margin-right: 10px;
-}
-
-.home-glyph { display: block; }
-
 .topbar-date {
   -webkit-box-flex: 0;
   flex: 0 0 auto;
   min-width: 0;
-  margin-right: 14px;
+  /* Gap to view-who (replaces old divider + home icon) */
+  margin-right: 36px;
   display: -webkit-box;
   display: flex;
   -webkit-box-orient: vertical;
@@ -199,15 +182,6 @@ body[data-view="tomas"] .eyebrow-tomas {
   font-size: var(--fs-date);
   line-height: 1;
   white-space: nowrap;
-}
-
-.top-divider {
-  -webkit-box-flex: 0;
-  flex: 0 0 1px;
-  width: 1px;
-  height: 44px;
-  margin-right: 14px;
-  opacity: 0.9;
 }
 
 .view-who {
@@ -329,8 +303,9 @@ body[data-view="tomas"] .who-tomas {
   display: flex;
   -webkit-box-align: stretch;
   align-items: stretch;
-  height: 678px;
-  padding: 0 14px 12px;
+  /* Fill below 78px topbar; equal pad all sides (= former side pad) */
+  height: 690px;
+  padding: 14px;
 }
 
 .cal-panel,
@@ -342,17 +317,17 @@ body[data-view="tomas"] .who-tomas {
 
 .cal-panel {
   -webkit-box-flex: 0;
-  /* Sidebar +3% page width (≈31px); calendar shrinks to match */
-  flex: 0 0 669px;
-  width: 669px;
+  /* Rodina: sidebar +2% page again (≈20px); calendar shrinks to match */
+  flex: 0 0 649px;
+  width: 649px;
   margin-right: 12px;
   padding: 10px 12px;
 }
 
 .sidebar-panel {
   -webkit-box-flex: 0;
-  flex: 0 0 315px;
-  width: 315px;
+  flex: 0 0 335px;
+  width: 335px;
   padding: 12px 14px;
   display: -webkit-box;
   display: flex;
@@ -361,21 +336,21 @@ body[data-view="tomas"] .who-tomas {
   flex-direction: column;
 }
 
-/* Member views: calendar narrower, sidebar wider (+3% page vs prior) */
+/* Member views: main area 50/50 */
 body[data-view="branislav"] .cal-panel,
 body[data-view="zuzka"] .cal-panel,
 body[data-view="andrej"] .cal-panel,
 body[data-view="tomas"] .cal-panel {
-  flex-basis: 529px;
-  width: 529px;
+  flex-basis: 492px;
+  width: 492px;
 }
 
 body[data-view="branislav"] .sidebar-panel,
 body[data-view="zuzka"] .sidebar-panel,
 body[data-view="andrej"] .sidebar-panel,
 body[data-view="tomas"] .sidebar-panel {
-  flex-basis: 455px;
-  width: 455px;
+  flex-basis: 492px;
+  width: 492px;
 }
 
 .panel {
@@ -504,12 +479,23 @@ body[data-view="tomas"] li[data-member]:not([data-member=""]):not([data-member="
   border-radius: 10px;
   border-left: 6px solid var(--m);
   font-size: var(--fs-chip);
-  max-width: 100%;
+  /* ≥2 chips per row; extra chips wrap to further rows */
+  max-width: calc(50% - 8px);
+  -webkit-box-sizing: border-box;
+  box-sizing: border-box;
   line-height: 1.25;
+  overflow: hidden;
+}
+
+.allday-chip .chip-line,
+.allday-chip .chip-meta {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .allday-chip .chip-meta {
-  display: block;
   opacity: 0.75;
   font-size: var(--fs-chip-meta);
   margin-top: 2px;
@@ -593,7 +579,8 @@ body[data-view="tomas"] .calendar-member[data-focus="tomas"] {
 
 .tl-body {
   position: relative;
-  height: 470px;
+  /* Gained from equal outer padding + filling frame below topbar */
+  height: 482px;
   border-radius: 10px;
   overflow: hidden;
 }
@@ -838,12 +825,9 @@ html.theme-dark .panel {
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
 }
 
-html.theme-dark .home-icon { color: var(--accent); }
 html.theme-dark .wx-icon { color: var(--accent); }
 html.theme-dark .wx-temps { color: var(--ink); }
 html.theme-dark .wx-summary { color: var(--muted); }
-
-html.theme-dark .top-divider { background: var(--line); }
 
 html.theme-dark .lane-head {
   background: var(--head-bg);
@@ -956,12 +940,9 @@ html.theme-light .panel {
   box-shadow: 0 1px 0 rgba(255, 255, 255, 0.7) inset, 0 8px 18px rgba(26, 40, 50, 0.06);
 }
 
-html.theme-light .home-icon { color: var(--accent); }
 html.theme-light .wx-icon { color: var(--accent); }
 html.theme-light .wx-temps { color: var(--ink); }
 html.theme-light .wx-summary { color: var(--muted); }
-
-html.theme-light .top-divider { background: var(--line); }
 
 html.theme-light .lane-head {
   background: var(--head-bg);
@@ -1058,12 +1039,10 @@ html.theme-light .empty-inline { color: var(--muted); }
 
 <div class="frame page-day">
   <header class="topbar">
-    <div class="home-icon" title="Domov" aria-hidden="true"><svg class="home-glyph" xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path fill="currentColor" d="M12 3.2 21 11h-2.5v8.5h-5V13H10.5v6.5h-5V11H3L12 3.2z"/></svg></div>
     <div class="topbar-date">
       <div class="eyebrow-swap"><p class="eyebrow eyebrow-rodina" data-who="rodina">Rodinný prehľad</p><p class="eyebrow eyebrow-branislav" data-who="branislav">Otec</p><p class="eyebrow eyebrow-zuzka" data-who="zuzka">Mama</p><p class="eyebrow eyebrow-andrej" data-who="andrej">5. ročník</p><p class="eyebrow eyebrow-tomas" data-who="tomas">2.A</p></div>
       <h1>utorok 3. november 2026</h1>
     </div>
-    <div class="top-divider" aria-hidden="true"></div>
     <div class="view-who"><div class="who who-rodina" data-who="rodina" style="--m:#6B4C9A"><img class="avatar" src="avatars/rodina.svg" alt="" width="52" height="52"><span class="who-name">Rodina</span></div><div class="who who-branislav" data-who="branislav" style="--m:#1F6AA5"><img class="avatar" src="avatars/branislav.svg" alt="" width="52" height="52"><span class="who-name">Braňo</span></div><div class="who who-zuzka" data-who="zuzka" style="--m:#C45C4A"><img class="avatar" src="avatars/zuzka.svg" alt="" width="52" height="52"><span class="who-name">Zuzka</span></div><div class="who who-andrej" data-who="andrej" style="--m:#2F7D4A"><img class="avatar" src="avatars/andrej.svg" alt="" width="52" height="52"><span class="who-name">Andrej</span></div><div class="who who-tomas" data-who="tomas" style="--m:#D97706"><img class="avatar" src="avatars/tomas.svg" alt="" width="52" height="52"><span class="who-name">Tomáš</span></div></div>
     <div class="topbar-spacer"></div>
     <div class="weather" data-icon="cloudy">

@@ -45,12 +45,9 @@ html.theme-dark .panel {
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
 }
 
-html.theme-dark .home-icon { color: var(--accent); }
 html.theme-dark .wx-icon { color: var(--accent); }
 html.theme-dark .wx-temps { color: var(--ink); }
 html.theme-dark .wx-summary { color: var(--muted); }
-
-html.theme-dark .top-divider { background: var(--line); }
 
 html.theme-dark .lane-head {
   background: var(--head-bg);

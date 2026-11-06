@@ -13,8 +13,8 @@
 :root {
   --fs-base: 20px;
   --fs-kicker: 20px;
-  --fs-date: 40px;
-  --fs-who: 34px;
+  --fs-date: 36px;
+  --fs-who: 30px;
   --fs-wx-temp: 34px;
   --fs-wx-text: 20px;
   --fs-lane: 20px;
@@ -93,7 +93,7 @@ body[data-view="tomas"] .eyebrow-tomas {
 }
 
 /* ---- Top bar ----
-   [home]  date(+kicker)  |  avatar+name  ......  weather
+   date(+kicker)   avatar+name  ......  weather
 */
 .topbar {
   display: -webkit-box;
@@ -105,29 +105,12 @@ body[data-view="tomas"] .eyebrow-tomas {
   height: 78px;
 }
 
-.home-icon {
-  -webkit-box-flex: 0;
-  flex: 0 0 44px;
-  width: 44px;
-  height: 44px;
-  display: -webkit-box;
-  display: flex;
-  -webkit-box-align: center;
-  align-items: center;
-  -webkit-box-pack: center;
-  justify-content: center;
-  opacity: 0.85;
-  pointer-events: none;
-  margin-right: 10px;
-}
-
-.home-glyph { display: block; }
-
 .topbar-date {
   -webkit-box-flex: 0;
   flex: 0 0 auto;
   min-width: 0;
-  margin-right: 14px;
+  /* Gap to view-who (replaces old divider + home icon) */
+  margin-right: 36px;
   display: -webkit-box;
   display: flex;
   -webkit-box-orient: vertical;
@@ -143,15 +126,6 @@ body[data-view="tomas"] .eyebrow-tomas {
   font-size: var(--fs-date);
   line-height: 1;
   white-space: nowrap;
-}
-
-.top-divider {
-  -webkit-box-flex: 0;
-  flex: 0 0 1px;
-  width: 1px;
-  height: 44px;
-  margin-right: 14px;
-  opacity: 0.9;
 }
 
 .view-who {
@@ -273,8 +247,9 @@ body[data-view="tomas"] .who-tomas {
   display: flex;
   -webkit-box-align: stretch;
   align-items: stretch;
-  height: 678px;
-  padding: 0 14px 12px;
+  /* Fill below 78px topbar; equal pad all sides (= former side pad) */
+  height: 690px;
+  padding: 14px;
 }
 
 .cal-panel,
@@ -286,17 +261,17 @@ body[data-view="tomas"] .who-tomas {
 
 .cal-panel {
   -webkit-box-flex: 0;
-  /* Sidebar +3% page width (≈31px); calendar shrinks to match */
-  flex: 0 0 669px;
-  width: 669px;
+  /* Rodina: sidebar +2% page again (≈20px); calendar shrinks to match */
+  flex: 0 0 649px;
+  width: 649px;
   margin-right: 12px;
   padding: 10px 12px;
 }
 
 .sidebar-panel {
   -webkit-box-flex: 0;
-  flex: 0 0 315px;
-  width: 315px;
+  flex: 0 0 335px;
+  width: 335px;
   padding: 12px 14px;
   display: -webkit-box;
   display: flex;
@@ -305,21 +280,21 @@ body[data-view="tomas"] .who-tomas {
   flex-direction: column;
 }
 
-/* Member views: calendar narrower, sidebar wider (+3% page vs prior) */
+/* Member views: main area 50/50 */
 body[data-view="branislav"] .cal-panel,
 body[data-view="zuzka"] .cal-panel,
 body[data-view="andrej"] .cal-panel,
 body[data-view="tomas"] .cal-panel {
-  flex-basis: 529px;
-  width: 529px;
+  flex-basis: 492px;
+  width: 492px;
 }
 
 body[data-view="branislav"] .sidebar-panel,
 body[data-view="zuzka"] .sidebar-panel,
 body[data-view="andrej"] .sidebar-panel,
 body[data-view="tomas"] .sidebar-panel {
-  flex-basis: 455px;
-  width: 455px;
+  flex-basis: 492px;
+  width: 492px;
 }
 
 .panel {
@@ -448,12 +423,23 @@ body[data-view="tomas"] li[data-member]:not([data-member=""]):not([data-member="
   border-radius: 10px;
   border-left: 6px solid var(--m);
   font-size: var(--fs-chip);
-  max-width: 100%;
+  /* ≥2 chips per row; extra chips wrap to further rows */
+  max-width: calc(50% - 8px);
+  -webkit-box-sizing: border-box;
+  box-sizing: border-box;
   line-height: 1.25;
+  overflow: hidden;
+}
+
+.allday-chip .chip-line,
+.allday-chip .chip-meta {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .allday-chip .chip-meta {
-  display: block;
   opacity: 0.75;
   font-size: var(--fs-chip-meta);
   margin-top: 2px;
@@ -537,7 +523,8 @@ body[data-view="tomas"] .calendar-member[data-focus="tomas"] {
 
 .tl-body {
   position: relative;
-  height: 470px;
+  /* Gained from equal outer padding + filling frame below topbar */
+  height: 482px;
   border-radius: 10px;
   overflow: hidden;
 }
