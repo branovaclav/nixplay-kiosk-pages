@@ -49,6 +49,7 @@ heslá, prihlasovacie údaje, presnú domácu adresu. Namiesto kódu: „kód v 
 - `text` — povinný, krátky (sidebar v Rodina).
 - `detail` — voliteľný; v pohľade člena, inak sa použije `text`.
 - `member` — voliteľný; v pohľade člena sa ukazujú položky s týmto `member` **alebo bez `member`** (rodinné).
+- **`family: false`** (alebo `level: "detail"`) — položka sa **nezobrazí v pohľade Rodina**; len v relevantnom pohľade člena. Použi pre menej dôležité / osobné detaily, ktoré by Rodinu zahltili. Rodina = len to, čo sa zmestí a naozaj treba vidieť naraz.
 - Prázdna sekcia sa **nezapisuje**. Poradie poľa = poradie na ráme aj v chate.
 
 ---
@@ -109,8 +110,11 @@ Slovak, krátke, 24 h. Bez emoji. Bez tajomstiev (pozri úvod). `weather.sample:
 ## 7. Rám — jedna stránka, pohľady
 
 Nie sú samostatné HTML odkazy. Pohľady: **Rodina → Braňo → Zuzka → Andrej → Tomáš → (cyklus)**.  
-Tab / Enter = ďalší, Shift+Tab = predchádzajúci; idle ~60 s → Rodina.  
+Tab / Enter = ďalší, Shift+Tab = predchádzajúci; **krátky shake (Alt+←) = hneď Rodina**; idle ~60 s → Rodina.  
+(Dlhý shake môže neskôr ísť na iný URL — nespoliehaj sa naň pre reset pohľadu.)  
 Kalendár: 4 stĺpce osôb (Rodina pohľad) alebo široký stĺpec osoby + úzky „ostatní“ (pohľad člena).
+
+Obnova stránky: raz denne o `refresh_at` (predvolene **06:30** Europe/Prague, po rannom súhrne), plus ak dátum na stránke ≠ dnes → skok na dnešný súbor.
 
 ---
 

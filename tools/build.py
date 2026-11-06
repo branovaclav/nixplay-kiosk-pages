@@ -528,6 +528,10 @@ def sidebar_html(day, people_map):
             detail = it.get("detail") or text
             who = ""
             data_m = mid or ""
+            # family: false or level: "detail" → hide in Rodina view
+            show_family = True
+            if it.get("family") is False or it.get("level") == "detail":
+                show_family = False
             if mid and mid in people_map:
                 m = people_map[mid]
                 who = (
@@ -535,7 +539,7 @@ def sidebar_html(day, people_map):
                     f'{esc(m["display_name"])}</span> '
                 )
             lis.append(
-                f'<li data-member="{esc(data_m)}" data-family-item="{"0" if mid else "1"}">'
+                f'<li data-member="{esc(data_m)}" data-family="{1 if show_family else 0}">'
                 f"{who}"
                 f'<span class="item-text">{esc(text)}</span>'
                 f'<span class="item-detail">{esc(detail)}</span>'
@@ -571,6 +575,14 @@ def sidebar_html(day, people_map):
 """
 
 
+ROLE_EYEBROW = {
+    "otec": "Otec",
+    "mama": "Mama",
+    "dieta": "Syn",
+    "rodina": "Rodinný prehľad",
+}
+
+
 def who_header(people, family):
     parts = [
         f'<div class="who who-rodina" data-who="rodina" style="--m:{esc(family.get("color", "#4A6670"))}">'
@@ -584,6 +596,23 @@ def who_header(people, family):
             f'<span class="who-name">{esc(p["display_name"])}</span></div>'
         )
     return f'<div class="view-who">{"".join(parts)}</div>'
+
+
+def eyebrow_html(people):
+    """Kicker above the date — changes with the active view."""
+    bits = [
+        '<p class="eyebrow eyebrow-rodina" data-who="rodina">Rodinný prehľad</p>'
+    ]
+    for p in people:
+        label = ROLE_EYEBROW.get(p.get("role"), p["display_name"])
+        # Prefer school grade for kids when present
+        meta = p.get("meta") or {}
+        if p.get("role") == "dieta" and meta.get("grade"):
+            label = meta["grade"]
+        bits.append(
+            f'<p class="eyebrow eyebrow-{esc(p["id"])}" data-who="{esc(p["id"])}">{esc(label)}</p>'
+        )
+    return f'<div class="eyebrow-swap">{"".join(bits)}</div>'
 
 
 def render_day_page(tid, day, pack):
@@ -604,7 +633,7 @@ def render_day_page(tid, day, pack):
     <div class="home-icon" title="Domov" aria-hidden="true">{house_icon_svg()}</div>
     {who_header(people, family)}
     <div class="topbar-main">
-      <p class="eyebrow">Rodinný prehľad</p>
+      {eyebrow_html(people)}
       <h1>{esc(fmt_date_sk(d))}</h1>
     </div>
     <div class="weather" data-icon="{esc((day.get("weather") or {}).get("icon", ""))}">
@@ -647,6 +676,7 @@ def render_day_page(tid, day, pack):
   data-date="{esc(d)}"
   data-timezone="{esc(day.get("timezone") or "Europe/Prague")}"
   data-fallback-now="{esc(day.get("now") or "")}"
+  data-refresh-at="{esc(day.get("refresh_at") or "06:30")}"
   data-day-start="{start}"
   data-day-end="{end}"
   data-lock-now="0">

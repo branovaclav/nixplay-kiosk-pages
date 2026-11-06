@@ -4,6 +4,7 @@
   "timezone": "Europe/Prague",
   "title": "Dnes",
   "now": "09:30",
+  "refresh_at": "06:30",
   "weather": {
     "sample": true,
     "summary": "Polojasno",
@@ -117,6 +118,12 @@
           "member": "andrej",
           "text": "Diplom Finančnej gramotnosti do portfólia.",
           "detail": "Diplom z Finančnej gramotnosti odložiť do portfólia na gymnázium — nestratiť medzi školskými papiermi."
+        },
+        {
+          "member": "branislav",
+          "family": false,
+          "text": "Predĺžiť Sportisimo vyzdvihnutie do stredy, ak nestihneš dnes.",
+          "detail": "Ak nestihneš Sportisimo dnes do zatváracej doby, predĺžiť vyzdvihnutie do stredy 11. 11. (kód je v SMS)."
         }
       ]
     },

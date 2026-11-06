@@ -42,6 +42,20 @@ img.avatar {
   opacity: 0.75;
 }
 
+.eyebrow-swap { position: relative; min-height: 1.2em; }
+
+.eyebrow-swap .eyebrow {
+  display: none;
+}
+
+body[data-view="rodina"] .eyebrow-rodina,
+body[data-view="branislav"] .eyebrow-branislav,
+body[data-view="zuzka"] .eyebrow-zuzka,
+body[data-view="andrej"] .eyebrow-andrej,
+body[data-view="tomas"] .eyebrow-tomas {
+  display: block;
+}
+
 /* ---- Top bar ---- */
 .topbar {
   display: -webkit-box;
@@ -295,6 +309,11 @@ body[data-view="tomas"] .item-detail {
   display: inline;
 }
 
+/* Family view: hide detail-only items (family: false / level: detail) */
+body[data-view="rodina"] li[data-family="0"] {
+  display: none;
+}
+
 /* Member view: hide items tagged to someone else */
 body[data-view="branislav"] li[data-member]:not([data-member=""]):not([data-member="branislav"]),
 body[data-view="zuzka"] li[data-member]:not([data-member=""]):not([data-member="zuzka"]),
@@ -498,7 +517,7 @@ body[data-view="tomas"] .calendar-member[data-focus="tomas"] {
 .event-block {
   position: absolute;
   padding: 3px 5px;
-  overflow: hidden;
+  overflow: hidden; /* never clip mid-glyph — JS hides lines that don't fit */
   border-radius: 8px;
   border: 2px solid var(--m);
   background: var(--m);

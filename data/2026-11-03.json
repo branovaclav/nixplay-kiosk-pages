@@ -4,6 +4,7 @@
   "timezone": "Europe/Prague",
   "title": "Utorok (vzorka — hustý deň)",
   "now": "14:45",
+  "refresh_at": "06:30",
   "weather": {
     "sample": true,
     "summary": "Zamračené",

@@ -38,12 +38,15 @@ Rám zobrazí **jednu stránku na deň** s pohľadmi Rodina → osoby (žiadne s
   "locale": "sk-SK",
   "timezone": "Europe/Prague",
   "now": "09:30",
+  "refresh_at": "06:30",
   "weather": { "sample": true, "summary": "Polojasno", "temp_high_c": 12, "temp_low_c": 4, "icon": "partly-cloudy" },
   "timeline": { "start": "07:00", "end": "21:00" },
   "events": [],
   "sections": []
 }
 ```
+
+`refresh_at` — `HH:MM` Europe/Prague; stránka sa raz denne obnoví tesne po tomto čase (predvolene `06:30`). Ak `date` ≠ dnešok, skok na `index.html` (dnešný súbor).
 
 ### Udalosti
 
@@ -81,16 +84,23 @@ Staré pole `member` (string) sa už nepoužíva.
   "id": "vyhlad",
   "title": "Zajtra / Víkend",
   "items": [
-    { "text": "So — voľno.", "detail": "Sobota — nič naplánované." }
+    { "text": "So — voľno.", "detail": "Sobota — nič naplánované." },
+    {
+      "member": "branislav",
+      "family": false,
+      "text": "Osobný detail len v pohľade Braňo.",
+      "detail": "Dlhší text…"
+    }
   ]
 }
 ```
 
 | Pole | Poznámka |
 |---|---|
-| `text` | krátky (pohľad Rodina) |
+| `text` | krátky (pohľad Rodina, ak `family` nie je false) |
 | `detail` | voliteľný dlhší (pohľad člena) |
 | `member` | voliteľný filter pre pohľad člena |
+| `family` | `false` = skryť v Rodina (ekvivalent `level: "detail"`) |
 
 Štandardné title: Rodina, Pripomienky, Zobrať / vybaviť, **Zajtra / Víkend**.
 

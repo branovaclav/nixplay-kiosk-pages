@@ -1,24 +1,66 @@
 /* Chromium 81–safe view cycling for the daily recap page.
    Views: rodina → branislav → zuzka → andrej → tomas → (cycle).
-   Enter / Tab = next; Shift+Tab = previous; Alt+ArrowLeft ignored.
-   Idle 60s → rodina. Now-marker every minute (Europe/Prague). Reload ~30 min.
+   Enter / Tab = next; Shift+Tab = previous; Alt+ArrowLeft = Rodina.
+   Idle 60s → rodina. Now-marker every minute (Europe/Prague).
+   Reload once daily at data-refresh-at (default 06:30), plus if page date ≠ today.
 */
 (function () {
   var VIEWS = ["rodina", "branislav", "zuzka", "andrej", "tomas"];
   var IDLE_MS = 60000;
-  var RELOAD_MS = 30 * 60 * 1000;
   var NOW_MS = 60 * 1000;
-  var root = document.documentElement;
   var body = document.body;
   var idleTimer = null;
   var fallbackNow = body.getAttribute("data-fallback-now") || "";
   var tz = body.getAttribute("data-timezone") || "Europe/Prague";
   var dayStart = parseInt(body.getAttribute("data-day-start") || "420", 10);
   var dayEnd = parseInt(body.getAttribute("data-day-end") || "1260", 10);
+  var refreshAt = body.getAttribute("data-refresh-at") || "06:30";
 
   function viewIndex(id) {
     for (var i = 0; i < VIEWS.length; i++) if (VIEWS[i] === id) return i;
     return 0;
+  }
+
+  function pragueParts() {
+    try {
+      var parts = new Intl.DateTimeFormat("en-GB", {
+        timeZone: tz,
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+        hour12: false,
+      }).formatToParts(new Date());
+      var o = { year: "1970", month: "01", day: "01", hour: "00", minute: "00", second: "00" };
+      for (var i = 0; i < parts.length; i++) {
+        if (o.hasOwnProperty(parts[i].type)) o[parts[i].type] = parts[i].value;
+      }
+      if (o.hour === "24") o.hour = "00";
+      return o;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  function pragueToday() {
+    var p = pragueParts();
+    if (!p) return "";
+    return p.year + "-" + p.month + "-" + p.day;
+  }
+
+  function pragueHM() {
+    var p = pragueParts();
+    if (!p) return fallbackNow;
+    return p.hour + ":" + p.minute;
+  }
+
+  function parseHM(s) {
+    if (!s) return null;
+    var p = s.split(":");
+    if (p.length < 2) return null;
+    return parseInt(p[0], 10) * 60 + parseInt(p[1], 10);
   }
 
   function refreshSectionVisibility() {
@@ -27,28 +69,56 @@
       var lis = blocks[i].querySelectorAll("li");
       var any = false;
       for (var j = 0; j < lis.length; j++) {
-        // offsetParent null when display:none
-        if (lis[j].offsetParent !== null || lis[j].style.display === "") {
-          var cs = window.getComputedStyle(lis[j]);
-          if (cs.display !== "none") {
-            any = true;
-            break;
-          }
+        var cs = window.getComputedStyle(lis[j]);
+        if (cs.display !== "none") {
+          any = true;
+          break;
         }
       }
       blocks[i].style.display = any ? "" : "none";
     }
   }
 
+  /** Hide secondary event lines that don't fit the block (no clipping). */
+  function fitEventBlocks() {
+    var blocks = document.querySelectorAll(".event-block");
+    for (var i = 0; i < blocks.length; i++) {
+      var el = blocks[i];
+      if (el.offsetParent === null) continue;
+      var extras = el.querySelectorAll(".ev-loc, .ev-status, .ev-flags, .ev-time");
+      var k;
+      for (k = 0; k < extras.length; k++) extras[k].style.display = "";
+      // Prefer keeping title; drop flags → status → loc → time if overflowing
+      var order = [".ev-flags", ".ev-status", ".ev-loc", ".ev-time"];
+      var guard = 0;
+      while (el.scrollHeight > el.clientHeight + 1 && guard < 8) {
+        var hidden = false;
+        for (k = 0; k < order.length; k++) {
+          var nodes = el.querySelectorAll(order[k]);
+          for (var n = 0; n < nodes.length; n++) {
+            if (nodes[n].style.display === "none") continue;
+            nodes[n].style.display = "none";
+            hidden = true;
+            break;
+          }
+          if (hidden) break;
+        }
+        if (!hidden) break;
+        guard++;
+      }
+    }
+  }
+
   function setView(id) {
     if (viewIndex(id) < 0) id = "rodina";
     body.setAttribute("data-view", id);
-    // next frame so CSS display:none has applied
-    setTimeout(refreshSectionVisibility, 0);
+    setTimeout(function () {
+      refreshSectionVisibility();
+      fitEventBlocks();
+    }, 0);
     try {
       if (history.replaceState) {
         var u = location.pathname + location.search;
-        // keep ?now= for demos; strip only hash management
         if (id === "rodina") history.replaceState(null, "", u.split("#")[0]);
         else history.replaceState(null, "", u.split("#")[0] + "#" + id);
       }
@@ -68,48 +138,17 @@
     }, IDLE_MS);
   }
 
-  function pragueHM() {
-    try {
-      var parts = new Intl.DateTimeFormat("en-GB", {
-        timeZone: tz,
-        hour: "2-digit",
-        minute: "2-digit",
-        hour12: false,
-      }).formatToParts(new Date());
-      var h = "00",
-        m = "00";
-      for (var i = 0; i < parts.length; i++) {
-        if (parts[i].type === "hour") h = parts[i].value;
-        if (parts[i].type === "minute") m = parts[i].value;
-      }
-      if (h === "24") h = "00";
-      return h + ":" + m;
-    } catch (e) {
-      return fallbackNow;
-    }
-  }
-
-  function parseHM(s) {
-    if (!s) return null;
-    var p = s.split(":");
-    if (p.length < 2) return null;
-    return parseInt(p[0], 10) * 60 + parseInt(p[1], 10);
-  }
-
   function updateNow() {
     var pageDate = body.getAttribute("data-date") || "";
     var hm = pragueHM();
     var useFallback = false;
     if (pageDate) {
-      try {
-        var today = new Intl.DateTimeFormat("en-CA", { timeZone: tz }).format(new Date());
-        if (today !== pageDate && fallbackNow) {
-          hm = fallbackNow;
-          useFallback = true;
-        }
-      } catch (e) {}
+      var today = pragueToday();
+      if (today && today !== pageDate && fallbackNow) {
+        hm = fallbackNow;
+        useFallback = true;
+      }
     }
-    // Screenshots / frozen demos: ?now=09:30 or data-lock-now
     var q = location.search || "";
     var m = q.match(/[?&]now=(\d{1,2}:\d{2})/);
     if (m) {
@@ -139,13 +178,52 @@
     var blocks = document.querySelectorAll(".event-block[data-end-min]");
     for (i = 0; i < blocks.length; i++) {
       var endMin = parseInt(blocks[i].getAttribute("data-end-min"), 10);
-      if (!isNaN(endMin) && mins != null && endMin <= mins) {
-        blocks[i].className = (blocks[i].className || "").replace(/\bis-past\b/g, "") + " is-past";
-      } else {
-        blocks[i].className = (blocks[i].className || "").replace(/\bis-past\b/g, "").replace(/\s+/g, " ").replace(/^\s|\s$/g, "");
-      }
+      var cn = (blocks[i].className || "").replace(/\bis-past\b/g, "").replace(/\s+/g, " ");
+      if (!isNaN(endMin) && mins != null && endMin <= mins) cn += " is-past";
+      blocks[i].className = cn.replace(/^\s|\s$/g, "");
     }
     body.setAttribute("data-now-source", useFallback ? "fallback" : "live");
+    fitEventBlocks();
+  }
+
+  /** Ms until next refresh_at in Europe/Prague (today if still ahead, else tomorrow). */
+  function msUntilRefresh() {
+    var target = parseHM(refreshAt);
+    if (target == null) target = 6 * 60 + 30;
+    var p = pragueParts();
+    if (!p) return 60 * 60 * 1000;
+    var nowMin = parseInt(p.hour, 10) * 60 + parseInt(p.minute, 10);
+    var nowSec = parseInt(p.second, 10) || 0;
+    var deltaMin = target - nowMin;
+    if (deltaMin < 0 || (deltaMin === 0 && nowSec > 0)) deltaMin += 24 * 60;
+    return deltaMin * 60 * 1000 - nowSec * 1000;
+  }
+
+  function goToTodayPage() {
+    // index.html picks today's file; same folder as this page
+    try {
+      location.replace("index.html");
+    } catch (e) {
+      location.href = "index.html";
+    }
+  }
+
+  function armDailyRefresh() {
+    // If this page is not today's date, roll forward (new day published).
+    var pageDate = body.getAttribute("data-date") || "";
+    var today = pragueToday();
+    if (pageDate && today && pageDate !== today) {
+      // Demospages with ?now= stay put (screenshots / frozen samples).
+      if (!/[?&]now=/.test(location.search || "") && body.getAttribute("data-lock-now") !== "1") {
+        goToTodayPage();
+        return;
+      }
+    }
+    var wait = msUntilRefresh();
+    if (wait < 5000) wait = 5000;
+    setTimeout(function () {
+      location.reload();
+    }, wait);
   }
 
   function onKey(e) {
@@ -158,6 +236,7 @@
     if (isBack) {
       e.preventDefault();
       e.stopPropagation();
+      setView("rodina");
       armIdle();
       return;
     }
@@ -175,7 +254,6 @@
   function boot() {
     var hash = (location.hash || "").replace(/^#/, "");
     var q = location.search.match(/[?&]view=([a-z]+)/);
-    // Prefer ?view= / #hash; else keep server-rendered data-view; else rodina.
     var initial = body.getAttribute("data-view") || "rodina";
     if (q) initial = q[1];
     else if (hash && viewIndex(hash) >= 0) initial = hash;
@@ -183,10 +261,9 @@
     armIdle();
     updateNow();
     setInterval(updateNow, NOW_MS);
-    setInterval(function () {
-      location.reload();
-    }, RELOAD_MS);
+    armDailyRefresh();
     document.addEventListener("keydown", onKey, true);
+    window.addEventListener("resize", fitEventBlocks);
   }
 
   if (document.readyState === "loading") {
