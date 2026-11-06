@@ -537,19 +537,29 @@ def day_sections(day):
         items = [it for it in (sec.get("items") or []) if isinstance(it, dict) and it.get("text")]
         if not items:
             continue
-        out.append({"id": sec.get("id") or "", "title": sec.get("title") or "", "items": items})
+        entry = {"id": sec.get("id") or "", "title": sec.get("title") or "", "items": items}
+        if isinstance(sec.get("outlook"), dict):
+            entry["outlook"] = sec["outlook"]
+        out.append(entry)
     return out
 
 
 def is_outlook(sec):
-    """Outlook box: id vyhlad, or dynamic title Zajtra / Víkend / Pondelok."""
+    """Outlook box: id vyhlad, outlook{}, or known fallback titles."""
     sid = (sec.get("id") or "").lower()
     title = (sec.get("title") or "").lower()
+    if sid == "vyhlad" or sec.get("outlook"):
+        return True
     return (
-        sid == "vyhlad"
-        or "víkend" in title
+        "víkend" in title
         or "zajtra" in title
         or "pondelok" in title
+        or "utorok" in title
+        or "streda" in title
+        or "štvrtok" in title
+        or "piatok" in title
+        or "sobota" in title
+        or "nedeľa" in title
     )
 
 
@@ -596,9 +606,13 @@ def sidebar_html(day, people_map):
 
     outlook_html = ""
     for sec in outlook:
+        ol = sec.get("outlook") or {}
+        ofrom = ol.get("from") or ""
+        oto = ol.get("to") or ofrom
+        attrs = f' data-outlook-from="{esc(ofrom)}" data-outlook-to="{esc(oto)}"' if ofrom else ""
         outlook_html += (
-            f'<aside class="outlook-box" data-section="{esc(sec["id"])}">'
-            f'<h3>{esc(sec["title"])}</h3>'
+            f'<aside class="outlook-box" data-section="{esc(sec["id"])}"{attrs}>'
+            f'<h3 data-outlook-title="1">{esc(sec["title"])}</h3>'
             f"{items_html(sec['items'])}</aside>"
         )
 
@@ -636,18 +650,14 @@ def who_header(people, family):
     return f'<div class="view-who">{"".join(parts)}</div>'
 
 
-def rodina_eyebrow_label(day_iso, today_iso=None):
-    """Rodina kicker: 'Zajtra' when the page is a future day, else 'Rodinný prehľad'."""
-    today = today_iso or prague_today_iso()
-    if day_iso and today and day_iso > today:
-        return "Zajtra"
-    return "Rodinný prehľad"
-
-
 def eyebrow_html(people, day_iso=None):
-    """Kicker above the date — changes with the active view."""
+    """Kicker above the date — changes with the active view.
+
+    Rodina label starts as 'Rodinný prehľad'; view.js rewrites to 'Zajtra'
+    when the page date is tomorrow relative to Prague now.
+    """
     bits = [
-        f'<p class="eyebrow eyebrow-rodina" data-who="rodina">{esc(rodina_eyebrow_label(day_iso))}</p>'
+        '<p class="eyebrow eyebrow-rodina" data-who="rodina">Rodinný prehľad</p>'
     ]
     for p in people:
         label = ROLE_EYEBROW.get(p.get("role"), p["display_name"])
@@ -669,9 +679,6 @@ def render_day_page(day, pack):
     d = day["date"]
     sched = theme_schedule(pack, day)
     w = day.get("weather") or {}
-    today = prague_today_iso()
-    is_future = bool(d and today and d > today)
-
     calendars = [family_calendar(day, people, start, end)]
     for p in people:
         calendars.append(member_calendar(day, people, p["id"], start, end))
@@ -721,10 +728,10 @@ def render_day_page(day, pack):
 {css}
 </style>
 </head>
-<body class="page-day{" is-future-day" if is_future else ""}"
+<body class="page-day"
   data-view="rodina"
   data-date="{esc(d)}"
-  data-day-role="{esc("tomorrow" if is_future else "today")}"
+  data-day-role="today"
   data-timezone="{esc(day.get("timezone") or "Europe/Prague")}"
   data-fallback-now="{esc(day.get("now") or "")}"
   data-refresh-at="{esc(day.get("refresh_at") or "06:30")}"

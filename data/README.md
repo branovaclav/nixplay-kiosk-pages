@@ -9,14 +9,17 @@
 
 ## Dva behy denne (Europe/Prague)
 
-| Beh | Približne | Súbor | Poznámka |
+**Jeden súbor na deň** slúži večer pred dňom aj počas dňa — bez regenerácie kvôli popiskom.
+Relatívne texty (kicker **Zajtra** / **Rodinný prehľad**, nadpis výhľadu) počíta klient podľa Prague času.
+
+| Beh | Približne | Súbor | Úloha |
 |---|---|---|---|
-| **Ráno** | ~06:55 | `data/<dnes>.json` | Prehľad na **dnes**. Ak večerný beh už pripravil ten istý súbor ako „zajtra“ a nič sa nezmenilo, **žiadny commit** (reuse). |
-| **Večer** | ~18:55 | `data/<zajtra>.json` | Prehľad na **zajtra**. Po pushi sa stránka hneď prepne na zajtra (najnovší súbor s dátumom ≥ dnes). |
+| **Večer** | ~18:55 | `data/<zajtra>.json` | **Hlavný generátor** — vytvorí / prepíše zajtrajší prehľad. Po pushi sa stránka hneď prepne na zajtra (najnovší súbor s dátumom ≥ dnes). |
+| **Ráno** | ~06:55 | `data/<dnes>.json` | **Len kontrola kalendárov.** Nový commit len ak sa niečo zmysluplne zmenilo; inak reuse večerného súboru (žiadny commit). |
 
 Každý commit, ktorý mení JSON:
 
-1. Zapisuje / aktualizuje `data/YYYY-MM-DD.json` podľa [`RULES.md`](RULES.md).
+1. Zapisuje / aktualizuje `data/YYYY-MM-DD.json` podľa [`RULES.md`](RULES.md) (vrátane `outlook.from` / `outlook.to` pri `vyhlad`).
 2. V tom istom commite **vymaže** súbory staršie než **~14 dní**.
 3. Push na `main` → Action `validate` + `build` → Pages (`site/index.html` + `site/version.json`).
 

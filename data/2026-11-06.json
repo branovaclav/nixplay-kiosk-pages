@@ -130,6 +130,7 @@
     {
       "id": "vyhlad",
       "title": "Víkend",
+      "outlook": { "from": "2026-11-07", "to": "2026-11-08" },
       "items": [
         {
           "text": "So 7. 11. — nič naplánované.",
