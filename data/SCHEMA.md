@@ -26,6 +26,11 @@ Dva vizuálne režimy z toho istého JSON: **dark** (Večerná) a **light** (tá
     "avatar": "rodina.svg"
   },
   "theme_schedule": {
+    "mode": "sun",
+    "lat": 50.08,
+    "lon": 14.42,
+    "sunrise_offset_min": 0,
+    "sunset_offset_min": 0,
     "dark_from": "19:00",
     "dark_until": "06:30"
   }
@@ -39,12 +44,16 @@ Dva vizuálne režimy z toho istého JSON: **dark** (Večerná) a **light** (tá
 
 | Pole | Predvolené | Poznámka |
 |---|---|---|
-| `dark_from` | `19:00` | začiatok dark (Europe/Prague) |
-| `dark_until` | `06:30` | koniec dark (exclusive); interval môže prechádzať polnoc |
+| `mode` | `sun` ak sú lat/lon, inak `fixed` | `sun` = light od východu do západu; `fixed` = hodiny |
+| `lat` / `lon` | Praha `50.08` / `14.42` | WGS84; NOAA výpočet v `view.js` (bez siete) |
+| `sunrise_offset_min` | `0` | posun východu (minúty; kladné = neskôr) |
+| `sunset_offset_min` | `0` | posun západu (minúty) |
+| `dark_from` | `19:00` | fallback / `mode: fixed` — začiatok dark |
+| `dark_until` | `06:30` | fallback / `mode: fixed` — koniec dark (exclusive) |
 
 Deň môže rovnaké polia prebiť v `theme_schedule` vo vlastnom JSON.
-Stránka každú minútu prepočíta režim (prepne `html.theme-dark` / `html.theme-light` bez reloadu).
-Pre screenshoty / test: `?theme=light` alebo `?theme=dark` (zamkne režim).
+Stránka každú minútu prepočíta režim (`html.theme-dark` / `html.theme-light`, bez reloadu).
+`?theme=light|dark` zamkne režim (screenshoty / test).
 
 ## Deň `YYYY-MM-DD.json`
 
@@ -125,6 +134,11 @@ Pozri [`RULES.md`](RULES.md) §3.
 
 ## Build
 
-`tools/build.py` → `designs/<date>.html` (jedna stránka, dark+light CSS) + `designs/index.html` (dnes / fallback) + `designs/hub.html`.
+```bash
+python3 tools/validate.py   # fail CI if JSON breaks this schema / RULES
+python3 tools/build.py      # → site/ (Pages) + designs/ (local dated previews)
+```
+
+Produkcia: `site/index.html` = dnešný súbor (Europe/Prague), inak najnovší `data/YYYY-MM-DD.json`.
 Žiadne member HTML. JS: pohľady, now-marker, theme podľa času / `?theme=`, idle → Rodina, denný reload.
-Staršie A/B/C návrhy: `designs/archive/` (+ `themes/archive/`).
+Archív A/B/C: `designs/archive/`, `themes/archive/` (v repo, nie na Pages).

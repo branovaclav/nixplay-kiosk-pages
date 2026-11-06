@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
-"""Render denný rodinný prehľad: data/*.json + themes/<id>/ → designs/<id>/.
+"""Render denný rodinný prehľad for production + local preview.
 
-Jedna stránka na deň s pohľadmi Rodina → osoby (žiadne odkazy medzi stránkami).
-Timeline HTML/CSS pri builde; view.js prepína pohľady (Chromium 81).
+Production (GitHub Pages): site/index.html = today (Europe/Prague) or newest
+day JSON, dark/light via theme_schedule. Local preview: designs/<date>.html
+(archive/ stays in the repo, is not deployed).
 
-  python3 tools/build.py
+  python3 tools/validate.py && python3 tools/build.py
 """
 from __future__ import annotations
 
@@ -12,12 +13,18 @@ import html
 import json
 import os
 import shutil
-from datetime import date
+from datetime import date, datetime, timezone
+
+try:
+    from zoneinfo import ZoneInfo
+except ImportError:  # pragma: no cover
+    ZoneInfo = None  # type: ignore
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DATA = os.path.join(ROOT, "data")
 THEMES = os.path.join(ROOT, "themes")
 DESIGNS = os.path.join(ROOT, "designs")
+SITE = os.path.join(ROOT, "site")
 AVATARS = os.path.join(ROOT, "assets", "avatars")
 WEATHER = os.path.join(ROOT, "assets", "weather")
 
@@ -228,10 +235,24 @@ def site_css():
 
 
 def theme_schedule(pack, day):
-    """dark_from / dark_until — day JSON overrides members.json."""
+    """Theme schedule — day JSON overrides members.json.
+
+    mode \"sun\" (default when lat/lon present): light sunrise→sunset.
+    mode \"fixed\": dark_from / dark_until clock times (also sun fallback).
+    """
     sched = dict(pack.get("theme_schedule") or {})
     sched.update(day.get("theme_schedule") or {})
+    mode = (sched.get("mode") or "").lower()
+    lat = sched.get("lat")
+    lon = sched.get("lon")
+    if not mode:
+        mode = "sun" if lat is not None and lon is not None else "fixed"
     return {
+        "mode": mode,
+        "lat": lat if lat is not None else 50.08,
+        "lon": lon if lon is not None else 14.42,
+        "sunrise_offset_min": int(sched.get("sunrise_offset_min") or 0),
+        "sunset_offset_min": int(sched.get("sunset_offset_min") or 0),
         "dark_from": sched.get("dark_from") or "19:00",
         "dark_until": sched.get("dark_until") or "06:30",
     }
@@ -696,6 +717,11 @@ def render_day_page(day, pack):
   data-timezone="{esc(day.get("timezone") or "Europe/Prague")}"
   data-fallback-now="{esc(day.get("now") or "")}"
   data-refresh-at="{esc(day.get("refresh_at") or "06:30")}"
+  data-theme-mode="{esc(sched["mode"])}"
+  data-lat="{esc(sched["lat"])}"
+  data-lon="{esc(sched["lon"])}"
+  data-sunrise-offset="{esc(sched["sunrise_offset_min"])}"
+  data-sunset-offset="{esc(sched["sunset_offset_min"])}"
   data-dark-from="{esc(sched["dark_from"])}"
   data-dark-until="{esc(sched["dark_until"])}"
   data-day-start="{start}"
@@ -707,80 +733,69 @@ def render_day_page(day, pack):
 """
 
 
-def render_site_index(dates, primary):
-    links = "".join(
-        f'<li><a href="{esc(d)}.html">{esc(fmt_date_sk(d))}</a>'
-        f' · <a href="{esc(d)}.html?theme=light">light</a>'
-        f' · <a href="{esc(d)}.html?theme=dark">dark</a></li>'
-        for d in dates
-    )
-    return f"""<!doctype html>
-<html lang="sk">
-<head>
-<meta charset="utf-8">
-<meta name="robots" content="noindex,nofollow">
-<title>Denný prehľad — index</title>
-<script>
-(function(){{
-  var dates = {json.dumps(dates)};
-  var primary = {json.dumps(primary)};
-  var today;
-  try {{
-    today = new Intl.DateTimeFormat("en-CA", {{ timeZone: "Europe/Prague" }}).format(new Date());
-  }} catch (e) {{ today = primary; }}
-  var target = primary;
-  for (var i = 0; i < dates.length; i++) if (dates[i] === today) target = today;
-  location.replace(target + ".html" + (location.search || ""));
-}})();
-</script>
-</head>
-<body>
-<p>Presmerovanie na dnešný deň…</p>
-<ul>{links}</ul>
-<p><a href="archive/">Archív starých návrhov (Papier / Farbičky / Večerná)</a></p>
-</body>
-</html>
-"""
+def prague_today_iso():
+    """YYYY-MM-DD in Europe/Prague (fallback: UTC date)."""
+    if ZoneInfo is not None:
+        try:
+            return datetime.now(ZoneInfo("Europe/Prague")).date().isoformat()
+        except Exception:
+            pass
+    return datetime.now(timezone.utc).date().isoformat()
 
 
-def render_designs_hub(dates):
-    day_links = "".join(
-        f'<li><strong>{esc(fmt_date_sk(d))}</strong> — '
-        f'<a href="{esc(d)}.html">auto</a> · '
-        f'<a href="{esc(d)}.html?theme=light">light</a> · '
-        f'<a href="{esc(d)}.html?theme=dark">dark</a></li>'
-        for d in dates
-    )
-    return f"""<!doctype html>
-<html lang="sk">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="robots" content="noindex,nofollow">
-<title>Denný prehľad — dark / light</title>
-<style>
-  body {{ margin: 0; font: 20px/1.45 system-ui, sans-serif; color: #1a1f24; background: #e7eef2; }}
-  main {{ max-width: 820px; margin: 0 auto; padding: 1.6rem 1.2rem 3rem; }}
-  h1 {{ font-size: 2rem; margin: .3rem 0 .4rem; }}
-  .lede {{ color: #3d4a52; margin: 0 0 1.4rem; }}
-  ul {{ margin: 0; padding-left: 1.2em; }}
-  li {{ margin: 0 0 .6rem; }}
-  a {{ color: #1f4f6e; }}
-</style>
-</head>
-<body>
-<main>
-  <h1>Denný rodinný prehľad</h1>
-  <p class="lede">Jedna stránka na deň — režimy <strong>dark</strong> (Večerná) a <strong>light</strong>
-  (tá istá štruktúra, Papier paleta). Prepínanie podľa času Europe/Prague
-  (predvolene dark 19:00–06:30), alebo <code>?theme=light|dark</code>.
-  Pohľady Rodina → Braňo → Zuzka → Andrej → Tomáš (Tab / Enter).</p>
-  <ul>{day_links}</ul>
-  <p><a href="index.html">index (dnes)</a> · <a href="archive/">archív starých A/B/C návrhov</a></p>
-</main>
-</body>
-</html>
-"""
+def pick_primary_day(days):
+    """Today's file if present, else newest by date field."""
+    if not days:
+        return None
+    by_date = {d["date"]: d for d in days if d.get("date")}
+    today = prague_today_iso()
+    if today in by_date:
+        return by_date[today]
+    newest = sorted(by_date.keys())[-1]
+    return by_date[newest]
+
+
+def clear_html_files(dir_path):
+    if not os.path.isdir(dir_path):
+        return
+    for fn in os.listdir(dir_path):
+        path = os.path.join(dir_path, fn)
+        if fn.endswith(".html") and os.path.isfile(path):
+            os.remove(path)
+
+
+def write_production_site(day, pack):
+    """site/ — published to GitHub Pages (no hub, no archive, no dated HTML)."""
+    if os.path.isdir(SITE):
+        shutil.rmtree(SITE)
+    os.makedirs(SITE, exist_ok=True)
+    copy_site_assets(SITE)
+    write(os.path.join(SITE, "index.html"), render_day_page(day, pack))
+    # Pages: skip Jekyll so _files / dots are fine; also copy root .nojekyll
+    nojekyll_src = os.path.join(ROOT, ".nojekyll")
+    nojekyll_dst = os.path.join(SITE, ".nojekyll")
+    if os.path.isfile(nojekyll_src):
+        shutil.copy2(nojekyll_src, nojekyll_dst)
+    else:
+        write(nojekyll_dst, "")
+    print(f"built site/index.html ← {day['date']}")
+
+
+def write_local_designs(days, pack, primary):
+    """designs/ — local dated previews; archive/ left untouched."""
+    os.makedirs(DESIGNS, exist_ok=True)
+    clear_html_files(DESIGNS)
+    # drop proposal hub if present
+    hub = os.path.join(DESIGNS, "hub.html")
+    if os.path.isfile(hub):
+        os.remove(hub)
+    copy_site_assets(DESIGNS)
+    for day in days:
+        write(os.path.join(DESIGNS, f'{day["date"]}.html'), render_day_page(day, pack))
+        print(f"built designs/{day['date']}.html")
+    # designs/index.html mirrors production (same primary day page)
+    write(os.path.join(DESIGNS, "index.html"), render_day_page(primary, pack))
+    print("built designs/index.html (same as site/)")
 
 
 def build():
@@ -789,25 +804,12 @@ def build():
     for name in sorted(os.listdir(DATA)):
         if name.endswith(".json") and name[0].isdigit():
             days.append(load_json(DATA, name))
-    dates = [d["date"] for d in days]
-    primary = "2026-11-06" if "2026-11-06" in dates else (dates[0] if dates else None)
+    if not days:
+        raise SystemExit("no data/YYYY-MM-DD.json files to build")
 
-    os.makedirs(DESIGNS, exist_ok=True)
-    # Remove stale top-level HTML from prior multi-theme layout (keep archive/)
-    for fn in os.listdir(DESIGNS):
-        path = os.path.join(DESIGNS, fn)
-        if fn.endswith(".html") and os.path.isfile(path):
-            os.remove(path)
-
-    copy_site_assets(DESIGNS)
-    for day in days:
-        write(os.path.join(DESIGNS, f'{day["date"]}.html'), render_day_page(day, pack))
-        print(f"built designs/{day['date']}.html")
-
-    write(os.path.join(DESIGNS, "index.html"), render_site_index(dates, primary))
-    write(os.path.join(DESIGNS, "hub.html"), render_designs_hub(dates))
-    # Convenience: hub as main listing — also overwrite designs/index? Keep index as today redirect.
-    print("built designs/index.html + hub.html")
+    primary = pick_primary_day(days)
+    write_production_site(primary, pack)
+    write_local_designs(days, pack, primary)
 
 
 if __name__ == "__main__":

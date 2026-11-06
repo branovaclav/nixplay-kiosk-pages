@@ -1,7 +1,7 @@
 /* Chromium 81–safe view cycling + light/dark theme for the daily recap.
    Views: rodina → branislav → zuzka → andrej → tomas → (cycle).
    Enter / Tab = next; Shift+Tab = previous; Alt+ArrowLeft = Rodina.
-   Theme: html.theme-dark|theme-light from schedule (Europe/Prague) or ?theme=.
+   Theme: sun (NOAA sunrise/sunset) or fixed clock; ?theme= locks.
    Idle 60s → rodina. Now-marker every minute. Daily reload at refresh_at.
 */
 (function () {
@@ -16,9 +16,16 @@
   var dayStart = parseInt(body.getAttribute("data-day-start") || "420", 10);
   var dayEnd = parseInt(body.getAttribute("data-day-end") || "1260", 10);
   var refreshAt = body.getAttribute("data-refresh-at") || "06:30";
+  var themeMode = (body.getAttribute("data-theme-mode") || "fixed").toLowerCase();
+  var lat = parseFloat(body.getAttribute("data-lat") || "50.08");
+  var lon = parseFloat(body.getAttribute("data-lon") || "14.42");
+  var sunriseOffset = parseInt(body.getAttribute("data-sunrise-offset") || "0", 10) || 0;
+  var sunsetOffset = parseInt(body.getAttribute("data-sunset-offset") || "0", 10) || 0;
   var darkFrom = body.getAttribute("data-dark-from") || "19:00";
   var darkUntil = body.getAttribute("data-dark-until") || "06:30";
   var themeLocked = null; // "light"|"dark" from ?theme=
+  var lastSunKey = "";
+  var cachedSun = null; // { rise, set } minutes from local midnight
 
   function viewIndex(id) {
     for (var i = 0; i < VIEWS.length; i++) if (VIEWS[i] === id) return i;
@@ -142,7 +149,7 @@
     }, IDLE_MS);
   }
 
-  function isDarkAt(mins) {
+  function isDarkFixed(mins) {
     var from = parseHM(darkFrom);
     var until = parseHM(darkUntil);
     if (from == null) from = 19 * 60;
@@ -152,18 +159,159 @@
     return mins >= from && mins < until;
   }
 
+  /** UTC offset (minutes east of UTC) for Europe/Prague on a civil date — Chromium 81 safe. */
+  function pragueUtcOffsetMin(y, mo, d) {
+    var utcNoon = new Date(Date.UTC(y, mo - 1, d, 12, 0, 0));
+    try {
+      var parts = new Intl.DateTimeFormat("en-GB", {
+        timeZone: tz,
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+        hour12: false,
+      }).formatToParts(utcNoon);
+      var o = { year: "1970", month: "01", day: "01", hour: "12", minute: "00", second: "00" };
+      for (var i = 0; i < parts.length; i++) {
+        if (o.hasOwnProperty(parts[i].type)) o[parts[i].type] = parts[i].value;
+      }
+      if (o.hour === "24") o.hour = "00";
+      var asUtc = Date.UTC(
+        parseInt(o.year, 10),
+        parseInt(o.month, 10) - 1,
+        parseInt(o.day, 10),
+        parseInt(o.hour, 10),
+        parseInt(o.minute, 10),
+        parseInt(o.second, 10)
+      );
+      return Math.round((asUtc - utcNoon.getTime()) / 60000);
+    } catch (e) {
+      // CET/CEST rough fallback
+      return mo >= 4 && mo <= 10 ? 120 : 60;
+    }
+  }
+
+  /**
+   * NOAA solar calculator (approx.) → local sunrise/sunset minutes from midnight.
+   * Zenith 90.833° (official sunrise/sunset with refraction).
+   */
+  function sunTimesForDay(y, mo, d) {
+    var key = y + "-" + mo + "-" + d + ":" + lat + "," + lon;
+    if (cachedSun && lastSunKey === key) return cachedSun;
+
+    function toRad(x) {
+      return (x * Math.PI) / 180;
+    }
+    function toDeg(x) {
+      return (x * 180) / Math.PI;
+    }
+
+    // Day of year
+    var start = Date.UTC(y, 0, 0);
+    var day = Date.UTC(y, mo - 1, d);
+    var N = Math.round((day - start) / 86400000);
+
+    // Fractional year (radians), approx at noon
+    var gamma = ((2 * Math.PI) / 365) * (N - 1 + (12 - 12) / 24);
+
+    var eqtime =
+      229.18 *
+      (0.000075 +
+        0.001868 * Math.cos(gamma) -
+        0.032077 * Math.sin(gamma) -
+        0.014615 * Math.cos(2 * gamma) -
+        0.040849 * Math.sin(2 * gamma));
+
+    var decl =
+      0.006918 -
+      0.399912 * Math.cos(gamma) +
+      0.070257 * Math.sin(gamma) -
+      0.006758 * Math.cos(2 * gamma) +
+      0.000907 * Math.sin(2 * gamma) -
+      0.002697 * Math.cos(3 * gamma) +
+      0.00148 * Math.sin(3 * gamma);
+
+    var latR = toRad(lat);
+    var cosHa =
+      Math.cos(toRad(90.833)) / (Math.cos(latR) * Math.cos(decl)) -
+      Math.tan(latR) * Math.tan(decl);
+    if (cosHa > 1) cosHa = 1;
+    if (cosHa < -1) cosHa = -1;
+    var ha = toDeg(Math.acos(cosHa)); // degrees
+
+    // Minutes from UTC midnight (NOAA)
+    var sunriseUtc = 720 - 4 * (lon + ha) - eqtime;
+    var sunsetUtc = 720 - 4 * (lon - ha) - eqtime;
+    var off = pragueUtcOffsetMin(y, mo, d);
+
+    var rise = Math.round(sunriseUtc + off) + sunriseOffset;
+    var set = Math.round(sunsetUtc + off) + sunsetOffset;
+    // Clamp to day
+    if (rise < 0) rise = 0;
+    if (set > 24 * 60 - 1) set = 24 * 60 - 1;
+
+    cachedSun = { rise: rise, set: set };
+    lastSunKey = key;
+    return cachedSun;
+  }
+
+  function fmtMins(m) {
+    if (m == null || isNaN(m)) return "";
+    var h = Math.floor(m / 60);
+    var mm = m % 60;
+    return (h < 10 ? "0" : "") + h + ":" + (mm < 10 ? "0" : "") + mm;
+  }
+
+  function isDarkSun(mins, y, mo, d) {
+    var sun = sunTimesForDay(y, mo, d);
+    if (!sun || sun.rise == null || sun.set == null || sun.rise >= sun.set) {
+      return isDarkFixed(mins);
+    }
+    // light from sunrise through sunset; dark otherwise
+    return mins < sun.rise || mins >= sun.set;
+  }
+
+  function isDarkNow() {
+    var p = pragueParts();
+    var hm = pragueHM();
+    var mins = parseHM(hm);
+    if (mins == null) mins = 12 * 60;
+    if (themeMode === "sun" && p && !isNaN(lat) && !isNaN(lon)) {
+      try {
+        return isDarkSun(
+          mins,
+          parseInt(p.year, 10),
+          parseInt(p.month, 10),
+          parseInt(p.day, 10)
+        );
+      } catch (e) {
+        return isDarkFixed(mins);
+      }
+    }
+    return isDarkFixed(mins);
+  }
+
   function applyTheme() {
     var mode = themeLocked;
     if (!mode) {
-      var hm = pragueHM();
-      var mins = parseHM(hm);
-      if (mins == null) mins = 12 * 60;
-      mode = isDarkAt(mins) ? "dark" : "light";
+      mode = isDarkNow() ? "dark" : "light";
     }
     root.classList.remove("theme-dark", "theme-light");
     root.classList.add("theme-" + mode);
     root.setAttribute("data-theme", mode);
     try {
+      var p = pragueParts();
+      if (p && themeMode === "sun") {
+        var sun = sunTimesForDay(
+          parseInt(p.year, 10),
+          parseInt(p.month, 10),
+          parseInt(p.day, 10)
+        );
+        root.setAttribute("data-sunrise", fmtMins(sun.rise));
+        root.setAttribute("data-sunset", fmtMins(sun.set));
+      }
       var meta = document.querySelector('meta[name="theme-color"]');
       if (meta) meta.setAttribute("content", mode === "dark" ? "#0B1220" : "#d9e3ea");
     } catch (e) {}

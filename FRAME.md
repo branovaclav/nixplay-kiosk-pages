@@ -14,7 +14,10 @@ The pages in this repo are shown on a self-managed Nixplay Seed 8" photo frame. 
   - **Available:** ES2020 (incl. `?.` and `??`), CSS grid, custom properties, `fetch`, ES modules.
 - **No H.264/AAC.** Use images, or WebM/VP9 for video.
 - The frame's time zone is Europe/Amsterdam. **Content times and theme schedule use Europe/Prague** (family locale); see day JSON `timezone` and `theme_schedule`.
-- **Light / dark theme:** the day page embeds both palettes. `view.js` sets `html.theme-dark` or `html.theme-light` from the Prague clock (default dark 19:00–06:30, configurable via `members.json` / day `theme_schedule`) and re-checks every minute without reload. Screenshots/tests: `?theme=light` or `?theme=dark`.
+- **Light / dark theme:** the day page embeds both palettes. `view.js` sets `html.theme-dark` or `html.theme-light` and re-checks every minute without reload.
+  - Default **`mode: "sun"`**: NOAA sunrise/sunset for `lat`/`lon` in `theme_schedule` (Prague 50.08, 14.42), no network. Light from sunrise→sunset (optional minute offsets); dark otherwise. CET/CEST via `Intl` + Europe/Prague.
+  - Fallback **`mode: "fixed"`** (or if sun math fails): `dark_from` / `dark_until` (default 19:00–06:30).
+  - Screenshots/tests: `?theme=light` or `?theme=dark`.
 
 ## Input: gestures arrive as `keydown` events
 | Gesture on the frame | Event | Browser default |

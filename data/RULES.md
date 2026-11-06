@@ -12,6 +12,19 @@ heslá, prihlasovacie údaje, presnú domácu adresu. Namiesto kódu: „kód v 
 
 ---
 
+## 0. Denný commit (generátor)
+
+Ranný generátor **zapisuje len JSON**, nie HTML:
+
+1. Vytvorí / prepíše `data/YYYY-MM-DD.json` (Europe/Prague, podľa tejto kuchárky).
+2. V tom istom commite **vymaže** súbory `data/YYYY-MM-DD.json` staršie než **~14 dní**.
+3. Push na `main` → Action `validate` + `build` → GitHub Pages (`site/index.html`).
+
+`members.json` sa mení zriedka (farby, avatary, `theme_schedule`).  
+Lokálne / CI: `python3 tools/validate.py` musí prejsť pred deployom.
+
+---
+
 ## 1. Kde čo patrí
 
 | Miesto | Kedy |
@@ -127,7 +140,7 @@ Kalendár: 4 stĺpce osôb (Rodina pohľad) alebo široký stĺpec osoby + úzky
 
 Obnova stránky: raz denne o `refresh_at` (predvolene **06:30** Europe/Prague, po rannom súhrne), plus ak dátum na stránke ≠ dnes → skok na dnešný súbor.
 
-Téma **dark** / **light**: podľa `theme_schedule` (predvolene dark 19:00–06:30 Prague); `?theme=light|dark` na test.
+Téma **dark** / **light**: podľa `theme_schedule` — predvolene `mode: sun` (východ/západ, Praha); fallback `fixed` 19:00–06:30; `?theme=light|dark` na test.
 
 ---
 

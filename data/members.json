@@ -51,6 +51,11 @@
     "avatar": "rodina.svg"
   },
   "theme_schedule": {
+    "mode": "sun",
+    "lat": 50.08,
+    "lon": 14.42,
+    "sunrise_offset_min": 0,
+    "sunset_offset_min": 0,
     "dark_from": "19:00",
     "dark_until": "06:30"
   }

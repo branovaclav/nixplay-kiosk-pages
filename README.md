@@ -1,32 +1,30 @@
 # nixplay-kiosk-pages
 
 Statické stránky pre Nixplay Seed 8″ rám (kiosk Chromium 81, 1024×768).
-Denný rodinný prehľad — finálny smer: **dark** + **light**.
+Denný rodinný prehľad — **dark** (Večerná) + **light** (Papier paleta).
 
-Prečítaj najprv [`FRAME.md`](FRAME.md) (displej, gestá → klávesy, limity Chromium 81, téma podľa času).
+Prečítaj najprv [`FRAME.md`](FRAME.md).
 
-## Vzhľad
+## Produkcia
 
-Jedna stránka na deň z `data/YYYY-MM-DD.json`. Dva režimy (prepínanie bez reloadu):
-
-| | Režim | |
-|---|---|---|
-| · | **dark** | Večerná (layout + farby) |
-| · | **light** | tá istá štruktúra, Papier paleta |
-
-Predvolene dark 19:00–06:30 Europe/Prague (`theme_schedule` v `members.json`). Test: `?theme=light|dark`.
-
-Otvor [`designs/hub.html`](designs/hub.html) alebo [`designs/index.html`](designs/index.html) (dnes).
+Live: [branovaclav.github.io/nixplay-kiosk-pages](https://branovaclav.github.io/nixplay-kiosk-pages/)  
+(`site/index.html` = dnešný `data/YYYY-MM-DD.json`, inak najnovší súbor.)
 
 ```
-data/YYYY-MM-DD.json  +  themes/_shared/  →  tools/build.py  →  designs/<date>.html
+data/members.json + data/YYYY-MM-DD.json
+        │
+        ▼
+tools/validate.py → tools/build.py → site/   (Pages)
+                                 ↘ designs/  (lokálny náhľad dátumov)
 ```
 
 ```bash
+python3 tools/validate.py
 python3 tools/build.py
 ```
 
-Pravidlá: [`data/RULES.md`](data/RULES.md) · schéma: [`data/SCHEMA.md`](data/SCHEMA.md).
-Pohľady Rodina→osoby. Staršie A/B/C: [`designs/archive/`](designs/archive/).
+Téma: predvolene **`mode: sun`** (NOAA východ/západ pre Prahu, bez siete); fallback `fixed` 19:00–06:30; test `?theme=light|dark`.  
+Pohľady Rodina→osoby (Tab/Enter); idle → Rodina; denný reload o `refresh_at`.
 
-GitHub Action (`.github/workflows/build.yml`) je **stub** — bez deployu Pages.
+Obsah: [`data/RULES.md`](data/RULES.md) · [`data/SCHEMA.md`](data/SCHEMA.md) · [`data/README.md`](data/README.md).  
+Archív starých A/B/C návrhov je v repo (`designs/archive/`, `themes/archive/`), na Pages sa nenasadzuje.

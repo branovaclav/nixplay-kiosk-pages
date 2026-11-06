@@ -7,3 +7,5 @@ node_modules/
 artifacts/
 screenshots-raw/
 *.log
+# Built by tools/build.py; CI uploads site/ to Pages
+/site/
