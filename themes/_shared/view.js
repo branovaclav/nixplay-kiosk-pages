@@ -57,7 +57,14 @@
     }
   }
 
+  function mockTodayParam() {
+    var m = (location.search || "").match(/[?&]today=(\d{4}-\d{2}-\d{2})/);
+    return m ? m[1] : "";
+  }
+
   function pragueToday() {
+    var mock = mockTodayParam();
+    if (mock) return mock;
     var p = pragueParts();
     if (!p) return "";
     return p.year + "-" + p.month + "-" + p.day;
@@ -67,6 +74,56 @@
     var p = pragueParts();
     if (!p) return fallbackNow;
     return p.hour + ":" + p.minute;
+  }
+
+  function addDaysIso(iso, delta) {
+    var p = iso.split("-");
+    var dt = new Date(Date.UTC(parseInt(p[0], 10), parseInt(p[1], 10) - 1, parseInt(p[2], 10)));
+    dt.setUTCDate(dt.getUTCDate() + delta);
+    var y = dt.getUTCFullYear();
+    var m = dt.getUTCMonth() + 1;
+    var d = dt.getUTCDate();
+    return (
+      y +
+      "-" +
+      (m < 10 ? "0" : "") +
+      m +
+      "-" +
+      (d < 10 ? "0" : "") +
+      d
+    );
+  }
+
+  function weekdaySk(iso) {
+    var names = ["Pondelok", "Utorok", "Streda", "Štvrtok", "Piatok", "Sobota", "Nedeľa"];
+    var p = iso.split("-");
+    var dt = new Date(Date.UTC(parseInt(p[0], 10), parseInt(p[1], 10) - 1, parseInt(p[2], 10)));
+    return names[dt.getUTCDay() === 0 ? 6 : dt.getUTCDay() - 1]; // JS Sun=0 → SK Mon-first
+  }
+
+  function jsWeekday(iso) {
+    var p = iso.split("-");
+    return new Date(Date.UTC(parseInt(p[0], 10), parseInt(p[1], 10) - 1, parseInt(p[2], 10))).getUTCDay();
+  }
+
+  /** Outlook title from target span relative to viewing day (Prague today). */
+  function outlookTitleFor(from, to, viewing) {
+    if (!from) return null;
+    if (!to) to = from;
+    var fromWd = jsWeekday(from);
+    var toWd = jsWeekday(to);
+    // Weekend span Sat+Sun (any order)
+    if (from !== to && ((fromWd === 6 && toWd === 0) || (fromWd === 0 && toWd === 6))) {
+      return "Víkend";
+    }
+    if (from === to && fromWd === 6 && toWd === 6) {
+      /* single Saturday — weekday name below */
+    }
+    var tomorrow = addDaysIso(viewing, 1);
+    if (from === to && from === tomorrow) return "Zajtra";
+    if (from === to) return weekdaySk(from);
+    // Multi-day non-weekend: prefer end day's weekday, else from
+    return weekdaySk(to);
   }
 
   function parseHM(s) {
@@ -319,21 +376,41 @@
     } catch (e) {}
   }
 
-  /** pageDate > Prague today → evening “tomorrow” plan is on screen. */
-  function isFuturePage() {
+  /** Page date is tomorrow relative to Prague viewing day. */
+  function isTomorrowPage() {
     var pageDate = body.getAttribute("data-date") || "";
     var today = pragueToday();
-    return !!(pageDate && today && pageDate > today);
+    if (!pageDate || !today) return false;
+    return pageDate === addDaysIso(today, 1);
   }
 
-  function syncFutureDayChrome() {
-    var future = isFuturePage();
-    if (future) body.classList.add("is-future-day");
+  function isTodayPage() {
+    var pageDate = body.getAttribute("data-date") || "";
+    var today = pragueToday();
+    return !!(pageDate && today && pageDate === today);
+  }
+
+  function syncRelativeChrome() {
+    var today = pragueToday();
+    var tomorrow = isTomorrowPage();
+    var todayPage = isTodayPage();
+    if (tomorrow) body.classList.add("is-future-day");
     else body.classList.remove("is-future-day");
-    body.setAttribute("data-day-role", future ? "tomorrow" : "today");
+    body.setAttribute("data-day-role", tomorrow ? "tomorrow" : todayPage ? "today" : "other");
+
     var rodinaEyebrow = document.querySelector(".eyebrow-rodina");
     if (rodinaEyebrow) {
-      rodinaEyebrow.textContent = future ? "Zajtra" : "Rodinný prehľad";
+      rodinaEyebrow.textContent = tomorrow ? "Zajtra" : "Rodinný prehľad";
+    }
+
+    var boxes = document.querySelectorAll(".outlook-box[data-outlook-from]");
+    for (var i = 0; i < boxes.length; i++) {
+      var from = boxes[i].getAttribute("data-outlook-from") || "";
+      var to = boxes[i].getAttribute("data-outlook-to") || from;
+      var titleEl = boxes[i].querySelector("h3[data-outlook-title]");
+      if (!titleEl || !today) continue;
+      var computed = outlookTitleFor(from, to, today);
+      if (computed) titleEl.textContent = computed;
     }
   }
 
@@ -342,7 +419,8 @@
     var hm = pragueHM();
     var useFallback = false;
     var today = pragueToday();
-    var future = !!(pageDate && today && pageDate > today);
+    var tomorrow = isTomorrowPage();
+    var todayPage = isTodayPage();
     // Stale past day (page < today): keep sample fallback for demos if any
     if (pageDate && today && pageDate < today && fallbackNow) {
       hm = fallbackNow;
@@ -359,14 +437,14 @@
       useFallback = true;
     }
 
-    syncFutureDayChrome();
+    syncRelativeChrome();
     applyTheme();
 
     var mins = parseHM(hm);
     var markers = document.querySelectorAll(".tl-now");
     var i;
-    // Tomorrow's plan: no live "now" line
-    if (future || mins == null || mins < dayStart || mins > dayEnd) {
+    // „teraz“ only when the page is today
+    if (!todayPage || mins == null || mins < dayStart || mins > dayEnd) {
       for (i = 0; i < markers.length; i++) markers[i].style.display = "none";
     } else {
       var pct = ((mins - dayStart) / (dayEnd - dayStart)) * 100;
@@ -382,7 +460,7 @@
     for (i = 0; i < blocks.length; i++) {
       var endMin = parseInt(blocks[i].getAttribute("data-end-min"), 10);
       var cn = (blocks[i].className || "").replace(/\bis-past\b/g, "").replace(/\s+/g, " ");
-      if (!future && !isNaN(endMin) && mins != null && endMin <= mins) cn += " is-past";
+      if (todayPage && !isNaN(endMin) && mins != null && endMin <= mins) cn += " is-past";
       blocks[i].className = cn.replace(/^\s|\s$/g, "");
     }
     body.setAttribute("data-now-source", useFallback ? "fallback" : "live");
@@ -416,7 +494,9 @@
     var pageDate = body.getAttribute("data-date") || "";
     var today = pragueToday();
     var frozen =
-      /[?&]now=/.test(location.search || "") || body.getAttribute("data-lock-now") === "1";
+      /[?&]now=/.test(location.search || "") ||
+      /[?&]today=/.test(location.search || "") ||
+      body.getAttribute("data-lock-now") === "1";
     if (pageDate && today && pageDate < today && !frozen) {
       softReload(); // index.html rebuilt to today/tomorrow
       return;

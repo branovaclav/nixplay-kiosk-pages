@@ -14,11 +14,20 @@ heslá, prihlasovacie údaje, presnú domácu adresu. Namiesto kódu: „kód v 
 
 ## 0. Denný commit (generátor)
 
-Ranný generátor **zapisuje len JSON**, nie HTML:
+Dva behy denne (Europe/Prague) — **jeden súbor na deň** slúži večer (ako „zajtra“) aj ráno (ako „dnes“):
 
-1. Vytvorí / prepíše `data/YYYY-MM-DD.json` (Europe/Prague, podľa tejto kuchárky).
+| Beh | Úloha |
+|---|---|
+| **Večer (~18:55)** | Hlavný generátor: vytvorí / prepíše `data/<zajtra>.json`. |
+| **Ráno (~06:55)** | Len prekontroluje kalendáre; nový commit **len ak** sa niečo zmysluplne zmenilo. Inak reuse večerného súboru. |
+
+Generátor **zapisuje len JSON**, nie HTML:
+
+1. Vytvorí / aktualizuje `data/YYYY-MM-DD.json` (Europe/Prague, podľa tejto kuchárky).
 2. V tom istom commite **vymaže** súbory `data/YYYY-MM-DD.json` staršie než **~14 dní**.
 3. Push na `main` → Action `validate` + `build` → GitHub Pages (`site/index.html`).
+
+Relatívne popisky na ráme (**Zajtra** / **Rodinný prehľad**, názov výhľadu) počíta **klient** podľa Prague času pri pozeraní — nie pri generovaní. Pozri §3.
 
 `members.json` sa mení zriedka (farby, avatary, `theme_schedule`).  
 Lokálne / CI: `python3 tools/validate.py` musí prejsť pred deployom.
@@ -86,19 +95,39 @@ Fakt práve raz. Status `unconfirmed` namiesto sidebar „potvrdiť“. Kódy / 
 | `vyhlad` | **dynamický** — pozri nižšie |
 
 Sekcia `vyhlad` sa na ráme kreslí ako **samostatný box** (oddelený od ostatných sekcií).
-**Title nikdy nie je** `Zajtra / Víkend`. Generátor zapíše title podľa dňa v týždni
-(`date` v JSON, Europe/Prague):
 
-| Deň `date` | `title` | Obsah položiek |
-|---|---|---|
-| Po–Št | **Zajtra** | nasledujúci deň |
-| Pia | **Víkend** | sobota + nedeľa |
-| So | **Pondelok** | pondelok (prípadne aj nedeľné položky, ak sú relevantné) |
-| Ne | **Zajtra** | pondelok |
+### Výhľad — `outlook.{from,to}` (povinné)
 
-Víkend (So+Ne) sa počíta ako **jeden deň** voči „ďalšiemu“ pracovnému dňu → po sobote aj nedeľi je výhľad na pondelok.
+Generátor ukladá **cieľové dátumy** výhľadu, nie finálny relatívny názov:
 
-Nový title OK, keď lepšie sedí (1–3 slová). Max **4 sekcie**, ~**8 položiek** spolu;
+```json
+{
+  "id": "vyhlad",
+  "title": "Streda",
+  "outlook": { "from": "2026-11-11", "to": "2026-11-11" },
+  "items": [ … ]
+}
+```
+
+| Pole | Význam |
+|---|---|
+| `outlook.from` | prvý cieľový deň (YYYY-MM-DD) |
+| `outlook.to` | posledný cieľový deň (rovnaký ako `from` pri jednom dni) |
+| `title` | **fallback** (weekday / Víkend), kým JS neprepočíta; nikdy `Zajtra / Víkend` |
+
+Klient (Europe/Prague, každú minútu) nastaví nadpis boxu podľa `from`/`to` voči **dňu pozerania**:
+
+| Cieľ | Nadpis na ráme |
+|---|---|
+| span So+Ne | **Víkend** |
+| jeden deň = zajtra voči teraz | **Zajtra** |
+| inak jeden deň | weekday (`Pondelok` … `Nedeľa`) |
+
+Príklad: utorkový súbor s výhľadom na stredu — v pondelok večer ukáže **Streda**, v utorok ráno **Zajtra**. Ten istý JSON, bez regenerácie.
+
+Obsah položiek: Po–Št → nasledujúci deň; Pia → So+Ne; So/Ne → pondelok (víkend So+Ne = jeden „deň“ voči ďalšiemu pracovnému).
+
+Nový title OK ako fallback, keď lepšie sedí (1–3 slová). Max **4 sekcie**, ~**8 položiek** spolu;
 `text` ≤ ~100 znakov, `detail` ≤ ~220.
 
 Poradie: Rodina / detský šport → Pripomienky detí → osobné → výhľad (`vyhlad`) na konci.
@@ -151,4 +180,4 @@ Téma **dark** / **light**: podľa `theme_schedule` — predvolene `mode: sun` (
 - [ ] Žiadne kódy / heslá / presná adresa
 - [ ] `unconfirmed` namiesto sidebar „potvrdiť“
 - [ ] Konflikty označené na oboch stranách
-- [ ] Outlook `vyhlad` title podľa dňa: Po–Št/Ne **Zajtra**, Pia **Víkend**, So **Pondelok** (nikdy „Zajtra / Víkend“)
+- [ ] Outlook `vyhlad` má `outlook.from` / `outlook.to`; `title` len fallback (nikdy „Zajtra / Víkend“)

@@ -110,6 +110,7 @@ Staré pole `member` (string) sa už nepoužíva.
 {
   "id": "vyhlad",
   "title": "Víkend",
+  "outlook": { "from": "2026-11-07", "to": "2026-11-08" },
   "items": [
     { "text": "So — voľno.", "detail": "Sobota — nič naplánované." },
     { "text": "Ne — brigáda.", "detail": "Nedeľa — rodinný program." }
@@ -123,10 +124,15 @@ Staré pole `member` (string) sa už nepoužíva.
 | `detail` | voliteľný dlhší (pohľad člena) |
 | `member` | voliteľný filter pre pohľad člena |
 | `family` | `false` = skryť v Rodina (ekvivalent `level: "detail"`) |
+| `outlook` | len pri `vyhlad` (alebo inej outlook sekcii): `{ "from", "to" }` ISO dátumy cieľa |
 
-Štandardné title: Rodina, Pripomienky, Zobrať / vybaviť; **`vyhlad` title je dynamický**
-(Po–Št/Ne → `Zajtra`, Pia → `Víkend`, So → `Pondelok`). Nikdy `Zajtra / Víkend`.
-Pozri [`RULES.md`](RULES.md) §3.
+Štandardné title: Rodina, Pripomienky, Zobrať / vybaviť.
+
+**`vyhlad`:** `outlook.from` / `outlook.to` sú povinné. `title` je len **fallback** pre HTML pred JS.
+Klient prepočíta nadpis voči dňu pozerania (Prague): So+Ne → `Víkend`; jeden deň = zajtra → `Zajtra`; inak weekday.
+Nikdy `Zajtra / Víkend`. Pozri [`RULES.md`](RULES.md) §3.
+
+Mock pre screenshoty / test: `?today=YYYY-MM-DD` + `?now=HH:MM` (Europe/Prague logika v `view.js`).
 
 ### Počasie `icon`
 

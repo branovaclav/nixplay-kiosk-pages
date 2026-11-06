@@ -18,15 +18,15 @@ WEATHER_ICONS = {"sunny", "partly-cloudy", "cloudy", "rain", "snow", "fog", "sto
 HHMM = re.compile(r"^\d{1,2}:\d{2}$")
 ISO_DATE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 
-OUTLOOK_TITLES = {
-    0: "Zajtra",      # Mon
-    1: "Zajtra",      # Tue
-    2: "Zajtra",      # Wed
-    3: "Zajtra",      # Thu
-    4: "Víkend",      # Fri
-    5: "Pondelok",    # Sat
-    6: "Zajtra",      # Sun
-}
+WEEKDAYS_SK = (
+    "Pondelok",
+    "Utorok",
+    "Streda",
+    "Štvrtok",
+    "Piatok",
+    "Sobota",
+    "Nedeľa",
+)
 
 
 class Errors:
@@ -227,21 +227,46 @@ def validate_day(path, known_ids, err):
             if mid is not None and mid not in known_ids and mid not in PEOPLE:
                 err.add(iw, f"unknown member id {mid!r}")
 
-        # Outlook title rule
-        if (sec.get("id") or "").lower() == "vyhlad":
+        # Outlook: store target dates; title is client-computed fallback only
+        sid = (sec.get("id") or "").lower()
+        ol = sec.get("outlook")
+        is_outlook_sec = sid == "vyhlad" or isinstance(ol, dict)
+        if is_outlook_sec:
             if title == "Zajtra / Víkend":
                 err.add(w, 'outlook title must never be "Zajtra / Víkend"')
-            if d and ISO_DATE.match(d):
-                try:
-                    wd = date.fromisoformat(d).weekday()
-                    expected = OUTLOOK_TITLES[wd]
-                    if title != expected:
-                        err.add(
-                            w,
-                            f"outlook title for {d} (weekday {wd}) should be {expected!r}, got {title!r}",
-                        )
-                except ValueError:
-                    pass
+            if not isinstance(ol, dict):
+                err.add(w, "outlook object required ({from, to})")
+            else:
+                ofrom = ol.get("from")
+                oto = ol.get("to")
+                if not isinstance(ofrom, str) or not ISO_DATE.match(ofrom):
+                    err.add(f"{w} outlook.from", "YYYY-MM-DD required")
+                else:
+                    try:
+                        date.fromisoformat(ofrom)
+                    except ValueError:
+                        err.add(f"{w} outlook.from", f"invalid date {ofrom!r}")
+                if oto is None:
+                    err.add(f"{w} outlook.to", "YYYY-MM-DD required (same as from for single day)")
+                elif not isinstance(oto, str) or not ISO_DATE.match(oto):
+                    err.add(f"{w} outlook.to", "YYYY-MM-DD required")
+                else:
+                    try:
+                        date.fromisoformat(oto)
+                    except ValueError:
+                        err.add(f"{w} outlook.to", f"invalid date {oto!r}")
+                if (
+                    isinstance(ofrom, str)
+                    and isinstance(oto, str)
+                    and ISO_DATE.match(ofrom)
+                    and ISO_DATE.match(oto)
+                    and oto < ofrom
+                ):
+                    err.add(w, "outlook.to must be >= outlook.from")
+            # title is fallback only — allow weekday names, Zajtra, Víkend
+            if title and title not in WEEKDAYS_SK and title not in ("Zajtra", "Víkend"):
+                # soft: still OK if short custom; only flag the forbidden slash form above
+                pass
 
     sched = day.get("theme_schedule") or {}
     if sched:
