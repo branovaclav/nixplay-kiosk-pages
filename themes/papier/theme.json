@@ -3,7 +3,7 @@
   "name": "Papier",
   "letter": "A",
   "theme_color": "#2C5F7A",
-  "blurb": "Pokojný papierový plánovač — chladný inkoust na jemnom papieri, veľká typografia, málo ozdôb.",
+  "blurb": "Pokojný papierový plánovač — jedna stránka, farebné stĺpce osôb, pohľady Tab/Enter.",
   "css": ["fonts.css", "design.css"],
   "fonts": [
     "source-serif-4-regular.woff2",

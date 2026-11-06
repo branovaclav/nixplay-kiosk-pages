@@ -10,12 +10,12 @@
       "meta": {}
     },
     {
-      "id": "mama",
-      "display_name": "Mama",
-      "full_name": "Mama",
+      "id": "zuzka",
+      "display_name": "Zuzka",
+      "full_name": "Zuzka",
       "role": "mama",
       "color": "#C45C4A",
-      "avatar": "mama.svg",
+      "avatar": "zuzka.svg",
       "meta": {}
     },
     {
@@ -42,15 +42,12 @@
         "school": "ZŠ Trojská",
         "grade": "2.A"
       }
-    },
-    {
-      "id": "rodina",
-      "display_name": "Rodina",
-      "full_name": "Rodina",
-      "role": "rodina",
-      "color": "#4A6670",
-      "avatar": "rodina.svg",
-      "meta": {}
     }
-  ]
+  ],
+  "family": {
+    "id": "rodina",
+    "display_name": "Rodina",
+    "color": "#4A6670",
+    "avatar": "rodina.svg"
+  }
 }

@@ -3,7 +3,7 @@
   "name": "Večerná",
   "letter": "C",
   "theme_color": "#0B1220",
-  "blurb": "Tmavá ambientná izba — nízky jas, jantárové akcenty, vhodné na rámček v obývačke večer.",
+  "blurb": "Tmavá ambientná izba — nízky jas, jantárové akcenty, jedna stránka pre večerný rám.",
   "css": ["fonts.css", "design.css"],
   "fonts": [
     "fraunces-regular.woff2",

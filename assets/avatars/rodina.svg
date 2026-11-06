@@ -1,9 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256" role="img" aria-label="Rodina">
   <rect width="256" height="256" rx="48" fill="#4A6670"/>
-  <circle cx="88" cy="108" r="28" fill="#E8EEF0"/>
-  <circle cx="168" cy="108" r="28" fill="#E8EEF0"/>
-  <circle cx="128" cy="72" r="26" fill="#E8EEF0"/>
-  <ellipse cx="128" cy="210" rx="90" ry="48" fill="#E8EEF0"/>
-  <text x="128" y="200" text-anchor="middle" font-family="Georgia, serif" font-size="42" font-weight="700" fill="#4A6670">R</text>
+  <path fill="#E8EEF0" d="M128 48 L220 128 H188 V208 H148 V150 H108 V208 H68 V128 H36 Z"/>
 </svg>

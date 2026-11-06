@@ -28,13 +28,13 @@ designs/<id>/*.html   (and designs/index.html)
 python3 tools/build.py
 ```
 
-Content cookbook: [`data/RULES.md`](data/RULES.md) (where facts go, no duplication, sections, chat derivation).
-Schema draft: [`data/SCHEMA.md`](data/SCHEMA.md).
-Pattern inspired by [kucharka-recepty](https://github.com/branovaclav/kucharka-recepty) (JSON content → theme → static HTML).
+Content cookbook: [`data/RULES.md`](data/RULES.md). Schema: [`data/SCHEMA.md`](data/SCHEMA.md).
+One HTML page per day; views Rodina → Braňo → Zuzka → Andrej → Tomáš (Tab/Enter). Events use `members[]`.
 
 ## Hard rules
 
-- Target Chromium 81: no flex `gap`, `inset`, `aspect-ratio`, `:is()`/`:where()`, `:focus-visible`, `replaceAll`, etc. (see FRAME.md).
-- Gestures = keys: Tab / Shift+Tab / Enter / Alt+ArrowLeft. Visible `:focus`, sensible DOM order.
-- UI text Slovak, 24h time. Little or no runtime JS (timeline is build-time HTML/CSS).
+- Target Chromium 81: no flex `gap`, `inset`, `aspect-ratio`, `:is()`/`:where()`, `:focus-visible`, `replaceAll`, etc. (see FRAME.md). Animate `flex-basis`/`width`, not `grid-template-columns`.
+- Gestures: Tab/Enter = next view, Shift+Tab = previous (`preventDefault`); Alt+ArrowLeft ignored. Idle ~60 s → Rodina.
+- UI text Slovak, 24h time. Timeline build-time; light `view.js` for views + now-marker.
+- Public site: no pickup codes / passwords / home address in JSON (RULES.md).
 - Do not enable Pages deploy until a theme is chosen; `.github/workflows/build.yml` is a stub.

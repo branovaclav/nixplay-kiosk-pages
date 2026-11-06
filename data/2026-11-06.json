@@ -18,7 +18,7 @@
   "events": [
     {
       "id": "tomas-tripartita",
-      "member": "tomas",
+      "members": ["tomas"],
       "title": "Tripartita",
       "start": "13:00",
       "end": "13:30",
@@ -34,7 +34,7 @@
     },
     {
       "id": "brano-jami",
-      "member": "branislav",
+      "members": ["branislav"],
       "title": "Jakub Víšek — JAMI Gardens",
       "start": null,
       "end": null,
@@ -49,7 +49,7 @@
     },
     {
       "id": "brano-tenis",
-      "member": "branislav",
+      "members": ["branislav"],
       "title": "Tenis",
       "start": "14:00",
       "end": "15:00",
@@ -63,8 +63,8 @@
     },
     {
       "id": "brano-sportisimo",
-      "member": "branislav",
-      "title": "Vyzdvihnúť Sportisimo",
+      "members": ["branislav"],
+      "title": "Vyzdvihnúť balík Sportisimo",
       "start": null,
       "end": null,
       "all_day": false,
@@ -74,7 +74,7 @@
       "conflict_with": [],
       "notes": [
         "Do zatváracej doby dnes.",
-        "Kód vyzdvihnutia: 7717040101",
+        "Kód v SMS.",
         "Možno predĺžiť do stredy 11. 11."
       ],
       "reminders": [],
@@ -82,7 +82,7 @@
     },
     {
       "id": "andrej-baseball",
-      "member": "andrej",
+      "members": ["andrej"],
       "title": "Baseball",
       "start": "17:00",
       "end": "19:00",
@@ -104,7 +104,8 @@
       "title": "Rodina",
       "items": [
         {
-          "text": "Škola prosí rodičov skontrolovať kontá na obedoch — našli sa nezrovnalosti."
+          "text": "Skontrolovať kontá na obedoch — škola hlási nezrovnalosti.",
+          "detail": "Škola prosí rodičov skontrolovať kontá na obedoch detí. Našli sa nezrovnalosti vo platbách; overiť zostatok pre Andreja aj Tomáša."
         }
       ]
     },
@@ -114,19 +115,22 @@
       "items": [
         {
           "member": "andrej",
-          "text": "Diplom z Finančnej gramotnosti odložiť do portfólia na gymnázium."
+          "text": "Diplom Finančnej gramotnosti do portfólia.",
+          "detail": "Diplom z Finančnej gramotnosti odložiť do portfólia na gymnázium — nestratiť medzi školskými papiermi."
         }
       ]
     },
     {
       "id": "vyhlad",
-      "title": "Výhľad",
+      "title": "Zajtra / Víkend",
       "items": [
         {
-          "text": "Sobota 7. 11. — nič naplánované."
+          "text": "So 7. 11. — nič naplánované.",
+          "detail": "Sobota 7. 11. — nič naplánované."
         },
         {
-          "text": "Nedeľa 8. 11. — celodenná SaBaT brigáda (rodinný program)."
+          "text": "Ne 8. 11. — SaBaT brigáda (rodina).",
+          "detail": "Nedeľa 8. 11. — celodenná SaBaT brigáda, rodinný program."
         }
       ]
     }

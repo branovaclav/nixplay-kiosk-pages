@@ -26,7 +26,7 @@ python3 tools/build.py
 ```
 
 Pravidlá obsahu: [`data/RULES.md`](data/RULES.md) · schéma: [`data/SCHEMA.md`](data/SCHEMA.md).
-Sidebar je dynamické `sections[]` (žiadne fixné kľúče). Vzor podľa
+Jedna stránka na deň (pohľady Rodina→osoby). `sections[]` + `members[]` na udalostiach; pozri `data/RULES.md`. Vzor podľa
 [kucharka-recepty](https://github.com/branovaclav/kucharka-recepty).
 
 GitHub Action (`.github/workflows/build.yml`) je **stub** — bez deployu Pages.

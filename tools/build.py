@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""Render denný rodinný prehľad: data/*.json + themes/<id>/ → designs/<id>/ (návrhy).
+"""Render denný rodinný prehľad: data/*.json + themes/<id>/ → designs/<id>/.
 
-Timeline sa počíta pri builde (minúty → top/height %), výstup je čisté HTML/CSS.
-Žiadna ťažká knižnica — len štandardná knižnica Pythonu.
+Jedna stránka na deň s pohľadmi Rodina → osoby (žiadne odkazy medzi stránkami).
+Timeline HTML/CSS pri builde; view.js prepína pohľady (Chromium 81).
 
   python3 tools/build.py
 """
@@ -12,53 +12,40 @@ import html
 import json
 import os
 import shutil
-from datetime import date, datetime
+from datetime import date
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DATA = os.path.join(ROOT, "data")
 THEMES = os.path.join(ROOT, "themes")
 DESIGNS = os.path.join(ROOT, "designs")
 AVATARS = os.path.join(ROOT, "assets", "avatars")
+WEATHER = os.path.join(ROOT, "assets", "weather")
 
 WEEKDAYS_SK = [
-    "pondelok",
-    "utorok",
-    "streda",
-    "štvrtok",
-    "piatok",
-    "sobota",
-    "nedeľa",
+    "pondelok", "utorok", "streda", "štvrtok", "piatok", "sobota", "nedeľa",
 ]
 MONTHS_SK = [
-    "",
-    "január",
-    "február",
-    "marec",
-    "apríl",
-    "máj",
-    "jún",
-    "júl",
-    "august",
-    "september",
-    "október",
-    "november",
-    "december",
+    "", "január", "február", "marec", "apríl", "máj", "jún",
+    "júl", "august", "september", "október", "november", "december",
 ]
-
 STATUS_SK = {
     "confirmed": "potvrdené",
     "unconfirmed": "treba potvrdiť",
     "tentative": "nezáväzné",
     "todo": "úloha",
 }
-
 ICON_SK = {
     "sunny": "slnečno",
     "partly-cloudy": "polojasno",
     "cloudy": "zamračené",
     "rain": "dážď",
     "snow": "sneženie",
+    "fog": "hmla",
+    "storm": "búrka",
 }
+
+# Fixed column order for the family calendar
+PEOPLE_ORDER = ["branislav", "zuzka", "andrej", "tomas"]
 
 
 def esc(s):
@@ -83,8 +70,7 @@ def write(path, text):
 
 def theme_ids():
     return sorted(
-        d
-        for d in os.listdir(THEMES)
+        d for d in os.listdir(THEMES)
         if not d.startswith("_") and os.path.isfile(os.path.join(THEMES, d, "theme.json"))
     )
 
@@ -122,23 +108,46 @@ def fmt_range(ev):
     return f"{start}–{end}" if end else start
 
 
-def members_by_id(members):
-    return {m["id"]: m for m in members}
+def event_members(ev):
+    """Normalize to members[] (compat: legacy member string)."""
+    if isinstance(ev.get("members"), list) and ev["members"]:
+        return [m for m in ev["members"] if m in PEOPLE_ORDER or m == "rodina"]
+    if ev.get("member"):
+        mid = ev["member"]
+        if mid == "rodina":
+            return list(PEOPLE_ORDER)
+        return [mid]
+    return []
 
 
-def people_members(members):
-    """Členovia na dlaždiciach / detailoch (bez Rodina)."""
-    return [m for m in members if m["role"] != "rodina"]
+def expand_members(mids):
+    """Map rodina → all four people."""
+    out = []
+    for m in mids:
+        if m == "rodina":
+            out.extend(PEOPLE_ORDER)
+        elif m in PEOPLE_ORDER and m not in out:
+            out.append(m)
+    # preserve PEOPLE_ORDER
+    return [p for p in PEOPLE_ORDER if p in out]
 
 
-def lane_members(members, day):
-    """Pruhy na časovej osi: ľudia + Rodina, ak má udalosť."""
-    people = people_members(members)
-    has_family = any(e.get("member") == "rodina" for e in day.get("events", []))
-    rodina = next((m for m in members if m["id"] == "rodina"), None)
-    if has_family and rodina:
-        return people + [rodina]
-    return people
+def members_by_id(pack):
+    return {m["id"]: m for m in pack["members"]}
+
+
+def people_list(pack):
+    by = members_by_id(pack)
+    return [by[i] for i in PEOPLE_ORDER if i in by]
+
+
+def family_meta(pack):
+    return pack.get("family") or {
+        "id": "rodina",
+        "display_name": "Rodina",
+        "color": "#4A6670",
+        "avatar": "rodina.svg",
+    }
 
 
 def timeline_bounds(day):
@@ -155,7 +164,6 @@ def timeline_bounds(day):
             end = max(end, e)
         elif s is not None:
             end = max(end, s + 30)
-    # zaokrúhli na celé hodiny s rezervou
     start = (start // 60) * 60
     end = ((end + 59) // 60) * 60
     if end <= start:
@@ -176,486 +184,525 @@ def hour_labels(start, end):
     return out
 
 
-def avatar_href(member, depth=0):
-    prefix = "../" * depth + "avatars/"
-    return prefix + member["avatar"]
+def contiguous_spans(indices):
+    """Split sorted column indices into contiguous [lo, hi] inclusive spans."""
+    if not indices:
+        return []
+    indices = sorted(set(indices))
+    spans = []
+    lo = hi = indices[0]
+    for i in indices[1:]:
+        if i == hi + 1:
+            hi = i
+        else:
+            spans.append((lo, hi))
+            lo = hi = i
+    spans.append((lo, hi))
+    return spans
 
 
 def copy_theme_assets(tid, out_dir):
-    meta = theme_meta(tid)
     fonts_src = os.path.join(THEMES, tid, "fonts")
     fonts_dst = os.path.join(out_dir, "fonts")
     if os.path.isdir(fonts_src):
         if os.path.isdir(fonts_dst):
             shutil.rmtree(fonts_dst)
         shutil.copytree(fonts_src, fonts_dst)
-    av_dst = os.path.join(out_dir, "avatars")
-    if os.path.isdir(av_dst):
-        shutil.rmtree(av_dst)
-    shutil.copytree(AVATARS, av_dst)
-    return meta
+    for name, src in (("avatars", AVATARS), ("weather", WEATHER)):
+        dst = os.path.join(out_dir, name)
+        if os.path.isdir(dst):
+            shutil.rmtree(dst)
+        if os.path.isdir(src):
+            shutil.copytree(src, dst)
+    # shared view.js
+    shutil.copy2(os.path.join(THEMES, "_shared", "view.js"), os.path.join(out_dir, "view.js"))
 
 
 def theme_css(tid):
     meta = theme_meta(tid)
-    parts = []
+    parts = [rd(THEMES, "_shared", "base.css")]
     for name in meta.get("css", ["fonts.css", "design.css"]):
         parts.append(rd(THEMES, tid, name))
-    shared = os.path.join(THEMES, "_shared", "base.css")
-    if os.path.isfile(shared):
-        parts.insert(0, rd(shared))
     return "\n".join(parts)
 
 
-def shell(tid, title, body, autofocus_sel=None, extra_class=""):
-    meta = theme_meta(tid)
-    css = theme_css(tid)
-    focus_js = ""
-    if autofocus_sel:
-        # Chromium 81: jednoduchý focus pri načítaní
-        focus_js = (
-            "<script>"
-            f"document.addEventListener('DOMContentLoaded',function(){{"
-            f"var e=document.querySelector('{autofocus_sel}');"
-            f"if(e)e.focus();}});</script>"
-        )
-    return f"""<!doctype html>
-<html lang="sk">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=1024, height=768, initial-scale=1">
-<meta name="robots" content="noindex,nofollow">
-<meta name="theme-color" content="{esc(meta.get('theme_color', '#333'))}">
-<title>{esc(title)}</title>
-<style>
-{css}
-</style>
-</head>
-<body class="theme-{esc(tid)} {esc(extra_class)}">
-{body}
-{focus_js}
-</body>
-</html>
-"""
+def weather_icon_svg(icon):
+    path = os.path.join(WEATHER, f"{icon}.svg")
+    if not os.path.isfile(path):
+        path = os.path.join(WEATHER, "cloudy.svg")
+    raw = rd(path)
+    # strip xml decl for inline
+    if raw.startswith("<?xml"):
+        raw = raw.split("?>", 1)[-1].strip()
+    return raw
 
 
-def weather_html(w):
-    if not w:
-        return ""
-    sample = ' <span class="sample-flag" title="Ukážkové údaje">ukážka</span>' if w.get("sample") else ""
-    summary = w.get("summary") or ICON_SK.get(w.get("icon", ""), "")
-    hi = w.get("temp_high_c")
-    lo = w.get("temp_low_c")
-    temps = ""
-    if hi is not None and lo is not None:
-        temps = f'<span class="wx-temps">{esc(lo)}–{esc(hi)} °C</span>'
-    elif hi is not None:
-        temps = f'<span class="wx-temps">{esc(hi)} °C</span>'
+def house_icon_svg():
     return (
-        f'<div class="weather" data-icon="{esc(w.get("icon", ""))}">'
-        f'<span class="wx-summary">{esc(summary)}</span>{temps}{sample}</div>'
+        '<svg class="home-glyph" xmlns="http://www.w3.org/2000/svg" width="36" height="36" '
+        'viewBox="0 0 24 24" aria-hidden="true" focusable="false">'
+        '<path fill="currentColor" d="M12 3.2 21 11h-2.5v8.5h-5V13H10.5v6.5h-5V11H3L12 3.2z"/>'
+        "</svg>"
     )
 
 
-def day_sections(day):
-    """Dynamic sidebar/chat sections; skip empties (RULES: never write empty)."""
-    out = []
-    for sec in day.get("sections") or []:
-        items = [it for it in (sec.get("items") or []) if (it.get("text") if isinstance(it, dict) else it)]
-        if not items:
-            continue
-        out.append({"id": sec.get("id") or "", "title": sec.get("title") or "", "items": items})
-    return out
+def event_block_html(ev, color, top, height, left_pct, width_pct, extra_class="", short=False):
+    s = parse_hhmm(ev.get("start"))
+    e = parse_hhmm(ev.get("end")) or ((s + 30) if s is not None else None)
+    conflict = " is-conflict" if ("conflict" in ev.get("flags", []) or ev.get("conflict_with")) else ""
+    unconf = " is-unconfirmed" if ev.get("status") in ("unconfirmed", "tentative") else ""
+    todo = " is-todo" if ev.get("status") == "todo" else ""
+    short_c = " is-short" if short else ""
+    loc = f'<span class="ev-loc">{esc(ev["location"])}</span>' if ev.get("location") else ""
+    status = STATUS_SK.get(ev.get("status", ""), "")
+    flag_bits = []
+    if conflict.strip():
+        flag_bits.append("konflikt")
+    if "needs-ride" in ev.get("flags", []):
+        flag_bits.append("odvoz")
+    flags = f'<span class="ev-flags">{esc(" · ".join(flag_bits))}</span>' if flag_bits else ""
+    st = (
+        f'<span class="ev-status">{esc(status)}</span>'
+        if status and ev.get("status") != "confirmed"
+        else ""
+    )
+    end_attr = f' data-end-min="{e}"' if e is not None else ""
+    mids = ",".join(expand_members(event_members(ev)))
+    return (
+        f'<div class="event-block{short_c}{conflict}{unconf}{todo}{extra_class}" '
+        f'style="top:{top:.3f}%;height:{height:.3f}%;left:{left_pct:.3f}%;'
+        f'width:{width_pct:.3f}%;--m:{esc(color)}" '
+        f'data-members="{esc(mids)}"{end_attr}>'
+        f'<span class="ev-time">{esc(fmt_range(ev))}</span>'
+        f'<span class="ev-title">{esc(ev["title"])}</span>'
+        f"{loc}{st}{flags}</div>"
+    )
 
 
-def section_items_html(items, members_map, show_member=True):
-    lis = []
-    for it in items:
-        if isinstance(it, str):
-            text, mid = it, None
-        else:
-            text, mid = it.get("text", ""), it.get("member")
-        who = ""
-        if show_member and mid and mid in members_map:
-            m = members_map[mid]
-            who = (
-                f'<span class="hl-who" style="--m:{esc(m["color"])}">'
-                f'{esc(m["display_name"])}</span> '
-            )
-        lis.append(f"<li>{who}{esc(text)}</li>")
-    return "<ul>\n" + "\n".join(lis) + "\n</ul>"
-
-
-def render_sections_panel(day, members_map, panel_title="Dôležité"):
-    sections = day_sections(day)
-    if not sections:
-        return (
-            f'<aside class="panel highlights-panel sidebar-panel" aria-label="{esc(panel_title)}">'
-            f"<h2>{esc(panel_title)}</h2>"
-            f'<p class="empty-inline">Žiadne poznámky na dnes.</p>'
-            f"</aside>"
-        )
+def place_events_in_track(events, start, end, color_for_ev, n_cols=1):
+    """Absolute-position blocks in a single track; simple overlap columns."""
+    timed = [e for e in events if e.get("start") and not e.get("all_day")]
+    timed = sorted(timed, key=lambda x: parse_hhmm(x["start"]))
+    placed = []
     blocks = []
-    for sec in sections:
+    for e in timed:
+        s = parse_hhmm(e["start"])
+        ee = parse_hhmm(e.get("end")) or (s + 30)
+        col = 0
+        used = {c for end_m, c in placed if end_m > s}
+        while col in used:
+            col += 1
+        placed.append((ee, col))
+        placed = [(em, c) for em, c in placed if em > s]
+        n = max((c for _, c in placed), default=0) + 1
+        width = 100.0 / max(n, col + 1)
+        left = col * width
+        top = pct(s, start, end)
+        height = max(pct(ee, start, end) - top, 8.5)
+        short = (ee - s) <= 45
         blocks.append(
-            f'<section class="hl-block" data-section="{esc(sec["id"])}">'
-            f"<h3>{esc(sec['title'])}</h3>"
-            f"{section_items_html(sec['items'], members_map)}"
-            f"</section>"
+            event_block_html(e, color_for_ev(e), top, height, left, width, short=short)
         )
-    return (
-        f'<aside class="panel highlights-panel sidebar-panel" aria-label="{esc(panel_title)}">'
-        f"<h2>{esc(panel_title)}</h2>"
-        + "".join(blocks)
-        + "</aside>"
-    )
+    return blocks
 
 
-def member_sections(day, mid):
-    """Sections that contain at least one item for this member (grouped under section titles)."""
-    out = []
-    for sec in day_sections(day):
-        items = []
-        for it in sec["items"]:
-            if isinstance(it, dict) and it.get("member") == mid:
-                items.append(it)
-        if items:
-            out.append({"id": sec["id"], "title": sec["title"], "items": items})
-    return out
-
-
-def nav_back(href, label="Späť"):
-    return f'<a class="nav-back" href="{esc(href)}">{esc(label)}</a>'
-
-
-def render_timeline(day, members, page_date):
-    lanes = lane_members(members, day)
-    start, end = timeline_bounds(day)
+def family_calendar(day, people, start, end):
+    """4-column family calendar with spanning events."""
     labels = hour_labels(start, end)
-    now_m = parse_hhmm(day.get("now"))
-
-    # hour grid lines
     lines = []
     for m in labels:
         top = pct(m, start, end)
-        hh = f"{m // 60:02d}:00"
         lines.append(
             f'<div class="tl-hour" style="top:{top:.3f}%">'
-            f'<span class="tl-hour-label">{hh}</span></div>'
+            f'<span class="tl-hour-label">{m // 60:02d}:00</span></div>'
         )
 
-    now_html = ""
-    if now_m is not None and start <= now_m <= end:
-        top = pct(now_m, start, end)
-        now_html = (
-            f'<div class="tl-now" style="top:{top:.3f}%">'
-            f'<span class="tl-now-label">teraz {esc(day["now"])}</span></div>'
-        )
-
-    # all-day / untimed strip
-    floating = [
-        e
-        for e in day.get("events", [])
-        if e.get("all_day") or not e.get("start")
-    ]
-    float_html = ""
-    if floating:
-        chips = []
-        mmap = members_by_id(members)
-        for e in floating:
-            m = mmap.get(e["member"], {})
-            color = m.get("color", "#666")
-            status = STATUS_SK.get(e.get("status", ""), "")
-            conflict = " is-conflict" if "conflict" in e.get("flags", []) else ""
-            unconf = " is-unconfirmed" if e.get("status") in ("unconfirmed", "tentative") else ""
-            chips.append(
-                f'<div class="allday-chip{conflict}{unconf}" style="--m:{esc(color)}">'
-                f'<strong>{esc(m.get("display_name", ""))}</strong> '
-                f'{esc(e["title"])}'
-                f'<span class="chip-meta">{esc(fmt_range(e))}'
-                f'{(" · " + status) if status else ""}</span></div>'
-            )
-        float_html = '<div class="allday-row">' + "".join(chips) + "</div>"
-
-    # lane headers (focusable avatars → member page)
     heads = []
-    cols = []
-    mmap = members_by_id(members)
+    for p in people:
+        heads.append(
+            f'<div class="lane-head" style="--m:{esc(p["color"])}" data-person="{esc(p["id"])}">'
+            f'<img class="avatar" src="avatars/{esc(p["avatar"])}" alt="" width="44" height="44">'
+            f'<span class="lane-name">{esc(p["display_name"])}</span></div>'
+        )
+
+    # Build per-column event lists for non-spanning; spanning drawn on overlay
+    id_to_idx = {p["id"]: i for i, p in enumerate(people)}
+    n = len(people)
+    col_events = {p["id"]: [] for p in people}
+    span_blocks = []
+
     timed = [e for e in day.get("events", []) if e.get("start") and not e.get("all_day")]
-
-    for i, m in enumerate(lanes):
-        autofocus = " autofocus" if i == 0 else ""
-        href = f"{page_date}-{m['id']}.html" if m["role"] != "rodina" else f"{page_date}.html"
-        if m["role"] == "rodina":
-            heads.append(
-                f'<div class="lane-head lane-head-static" style="--m:{esc(m["color"])}">'
-                f'<img class="avatar" src="{esc(avatar_href(m))}" alt="" width="48" height="48">'
-                f'<span class="lane-name">{esc(m["display_name"])}</span></div>'
-            )
+    for e in timed:
+        mids = expand_members(event_members(e))
+        if not mids:
+            continue
+        indices = [id_to_idx[m] for m in mids if m in id_to_idx]
+        if not indices:
+            continue
+        spans = contiguous_spans(indices)
+        # Single person → column list (overlap handling later)
+        if len(mids) == 1 and len(spans) == 1 and spans[0][0] == spans[0][1]:
+            col_events[mids[0]].append(e)
+            continue
+        # Multi: each contiguous span as one block across columns
+        s = parse_hhmm(e["start"])
+        ee = parse_hhmm(e.get("end")) or (s + 30)
+        top = pct(s, start, end)
+        height = max(pct(ee, start, end) - top, 8.5)
+        short = (ee - s) <= 45
+        # color: if all four → family slate; else first member color
+        if len(mids) >= 4:
+            color = "#4A6670"
         else:
-            heads.append(
-                f'<a class="lane-head" href="{esc(href)}" style="--m:{esc(m["color"])}"{autofocus}>'
-                f'<img class="avatar" src="{esc(avatar_href(m))}" alt="" width="48" height="48">'
-                f'<span class="lane-name">{esc(m["display_name"])}</span></a>'
+            color = next(p["color"] for p in people if p["id"] == mids[0])
+        for lo, hi in spans:
+            left = (lo / n) * 100.0
+            width = ((hi - lo + 1) / n) * 100.0
+            span_blocks.append(
+                event_block_html(
+                    e, color, top, height, left, width,
+                    extra_class=" is-span", short=short,
+                )
             )
 
-        blocks = []
-        lane_events = [e for e in timed if e.get("member") == m["id"]]
-        # simple overlap columns within lane
-        placed = []  # list of (end_minute, col)
-        for e in sorted(lane_events, key=lambda x: parse_hhmm(x["start"])):
-            s = parse_hhmm(e["start"])
-            ee = parse_hhmm(e.get("end")) or (s + 30)
-            col = 0
-            used = {c for end_m, c in placed if end_m > s}
-            while col in used:
-                col += 1
-            placed.append((ee, col))
-            placed = [(em, c) for em, c in placed if em > s]
-            n_cols = max((c for _, c in placed), default=0) + 1
-            # recompute width based on concurrent — approximate with col count at place time
-            width = 100.0 / max(n_cols, col + 1)
-            left = col * width
-            top = pct(s, start, end)
-            # Min ~40 px on a 480 px track so 30-min blocks still show a title.
-            height = max(pct(ee, start, end) - top, 8.5)
-            short = " is-short" if (ee - s) <= 45 else ""
-            conflict = " is-conflict" if ("conflict" in e.get("flags", []) or e.get("conflict_with")) else ""
-            unconf = " is-unconfirmed" if e.get("status") in ("unconfirmed", "tentative") else ""
-            todo = " is-todo" if e.get("status") == "todo" else ""
-            loc = f'<span class="ev-loc">{esc(e["location"])}</span>' if e.get("location") else ""
-            status = STATUS_SK.get(e.get("status", ""), "")
-            flag_bits = []
-            if conflict:
-                flag_bits.append("konflikt")
-            if "needs-ride" in e.get("flags", []):
-                flag_bits.append("odvoz")
-            flags = (
-                f'<span class="ev-flags">{esc(" · ".join(flag_bits))}</span>'
-                if flag_bits
-                else ""
-            )
-            st = f'<span class="ev-status">{esc(status)}</span>' if status and e.get("status") != "confirmed" else ""
-            blocks.append(
-                f'<div class="event-block{short}{conflict}{unconf}{todo}" '
-                f'style="top:{top:.3f}%;height:{height:.3f}%;left:{left:.3f}%;width:{width:.3f}%;--m:{esc(m["color"])}">'
-                f'<span class="ev-time">{esc(fmt_range(e))}</span>'
-                f'<span class="ev-title">{esc(e["title"])}</span>'
-                f"{loc}{st}{flags}</div>"
-            )
-        cols.append(f'<div class="lane-col" style="--m:{esc(m["color"])}">{"".join(blocks)}</div>')
+    cols = []
+    for p in people:
+        blocks = place_events_in_track(
+            col_events[p["id"]], start, end, lambda ev, c=p["color"]: c
+        )
+        cols.append(
+            f'<div class="lane-col" data-person="{esc(p["id"])}" style="--m:{esc(p["color"])}">'
+            f'{"".join(blocks)}</div>'
+        )
 
-    n = len(lanes)
+    now_html = (
+        '<div class="tl-now" style="top:0">'
+        '<span class="tl-now-label">teraz</span></div>'
+    )
+
     return f"""
-{float_html}
-<div class="timeline" style="--lanes:{n}">
-  <div class="lane-heads" style="--lanes:{n}">{"".join(heads)}</div>
-  <div class="tl-body" style="--lanes:{n}">
+<div class="calendar calendar-family" data-mode="family">
+  <div class="lane-heads lane-heads-4">{"".join(heads)}</div>
+  <div class="tl-body">
     <div class="tl-hours">{"".join(lines)}</div>
-    <div class="tl-lanes">{"".join(cols)}</div>
+    <div class="tl-lanes tl-lanes-4">{"".join(cols)}</div>
+    <div class="tl-span-layer">{"".join(span_blocks)}</div>
     {now_html}
   </div>
 </div>
 """
 
 
-def render_overview(tid, day, members):
-    mmap = members_by_id(members)
+def member_calendar(day, people, focus_id, start, end):
+    """Wide focus column + narrow ostatní merged column."""
+    focus = next(p for p in people if p["id"] == focus_id)
+    others = [p for p in people if p["id"] != focus_id]
+    labels = hour_labels(start, end)
+    lines = []
+    for m in labels:
+        top = pct(m, start, end)
+        lines.append(
+            f'<div class="tl-hour" style="top:{top:.3f}%">'
+            f'<span class="tl-hour-label">{m // 60:02d}:00</span></div>'
+        )
+
+    heads = (
+        f'<div class="lane-head lane-head-focus" style="--m:{esc(focus["color"])}">'
+        f'<img class="avatar" src="avatars/{esc(focus["avatar"])}" alt="" width="48" height="48">'
+        f'<span class="lane-name">{esc(focus["display_name"])}</span></div>'
+        f'<div class="lane-head lane-head-others">'
+        f'<span class="lane-name">ostatní</span></div>'
+    )
+
+    focus_ev = []
+    other_unique = []
+    seen_other = set()
+    for e in day.get("events", []):
+        if not e.get("start") or e.get("all_day"):
+            continue
+        mids = expand_members(event_members(e))
+        if focus_id in mids:
+            focus_ev.append(e)
+        if any(m != focus_id for m in mids):
+            if e["id"] not in seen_other:
+                seen_other.add(e["id"])
+                other_unique.append(e)
+
+    def focus_color(ev):
+        return focus["color"]
+
+    def other_color(ev):
+        mids = expand_members(event_members(ev))
+        for p in people:
+            if p["id"] in mids and p["id"] != focus_id:
+                return p["color"]
+        return "#6b7280"
+
+    focus_blocks = place_events_in_track(focus_ev, start, end, focus_color)
+    other_blocks = place_events_in_track(other_unique, start, end, other_color)
+
+    now_html = (
+        '<div class="tl-now" style="top:0">'
+        '<span class="tl-now-label">teraz</span></div>'
+    )
+
+    return f"""
+<div class="calendar calendar-member" data-mode="member" data-focus="{esc(focus_id)}">
+  <div class="lane-heads lane-heads-2">{heads}</div>
+  <div class="tl-body">
+    <div class="tl-hours">{"".join(lines)}</div>
+    <div class="tl-lanes tl-lanes-2">
+      <div class="lane-col lane-col-focus" style="--m:{esc(focus["color"])}">{"".join(focus_blocks)}</div>
+      <div class="lane-col lane-col-others">{"".join(other_blocks)}</div>
+    </div>
+    {now_html}
+  </div>
+</div>
+"""
+
+
+def untimed_strip(day, people_map):
+    floating = [
+        e for e in day.get("events", [])
+        if e.get("all_day") or not e.get("start")
+    ]
+    if not floating:
+        return '<div class="allday-row" hidden></div>'
+    chips = []
+    for e in floating:
+        mids = expand_members(event_members(e))
+        # color from first member
+        color = "#4A6670"
+        label = "Rodina"
+        if mids:
+            m = people_map.get(mids[0], {})
+            color = m.get("color", color)
+            if len(mids) == 1:
+                label = m.get("display_name", "")
+            elif len(mids) >= 4:
+                label = "Rodina"
+            else:
+                label = "+".join(
+                    people_map[i]["display_name"] for i in mids if i in people_map
+                )
+        status = STATUS_SK.get(e.get("status", ""), "")
+        conflict = " is-conflict" if "conflict" in e.get("flags", []) else ""
+        unconf = " is-unconfirmed" if e.get("status") in ("unconfirmed", "tentative") else ""
+        mem_classes = " ".join(f"mem-{m}" for m in mids) or "mem-none"
+        chips.append(
+            f'<div class="allday-chip{conflict}{unconf} {mem_classes}" style="--m:{esc(color)}" '
+            f'data-members="{esc(",".join(mids))}">'
+            f"<strong>{esc(label)}</strong> {esc(e['title'])}"
+            f'<span class="chip-meta">{esc(fmt_range(e))}'
+            f'{(" · " + status) if status else ""}</span></div>'
+        )
+    return f'<div class="allday-row">{"".join(chips)}</div>'
+
+
+def day_sections(day):
+    out = []
+    for sec in day.get("sections") or []:
+        items = [it for it in (sec.get("items") or []) if isinstance(it, dict) and it.get("text")]
+        if not items:
+            continue
+        out.append({"id": sec.get("id") or "", "title": sec.get("title") or "", "items": items})
+    return out
+
+
+def is_outlook(sec):
+    sid = (sec.get("id") or "").lower()
+    title = (sec.get("title") or "").lower()
+    return sid == "vyhlad" or "víkend" in title or "zajtra" in title
+
+
+def sidebar_html(day, people_map):
+    sections = day_sections(day)
+    main_secs = [s for s in sections if not is_outlook(s)]
+    outlook = [s for s in sections if is_outlook(s)]
+
+    def items_html(items):
+        lis = []
+        for it in items:
+            mid = it.get("member")
+            text = it.get("text") or ""
+            detail = it.get("detail") or text
+            who = ""
+            data_m = mid or ""
+            if mid and mid in people_map:
+                m = people_map[mid]
+                who = (
+                    f'<span class="hl-who" style="--m:{esc(m["color"])}">'
+                    f'{esc(m["display_name"])}</span> '
+                )
+            lis.append(
+                f'<li data-member="{esc(data_m)}" data-family-item="{"0" if mid else "1"}">'
+                f"{who}"
+                f'<span class="item-text">{esc(text)}</span>'
+                f'<span class="item-detail">{esc(detail)}</span>'
+                f"</li>"
+            )
+        return "<ul>\n" + "\n".join(lis) + "\n</ul>"
+
+    blocks = []
+    for sec in main_secs:
+        blocks.append(
+            f'<section class="hl-block" data-section="{esc(sec["id"])}">'
+            f"<h3>{esc(sec['title'])}</h3>"
+            f"{items_html(sec['items'])}</section>"
+        )
+    main = "".join(blocks) or '<p class="empty-inline">Žiadne poznámky.</p>'
+
+    outlook_html = ""
+    for sec in outlook:
+        outlook_html += (
+            f'<aside class="outlook-box" data-section="{esc(sec["id"])}">'
+            f'<h3>{esc(sec["title"])}</h3>'
+            f"{items_html(sec['items'])}</aside>"
+        )
+
+    return f"""
+<aside class="panel sidebar-panel">
+  <div class="sidebar-main">
+    <h2 class="sidebar-title">Dôležité</h2>
+    {main}
+  </div>
+  {outlook_html}
+</aside>
+"""
+
+
+def who_header(people, family):
+    parts = [
+        f'<div class="who who-rodina" data-who="rodina" style="--m:{esc(family.get("color", "#4A6670"))}">'
+        f'<img class="avatar" src="avatars/{esc(family["avatar"])}" alt="" width="52" height="52">'
+        f'<span class="who-name">{esc(family["display_name"])}</span></div>'
+    ]
+    for p in people:
+        parts.append(
+            f'<div class="who who-{esc(p["id"])}" data-who="{esc(p["id"])}" style="--m:{esc(p["color"])}">'
+            f'<img class="avatar" src="avatars/{esc(p["avatar"])}" alt="" width="52" height="52">'
+            f'<span class="who-name">{esc(p["display_name"])}</span></div>'
+        )
+    return f'<div class="view-who">{"".join(parts)}</div>'
+
+
+def render_day_page(tid, day, pack):
+    meta = theme_meta(tid)
+    people = people_list(pack)
+    people_map = members_by_id(pack)
+    family = family_meta(pack)
+    start, end = timeline_bounds(day)
     d = day["date"]
-    timeline = render_timeline(day, members, d)
-    sidebar = render_sections_panel(day, mmap, panel_title="Dôležité")
+
+    calendars = [family_calendar(day, people, start, end)]
+    for p in people:
+        calendars.append(member_calendar(day, people, p["id"], start, end))
+
     body = f"""
-<div class="frame page-overview">
+<div class="frame page-day">
   <header class="topbar">
-    {nav_back("home.html", "Domov")}
+    <div class="home-icon" title="Domov" aria-hidden="true">{house_icon_svg()}</div>
+    {who_header(people, family)}
     <div class="topbar-main">
       <p class="eyebrow">Rodinný prehľad</p>
       <h1>{esc(fmt_date_sk(d))}</h1>
     </div>
-    {weather_html(day.get("weather"))}
-  </header>
-  <div class="overview-grid">
-    <section class="panel timeline-panel" aria-label="Časová os">
-      {timeline}
-    </section>
-    {sidebar}
-  </div>
-</div>
-"""
-    return shell(tid, f"Dnes — {fmt_date_short(d)}", body, autofocus_sel="a.lane-head", extra_class="page-overview")
-
-
-def member_events(day, mid):
-    return [e for e in day.get("events", []) if e.get("member") == mid]
-
-
-def render_member(tid, day, members, mid):
-    mmap = members_by_id(members)
-    m = mmap[mid]
-    d = day["date"]
-    events = member_events(day, mid)
-    timed = [e for e in events if e.get("start") and not e.get("all_day")]
-    floating = [e for e in events if e.get("all_day") or not e.get("start")]
-    sec_for_member = member_sections(day, mid)
-
-    agenda = []
-    for e in sorted(timed, key=lambda x: parse_hhmm(x["start"])):
-        conflict = " is-conflict" if ("conflict" in e.get("flags", []) or e.get("conflict_with")) else ""
-        unconf = " is-unconfirmed" if e.get("status") in ("unconfirmed", "tentative") else ""
-        loc = f'<p class="agenda-loc">{esc(e["location"])}</p>' if e.get("location") else ""
-        notes_h = ""
-        bits = list(e.get("notes") or []) + list(e.get("reminders") or [])
-        if bits:
-            notes_h = "<ul class=\"agenda-notes\">" + "".join(f"<li>{esc(b)}</li>" for b in bits) + "</ul>"
-        st = ""
-        if e.get("status") and e["status"] != "confirmed":
-            st = f'<span class="ev-status">{esc(STATUS_SK.get(e["status"], e["status"]))}</span>'
-        flags = []
-        if conflict:
-            flags.append("konflikt")
-        if "needs-ride" in e.get("flags", []):
-            flags.append("odvoz")
-        fl = f'<span class="ev-flags">{esc(" · ".join(flags))}</span>' if flags else ""
-        agenda.append(
-            f'<article class="agenda-item{conflict}{unconf}" style="--m:{esc(m["color"])}">'
-            f'<div class="agenda-time">{esc(fmt_range(e))}</div>'
-            f'<div class="agenda-body"><h3>{esc(e["title"])}{st}{fl}</h3>{loc}{notes_h}</div>'
-            f"</article>"
-        )
-
-    for e in floating:
-        unconf = " is-unconfirmed" if e.get("status") in ("unconfirmed", "tentative") else ""
-        loc = f'<p class="agenda-loc">{esc(e["location"])}</p>' if e.get("location") else ""
-        bits = list(e.get("notes") or []) + list(e.get("reminders") or [])
-        notes_h = ""
-        if bits:
-            notes_h = "<ul class=\"agenda-notes\">" + "".join(f"<li>{esc(b)}</li>" for b in bits) + "</ul>"
-        st = ""
-        if e.get("status") and e["status"] != "confirmed":
-            st = f'<span class="ev-status">{esc(STATUS_SK.get(e["status"], e["status"]))}</span>'
-        agenda.append(
-            f'<article class="agenda-item is-floating{unconf}" style="--m:{esc(m["color"])}">'
-            f'<div class="agenda-time">{esc(fmt_range(e))}</div>'
-            f'<div class="agenda-body"><h3>{esc(e["title"])}{st}</h3>{loc}{notes_h}</div>'
-            f"</article>"
-        )
-
-    if not agenda:
-        agenda_html = f"""
-<div class="empty-state" style="--m:{esc(m["color"])}">
-  <img class="avatar avatar-lg" src="{esc(avatar_href(m))}" alt="" width="96" height="96">
-  <h2>Zatiaľ nič v kalendári</h2>
-  <p>{esc(m["display_name"])} nemá na {esc(fmt_date_short(d))} žiadne známe udalosti.
-  Voľný deň — alebo ešte len čakáme na doplnenie.</p>
-</div>
-"""
-    else:
-        agenda_html = '<div class="agenda">' + "".join(agenda) + "</div>"
-
-    if sec_for_member:
-        notes_parts = []
-        for sec in sec_for_member:
-            notes_parts.append(
-                f'<section class="hl-block" data-section="{esc(sec["id"])}">'
-                f"<h3>{esc(sec['title'])}</h3>"
-                # Member page: already filtered to this person — no chip needed.
-                f"{section_items_html(sec['items'], mmap, show_member=False)}"
-                f"</section>"
-            )
-        notes_html = "".join(notes_parts)
-    else:
-        notes_html = '<p class="empty-inline">Žiadne položky v sekciách pre túto osobu.</p>'
-
-    meta_bits = []
-    for k, label in (("school", "škola"), ("grade", "trieda"), ("club", "krúžok")):
-        if m.get("meta", {}).get(k):
-            meta_bits.append(f'<span>{esc(label)}: {esc(m["meta"][k])}</span>')
-    meta_html = ('<p class="member-meta">' + " · ".join(meta_bits) + "</p>") if meta_bits else ""
-
-    body = f"""
-<div class="frame page-member" style="--m:{esc(m["color"])}">
-  <header class="topbar">
-    {nav_back(d + ".html", "Prehľad")}
-    <div class="member-hero">
-      <img class="avatar avatar-lg" src="{esc(avatar_href(m))}" alt="" width="88" height="88">
-      <div>
-        <p class="eyebrow">Osobný prehľad · {esc(fmt_date_short(d))}</p>
-        <h1>{esc(m["display_name"])}</h1>
-        {meta_html}
+    <div class="weather" data-icon="{esc((day.get("weather") or {}).get("icon", ""))}">
+      <span class="wx-icon">{weather_icon_svg((day.get("weather") or {}).get("icon", "cloudy"))}</span>
+      <div class="wx-text">
+        <span class="wx-summary">{esc((day.get("weather") or {}).get("summary") or "")}</span>
+        <span class="wx-temps">{esc((day.get("weather") or {}).get("temp_low_c"))}–{esc((day.get("weather") or {}).get("temp_high_c"))} °C</span>
+        {'<span class="sample-flag">ukážka</span>' if (day.get("weather") or {}).get("sample") else ""}
       </div>
     </div>
   </header>
-  <div class="member-grid">
-    <section class="panel" aria-label="Agenda">
-      <h2>Agenda</h2>
-      {agenda_html}
+  <div class="day-main">
+    <section class="panel cal-panel">
+      {untimed_strip(day, people_map)}
+      <div class="calendars">
+        {"".join(calendars)}
+      </div>
     </section>
-    <aside class="panel sidebar-panel" aria-label="Sekcie">
-      <h2>Zo dňa</h2>
-      {notes_html}
-    </aside>
+    {sidebar_html(day, people_map)}
   </div>
 </div>
+<script src="view.js"></script>
 """
-    return shell(
-        tid,
-        f"{m['display_name']} — {fmt_date_short(d)}",
-        body,
-        autofocus_sel="a.nav-back",
-        extra_class="page-member",
+
+    css = theme_css(tid)
+    return f"""<!doctype html>
+<html lang="sk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=1024, height=768, initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<meta name="theme-color" content="{esc(meta.get("theme_color", "#333"))}">
+<title>{esc(fmt_date_sk(d))} — {esc(meta.get("name", tid))}</title>
+<style>
+{css}
+</style>
+</head>
+<body class="theme-{esc(tid)} page-day"
+  data-view="rodina"
+  data-date="{esc(d)}"
+  data-timezone="{esc(day.get("timezone") or "Europe/Prague")}"
+  data-fallback-now="{esc(day.get("now") or "")}"
+  data-day-start="{start}"
+  data-day-end="{end}"
+  data-lock-now="0">
+{body}
+</body>
+</html>
+"""
+
+
+def render_theme_index(tid, dates, primary):
+    """Picks today's file if present, else primary sample; light redirect."""
+    meta = theme_meta(tid)
+    links = "".join(
+        f'<li><a href="{esc(d)}.html">{esc(fmt_date_sk(d))}</a></li>' for d in dates
     )
-
-
-def render_home(tid, members, primary_date):
-    people = people_members(members)
-    tiles = [
-        f'<a class="tile tile-dnes" href="{esc(primary_date)}.html" autofocus>'
-        f'<span class="tile-kicker">Rodina</span>'
-        f'<span class="tile-title">Dnes</span>'
-        f'<span class="tile-sub">{esc(fmt_date_sk(primary_date))}</span>'
-        f"</a>"
-    ]
-    for m in people:
-        tiles.append(
-            f'<a class="tile tile-member" href="{esc(primary_date)}-{esc(m["id"])}.html" style="--m:{esc(m["color"])}">'
-            f'<img class="avatar" src="{esc(avatar_href(m))}" alt="" width="72" height="72">'
-            f'<span class="tile-title">{esc(m["display_name"])}</span>'
-            f"</a>"
-        )
-    body = f"""
-<div class="frame page-home">
-  <header class="home-header">
-    <p class="eyebrow">Nixplay · rodinný rám</p>
-    <h1>Domov</h1>
-    <p class="lede">Vyberte prehľad dňa alebo člena rodiny. Tab = ďalší, Enter = otvoriť.</p>
-  </header>
-  <nav class="home-grid" aria-label="Menu">
-    {"".join(tiles)}
-  </nav>
-</div>
+    return f"""<!doctype html>
+<html lang="sk">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex,nofollow">
+<title>{esc(meta.get("name", tid))} — index</title>
+<script>
+(function(){{
+  var dates = {json.dumps(dates)};
+  var primary = {json.dumps(primary)};
+  var today;
+  try {{
+    today = new Intl.DateTimeFormat("en-CA", {{ timeZone: "Europe/Prague" }}).format(new Date());
+  }} catch (e) {{ today = primary; }}
+  var target = primary;
+  for (var i = 0; i < dates.length; i++) if (dates[i] === today) target = today;
+  location.replace(target + ".html");
+}})();
+</script>
+</head>
+<body>
+<p>Presmerovanie na dnešný deň…</p>
+<ul>{links}</ul>
+</body>
+</html>
 """
-    return shell(tid, "Domov — rodinný prehľad", body, autofocus_sel="a.tile-dnes", extra_class="page-home")
 
 
-def render_designs_index(metas, primary_date, busy_date):
+def render_designs_index(metas, dates):
     cards = []
     for tid, meta in metas:
-        letter = esc(meta.get("letter", "?"))
-        name = esc(meta.get("name", tid))
-        blurb = esc(meta.get("blurb", ""))
-        color = esc(meta.get("theme_color", "#333"))
+        links = " · ".join(
+            f'<a href="{esc(tid)}/{esc(d)}.html">{esc(fmt_date_short(d))}</a>' for d in dates
+        )
         cards.append(
             f"""<li>
-  <a class="card" style="--c:{color}" href="{esc(tid)}/home.html">
-    <strong>{letter} · {name}</strong>
-    <span>{blurb}</span>
+  <a class="card" style="--c:{esc(meta.get("theme_color", "#333"))}" href="{esc(tid)}/{esc(dates[0])}.html">
+    <strong>{esc(meta.get("letter", "?"))} · {esc(meta.get("name", tid))}</strong>
+    <span>{esc(meta.get("blurb", ""))}</span>
   </a>
-  <p class="card-links">
-    <a href="{esc(tid)}/home.html">domov</a> ·
-    <a href="{esc(tid)}/{esc(primary_date)}.html">prehľad {esc(fmt_date_short(primary_date))}</a> ·
-    <a href="{esc(tid)}/{esc(busy_date)}.html">hustý deň {esc(fmt_date_short(busy_date))}</a> ·
-    <a href="{esc(tid)}/{esc(primary_date)}-andrej.html">Andrej</a>
-  </p>
+  <p class="card-links">{links} · <a href="{esc(tid)}/index.html">index</a></p>
 </li>"""
         )
     return f"""<!doctype html>
@@ -666,8 +713,7 @@ def render_designs_index(metas, primary_date, busy_date):
 <meta name="robots" content="noindex,nofollow">
 <title>Návrhy vzhľadu — denný rodinný prehľad</title>
 <style>
-  body {{ margin: 0; font: 20px/1.45 "Source Sans 3", system-ui, sans-serif; color: #1a1f24;
-    background: #e7eef2; }}
+  body {{ margin: 0; font: 20px/1.45 system-ui, sans-serif; color: #1a1f24; background: #e7eef2; }}
   main {{ max-width: 820px; margin: 0 auto; padding: 1.6rem 1.2rem 3rem; }}
   h1 {{ font-size: 2rem; margin: .3rem 0 .4rem; }}
   .lede {{ color: #3d4a52; margin: 0 0 1.4rem; }}
@@ -678,20 +724,16 @@ def render_designs_index(metas, primary_date, busy_date):
     border-left: 10px solid var(--c); }}
   a.card strong {{ display: block; font-size: 1.35rem; margin-bottom: .25rem; }}
   a.card span {{ color: #3d4a52; }}
-  .card-links {{ margin: .45rem 0 0 .2rem; font-size: .95rem; color: #3d4a52; }}
+  .card-links {{ margin: .45rem 0 0 .2rem; font-size: .95rem; }}
   .card-links a {{ color: #1f4f6e; }}
-  footer {{ margin-top: 1.5rem; color: #3d4a52; font-size: .95rem; }}
 </style>
 </head>
 <body>
 <main>
   <h1>Návrhy vzhľadu denného prehľadu</h1>
-  <p class="lede">Tri témy rovnakej vzorky dňa (piatok 6.&nbsp;11.&nbsp;2026) plus hustý utorok 3.&nbsp;11.&nbsp;2026.
-  Cieľ: Nixplay 1024×768, Chromium 81, ovládanie gestami (Tab / Enter / Alt+←).</p>
-  <ul>
-    {"".join(cards)}
-  </ul>
-  <footer>Obsah z <code>data/*.json</code> · render <code>tools/build.py</code> · výstup v <code>designs/</code>.</footer>
+  <p class="lede">Jedna stránka na deň, pohľady Rodina → Braňo → Zuzka → Andrej → Tomáš
+  (Tab / Enter = ďalší). Chromium 81 · 1024×768.</p>
+  <ul>{"".join(cards)}</ul>
 </main>
 </body>
 </html>
@@ -699,9 +741,13 @@ def render_designs_index(metas, primary_date, busy_date):
 
 
 def build():
-    members = load_json(DATA, "members.json")["members"]
-    primary = load_json(DATA, "2026-11-06.json")
-    busy = load_json(DATA, "2026-11-03.json")
+    pack = load_json(DATA, "members.json")
+    days = []
+    for name in sorted(os.listdir(DATA)):
+        if name.endswith(".json") and name[0].isdigit():
+            days.append(load_json(DATA, name))
+    dates = [d["date"] for d in days]
+    primary = "2026-11-06" if "2026-11-06" in dates else (dates[0] if dates else None)
     metas = []
 
     for tid in theme_ids():
@@ -709,29 +755,17 @@ def build():
         metas.append((tid, meta))
         out = os.path.join(DESIGNS, tid)
         os.makedirs(out, exist_ok=True)
+        # remove old member/home pages from previous rounds
+        for fn in os.listdir(out):
+            if fn.endswith(".html"):
+                os.remove(os.path.join(out, fn))
         copy_theme_assets(tid, out)
-
-        write(os.path.join(out, "home.html"), render_home(tid, members, primary["date"]))
-        write(os.path.join(out, f'{primary["date"]}.html'), render_overview(tid, primary, members))
-        write(os.path.join(out, f'{busy["date"]}.html'), render_overview(tid, busy, members))
-
-        for m in people_members(members):
-            write(
-                os.path.join(out, f'{primary["date"]}-{m["id"]}.html'),
-                render_member(tid, primary, members, m["id"]),
-            )
-            # hustý deň: aspoň Andrej (a ostatní lacno navyše)
-            write(
-                os.path.join(out, f'{busy["date"]}-{m["id"]}.html'),
-                render_member(tid, busy, members, m["id"]),
-            )
-
+        for day in days:
+            write(os.path.join(out, f'{day["date"]}.html'), render_day_page(tid, day, pack))
+        write(os.path.join(out, "index.html"), render_theme_index(tid, dates, primary))
         print(f"built theme {tid} → designs/{tid}/")
 
-    write(
-        os.path.join(DESIGNS, "index.html"),
-        render_designs_index(metas, primary["date"], busy["date"]),
-    )
+    write(os.path.join(DESIGNS, "index.html"), render_designs_index(metas, dates))
     print("built designs/index.html")
 
 

@@ -5,10 +5,11 @@
 <meta name="viewport" content="width=1024, height=768, initial-scale=1">
 <meta name="robots" content="noindex,nofollow">
 <meta name="theme-color" content="#0B1220">
-<title>Dnes — 3. 11. 2026</title>
+<title>utorok 3. november 2026 — Večerná</title>
 <style>
-/* Shared layout primitives for Nixplay 1024×768 / Chromium 81.
-   Avoid: flex gap, inset, aspect-ratio, :is(), :where(), :focus-visible, :has(), dvh. */
+/* Single-page daily recap — Chromium 81.
+   Avoid: flex gap, inset, aspect-ratio, :is(), :where(), :focus-visible, :has(), dvh.
+   Animate flex-basis/width (not grid-template-columns). */
 
 *, *::before, *::after { box-sizing: border-box; }
 
@@ -22,24 +23,17 @@ html, body {
 }
 
 body {
-  font-size: 22px;
+  font-size: 20px;
   line-height: 1.35;
 }
 
-a { color: inherit; }
-
 img.avatar {
   display: block;
-  width: 48px;
-  height: 48px;
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
   object-fit: cover;
   background: #ddd;
-}
-
-img.avatar-lg {
-  width: 88px;
-  height: 88px;
 }
 
 .frame {
@@ -51,197 +45,351 @@ img.avatar-lg {
 
 .eyebrow {
   margin: 0;
-  font-size: 16px;
+  font-size: 14px;
   letter-spacing: 0.06em;
   text-transform: uppercase;
   opacity: 0.75;
 }
 
+/* ---- Top bar ---- */
 .topbar {
   display: -webkit-box;
   display: flex;
   -webkit-box-align: center;
   align-items: center;
-  padding: 10px 18px 8px;
-  min-height: 76px;
+  padding: 10px 16px 8px;
+  height: 78px;
+}
+
+.home-icon {
+  -webkit-box-flex: 0;
+  flex: 0 0 48px;
+  width: 48px;
+  height: 48px;
+  display: -webkit-box;
+  display: flex;
+  -webkit-box-align: center;
+  align-items: center;
+  -webkit-box-pack: center;
+  justify-content: center;
+  opacity: 0.85;
+  pointer-events: none;
+}
+
+.home-glyph { display: block; }
+
+.view-who {
+  position: relative;
+  -webkit-box-flex: 0;
+  flex: 0 0 168px;
+  width: 168px;
+  height: 56px;
+  margin-left: 8px;
+  margin-right: 12px;
+}
+
+.view-who .who {
+  position: absolute;
+  left: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  display: none;
+  -webkit-box-align: center;
+  align-items: center;
+}
+
+.view-who .who .avatar {
+  width: 52px;
+  height: 52px;
+  border: 3px solid var(--m, transparent);
+}
+
+.view-who .who-name {
+  margin-left: 10px;
+  font-size: 26px;
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+body[data-view="rodina"] .who-rodina,
+body[data-view="branislav"] .who-branislav,
+body[data-view="zuzka"] .who-zuzka,
+body[data-view="andrej"] .who-andrej,
+body[data-view="tomas"] .who-tomas {
+  display: -webkit-box;
+  display: flex;
 }
 
 .topbar-main {
   -webkit-box-flex: 1;
   flex: 1 1 auto;
-  margin-left: 16px;
-  margin-right: 16px;
   min-width: 0;
 }
 
 .topbar h1 {
   margin: 2px 0 0;
-  font-size: 34px;
+  font-size: 30px;
   line-height: 1.1;
 }
 
-.nav-back {
-  display: inline-block;
-  padding: 12px 16px;
-  text-decoration: none;
-  font-weight: 700;
-  font-size: 20px;
-  border-radius: 10px;
-  border: 3px solid transparent;
-  white-space: nowrap;
-}
-
-.nav-back:focus,
-.lane-head:focus,
-.tile:focus,
-a:focus {
-  outline: 4px solid #ffbf00;
-  outline-offset: 3px;
-}
-
 .weather {
+  display: -webkit-box;
+  display: flex;
+  -webkit-box-align: center;
+  align-items: center;
   text-align: right;
-  font-size: 20px;
-  line-height: 1.25;
   white-space: nowrap;
+  margin-left: 12px;
+}
+
+.wx-icon {
+  display: block;
+  width: 40px;
+  height: 40px;
+  margin-right: 10px;
+}
+
+.wx-icon svg {
+  width: 40px;
+  height: 40px;
+  display: block;
+}
+
+.wx-text { line-height: 1.2; }
+
+.wx-summary {
+  display: block;
+  font-size: 16px;
+  opacity: 0.85;
 }
 
 .wx-temps {
   display: block;
-  font-size: 28px;
+  font-size: 26px;
   font-weight: 700;
 }
 
 .sample-flag {
   display: inline-block;
-  margin-left: 6px;
-  padding: 2px 8px;
-  font-size: 14px;
+  margin-top: 2px;
+  padding: 1px 7px;
+  font-size: 12px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.04em;
   border-radius: 6px;
-  vertical-align: middle;
 }
 
-.overview-grid,
-.member-grid {
+/* ---- Main: calendar + sidebar (flex-basis transition) ---- */
+.day-main {
   display: -webkit-box;
   display: flex;
-  height: 680px;
-  padding: 0 16px 12px;
+  -webkit-box-align: stretch;
+  align-items: stretch;
+  height: 678px;
+  padding: 0 14px 12px;
+}
+
+.cal-panel,
+.sidebar-panel {
+  -webkit-transition: -webkit-flex-basis 0.3s ease, flex-basis 0.3s ease, width 0.3s ease;
+  transition: flex-basis 0.3s ease, width 0.3s ease;
+  overflow: hidden;
+}
+
+.cal-panel {
+  -webkit-box-flex: 0;
+  flex: 0 0 700px;
+  width: 700px;
+  margin-right: 12px;
+  padding: 10px 12px;
+}
+
+.sidebar-panel {
+  -webkit-box-flex: 0;
+  flex: 0 0 284px;
+  width: 284px;
+  padding: 12px 14px;
+  display: -webkit-box;
+  display: flex;
+  -webkit-box-orient: vertical;
+  -webkit-box-direction: normal;
+  flex-direction: column;
+}
+
+/* Member views: calendar narrower, sidebar wider */
+body[data-view="branislav"] .cal-panel,
+body[data-view="zuzka"] .cal-panel,
+body[data-view="andrej"] .cal-panel,
+body[data-view="tomas"] .cal-panel {
+  flex-basis: 560px;
+  width: 560px;
+}
+
+body[data-view="branislav"] .sidebar-panel,
+body[data-view="zuzka"] .sidebar-panel,
+body[data-view="andrej"] .sidebar-panel,
+body[data-view="tomas"] .sidebar-panel {
+  flex-basis: 424px;
+  width: 424px;
 }
 
 .panel {
-  overflow: auto;
-  -webkit-overflow-scrolling: touch;
+  border-radius: 12px;
 }
 
-.timeline-panel {
+.sidebar-title {
+  margin: 0 0 8px;
+  font-size: 20px;
+}
+
+.sidebar-main {
   -webkit-box-flex: 1;
   flex: 1 1 auto;
-  width: 0;
-  margin-right: 14px;
-  padding: 12px;
+  overflow: hidden;
+  min-height: 0;
 }
 
-.highlights-panel {
-  -webkit-box-flex: 0;
-  flex: 0 0 280px;
-  width: 280px;
-  padding: 14px 16px;
-}
-
-.highlights-panel h2,
-.panel > h2 {
-  margin: 0 0 10px;
-  font-size: 22px;
-}
-
-.hl-block {
-  margin-bottom: 10px;
-}
+.hl-block { margin-bottom: 10px; }
 
 .hl-block h3 {
   margin: 0 0 4px;
-  font-size: 15px;
+  font-size: 14px;
   letter-spacing: 0.04em;
   text-transform: uppercase;
   opacity: 0.7;
 }
 
 .hl-block ul,
-.panel ul {
+.outlook-box ul {
   margin: 0;
   padding: 0 0 0 1.05em;
 }
 
-.hl-block li {
+.hl-block li,
+.outlook-box li {
   margin: 0 0 6px;
-  font-size: 16px;
+  font-size: 15px;
   line-height: 1.3;
-}
-
-.page-overview .highlights-panel,
-.page-overview .sidebar-panel {
-  overflow: hidden;
-}
-
-.sidebar-panel .hl-block:last-child {
-  margin-bottom: 0;
 }
 
 .hl-who {
   display: inline-block;
-  padding: 1px 8px;
+  padding: 1px 7px;
   margin-right: 4px;
   border-radius: 999px;
-  font-size: 14px;
+  font-size: 12px;
   font-weight: 700;
   color: #fff;
   background: var(--m);
   vertical-align: baseline;
 }
 
+/* text vs detail */
+.item-detail { display: none; }
+.item-text { display: inline; }
+
+body[data-view="branislav"] .item-text,
+body[data-view="zuzka"] .item-text,
+body[data-view="andrej"] .item-text,
+body[data-view="tomas"] .item-text {
+  display: none;
+}
+
+body[data-view="branislav"] .item-detail,
+body[data-view="zuzka"] .item-detail,
+body[data-view="andrej"] .item-detail,
+body[data-view="tomas"] .item-detail {
+  display: inline;
+}
+
+/* Member view: hide items tagged to someone else */
+body[data-view="branislav"] li[data-member]:not([data-member=""]):not([data-member="branislav"]),
+body[data-view="zuzka"] li[data-member]:not([data-member=""]):not([data-member="zuzka"]),
+body[data-view="andrej"] li[data-member]:not([data-member=""]):not([data-member="andrej"]),
+body[data-view="tomas"] li[data-member]:not([data-member=""]):not([data-member="tomas"]) {
+  display: none;
+}
+
 .empty-inline {
   margin: 0;
   opacity: 0.65;
-  font-size: 18px;
+  font-size: 16px;
 }
 
-/* ---- Timeline ---- */
+/* Outlook = distinct box */
+.outlook-box {
+  -webkit-box-flex: 0;
+  flex: 0 0 auto;
+  margin-top: 10px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 2px dashed rgba(0, 0, 0, 0.2);
+}
+
+.outlook-box h3 {
+  margin: 0 0 6px;
+  font-size: 15px;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+/* ---- Untimed strip ---- */
 .allday-row {
   display: -webkit-box;
   display: flex;
   -webkit-box-orient: horizontal;
   flex-wrap: wrap;
-  margin-bottom: 10px;
+  margin-bottom: 8px;
+  min-height: 0;
 }
 
 .allday-chip {
   margin: 0 8px 8px 0;
-  padding: 8px 12px;
+  padding: 7px 10px;
   border-radius: 10px;
   border-left: 6px solid var(--m);
-  font-size: 16px;
+  font-size: 14px;
   max-width: 100%;
 }
 
 .allday-chip .chip-meta {
   display: block;
   opacity: 0.75;
-  font-size: 14px;
+  font-size: 12px;
   margin-top: 2px;
+}
+
+/* Member view: filter untimed chips */
+body[data-view="branislav"] .allday-chip:not(.mem-branislav),
+body[data-view="zuzka"] .allday-chip:not(.mem-zuzka),
+body[data-view="andrej"] .allday-chip:not(.mem-andrej),
+body[data-view="tomas"] .allday-chip:not(.mem-tomas) {
+  display: none;
+}
+
+/* ---- Calendars: show one mode ---- */
+.calendars { position: relative; }
+
+.calendar { display: none; }
+
+body[data-view="rodina"] .calendar-family { display: block; }
+
+body[data-view="branislav"] .calendar-member[data-focus="branislav"],
+body[data-view="zuzka"] .calendar-member[data-focus="zuzka"],
+body[data-view="andrej"] .calendar-member[data-focus="andrej"],
+body[data-view="tomas"] .calendar-member[data-focus="tomas"] {
+  display: block;
 }
 
 .lane-heads {
   display: -webkit-box;
   display: flex;
-  margin-bottom: 6px;
+  margin-bottom: 4px;
 }
 
-.lane-head,
-.lane-head-static {
+.lane-head {
   -webkit-box-flex: 1;
   flex: 1 1 0;
   width: 0;
@@ -251,40 +399,64 @@ a:focus {
   align-items: center;
   -webkit-box-pack: center;
   justify-content: center;
-  text-decoration: none;
-  padding: 6px 4px;
+  padding: 4px;
   margin-right: 6px;
-  border-radius: 12px;
-  border: 3px solid transparent;
-  border-bottom: 4px solid var(--m);
-  min-height: 64px;
+  border-radius: 10px;
+  border-bottom: 4px solid var(--m, transparent);
+  min-height: 52px;
 }
 
-.lane-heads .lane-head:last-child,
-.lane-heads .lane-head-static:last-child {
-  margin-right: 0;
-}
+.lane-heads .lane-head:last-child { margin-right: 0; }
 
 .lane-name {
   margin-left: 8px;
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 700;
+}
+
+.lane-head-others {
+  border-bottom-color: rgba(0, 0, 0, 0.2);
+  opacity: 0.55;
+}
+
+.lane-head-others .lane-name {
+  margin-left: 0;
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.lane-heads-2 .lane-head-focus {
+  -webkit-box-flex: 3;
+  flex: 3 1 0;
+}
+
+.lane-heads-2 .lane-head-others {
+  -webkit-box-flex: 1;
+  flex: 1 1 0;
 }
 
 .tl-body {
   position: relative;
-  height: 456px;
-  border-radius: 12px;
+  height: 470px;
+  border-radius: 10px;
   overflow: hidden;
 }
 
 .tl-hours,
-.tl-lanes {
+.tl-lanes,
+.tl-span-layer {
   position: absolute;
   top: 0;
   right: 0;
   bottom: 0;
   left: 0;
+}
+
+.tl-span-layer {
+  padding-left: 44px;
+  pointer-events: none;
+  z-index: 3;
 }
 
 .tl-hour {
@@ -297,18 +469,17 @@ a:focus {
 
 .tl-hour-label {
   position: absolute;
-  left: 6px;
-  top: -11px;
-  font-size: 13px;
+  left: 4px;
+  top: -10px;
+  font-size: 12px;
   font-weight: 700;
   opacity: 0.55;
-  background: transparent;
 }
 
 .tl-lanes {
   display: -webkit-box;
   display: flex;
-  padding-left: 48px;
+  padding-left: 44px;
 }
 
 .lane-col {
@@ -320,26 +491,40 @@ a:focus {
   height: 100%;
 }
 
-.tl-lanes .lane-col:last-child {
-  margin-right: 0;
+.tl-lanes .lane-col:last-child { margin-right: 0; }
+
+.tl-lanes-2 .lane-col-focus {
+  -webkit-box-flex: 3;
+  flex: 3 1 0;
+}
+
+.tl-lanes-2 .lane-col-others {
+  -webkit-box-flex: 1;
+  flex: 1 1 0;
+  opacity: 0.42;
 }
 
 .event-block {
   position: absolute;
-  padding: 4px 6px;
+  padding: 3px 5px;
   overflow: hidden;
   border-radius: 8px;
   border: 2px solid var(--m);
   background: var(--m);
   color: #fff;
-  font-size: 14px;
-  line-height: 1.2;
+  font-size: 13px;
+  line-height: 1.15;
   z-index: 2;
+}
+
+.event-block.is-span {
+  z-index: 4;
+  pointer-events: none;
 }
 
 .event-block .ev-time {
   display: block;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 700;
   opacity: 0.9;
 }
@@ -347,47 +532,31 @@ a:focus {
 .event-block .ev-title {
   display: block;
   font-weight: 700;
-  font-size: 15px;
+  font-size: 14px;
 }
 
 .event-block .ev-loc,
 .event-block .ev-status,
 .event-block .ev-flags {
   display: block;
-  font-size: 12px;
+  font-size: 11px;
   opacity: 0.9;
 }
 
-.event-block.is-short {
-  padding: 2px 5px;
-}
-
-.event-block.is-short .ev-time {
-  display: inline;
-  margin-right: 4px;
-}
-
-.event-block.is-short .ev-title {
-  display: inline;
-  font-size: 14px;
-}
-
+.event-block.is-short .ev-time { display: inline; margin-right: 4px; }
+.event-block.is-short .ev-title { display: inline; font-size: 13px; }
 .event-block.is-short .ev-loc,
 .event-block.is-short .ev-status,
-.event-block.is-short .ev-flags {
-  display: none;
-}
+.event-block.is-short .ev-flags { display: none; }
 
 .event-block.is-unconfirmed,
-.allday-chip.is-unconfirmed,
-.agenda-item.is-unconfirmed {
+.allday-chip.is-unconfirmed {
   border-style: dashed;
   opacity: 0.92;
 }
 
 .event-block.is-conflict,
-.allday-chip.is-conflict,
-.agenda-item.is-conflict {
+.allday-chip.is-conflict {
   box-shadow: inset 0 0 0 3px #f5c518;
   background-image: repeating-linear-gradient(
     -45deg,
@@ -398,232 +567,43 @@ a:focus {
   );
 }
 
-.event-block.is-conflict .ev-flags,
-.agenda-item.is-conflict .ev-flags {
-  color: #ffe566;
-  font-weight: 800;
+.event-block.is-past {
+  opacity: 0.38;
+  -webkit-filter: grayscale(0.25);
+  filter: grayscale(0.25);
 }
 
 .tl-now {
   position: absolute;
-  left: 40px;
+  left: 36px;
   right: 0;
   height: 0;
   border-top: 3px solid #e11d48;
-  z-index: 5;
+  z-index: 6;
   pointer-events: none;
 }
 
 .tl-now-label {
   position: absolute;
-  right: 8px;
-  top: -22px;
-  padding: 2px 8px;
+  right: 6px;
+  top: -20px;
+  padding: 1px 7px;
   border-radius: 6px;
   background: #e11d48;
   color: #fff;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 700;
-}
-
-/* ---- Member ---- */
-.member-hero {
-  display: -webkit-box;
-  display: flex;
-  -webkit-box-align: center;
-  align-items: center;
-  margin-left: 16px;
-  -webkit-box-flex: 1;
-  flex: 1 1 auto;
-}
-
-.member-hero > div {
-  margin-left: 16px;
-}
-
-.member-hero h1 {
-  margin: 2px 0 0;
-  font-size: 40px;
-}
-
-.member-meta {
-  margin: 4px 0 0;
-  font-size: 18px;
-  opacity: 0.75;
-}
-
-.member-grid .panel:first-child {
-  -webkit-box-flex: 1;
-  flex: 1 1 auto;
-  width: 0;
-  margin-right: 14px;
-  padding: 14px 16px;
-}
-
-.member-grid .panel:last-child {
-  -webkit-box-flex: 0;
-  flex: 0 0 300px;
-  width: 300px;
-  padding: 14px 16px;
-}
-
-.agenda-item {
-  display: -webkit-box;
-  display: flex;
-  margin-bottom: 12px;
-  padding: 12px;
-  border-radius: 12px;
-  border-left: 8px solid var(--m);
-}
-
-.agenda-time {
-  -webkit-box-flex: 0;
-  flex: 0 0 120px;
-  width: 120px;
-  font-weight: 800;
-  font-size: 22px;
-  line-height: 1.2;
-  padding-right: 10px;
-}
-
-.agenda-body {
-  -webkit-box-flex: 1;
-  flex: 1 1 auto;
-  min-width: 0;
-}
-
-.agenda-body h3 {
-  margin: 0 0 4px;
-  font-size: 24px;
-}
-
-.agenda-loc {
-  margin: 0 0 6px;
-  font-size: 18px;
-  opacity: 0.8;
-}
-
-.agenda-notes {
-  margin: 6px 0 0;
-  padding-left: 1.1em;
-  font-size: 17px;
 }
 
 .ev-status,
 .ev-flags {
   display: inline-block;
-  margin-left: 8px;
-  padding: 2px 8px;
-  border-radius: 6px;
-  font-size: 14px;
+  margin-left: 6px;
+  padding: 1px 6px;
+  border-radius: 5px;
+  font-size: 12px;
   font-weight: 700;
   vertical-align: middle;
-}
-
-.empty-state {
-  text-align: center;
-  padding: 48px 24px;
-}
-
-.empty-state .avatar {
-  margin: 0 auto 16px;
-}
-
-.empty-state h2 {
-  margin: 0 0 8px;
-  font-size: 30px;
-}
-
-.empty-state p {
-  margin: 0 auto;
-  max-width: 420px;
-  font-size: 20px;
-  opacity: 0.8;
-}
-
-/* ---- Home ---- */
-.page-home .home-header {
-  padding: 28px 32px 8px;
-}
-
-.page-home h1 {
-  margin: 4px 0 8px;
-  font-size: 48px;
-  line-height: 1.05;
-}
-
-.page-home .lede {
-  margin: 0;
-  font-size: 22px;
-  max-width: 720px;
-  opacity: 0.8;
-}
-
-.home-grid {
-  display: -webkit-box;
-  display: flex;
-  -webkit-box-align: stretch;
-  align-items: stretch;
-  padding: 24px 28px 28px;
-  height: 560px;
-}
-
-.tile {
-  display: -webkit-box;
-  display: flex;
-  -webkit-box-orient: vertical;
-  -webkit-box-direction: normal;
-  flex-direction: column;
-  -webkit-box-pack: end;
-  justify-content: flex-end;
-  text-decoration: none;
-  border-radius: 18px;
-  padding: 20px;
-  margin-right: 16px;
-  border: 4px solid transparent;
-  min-width: 0;
-  overflow: hidden;
-}
-
-.home-grid .tile:last-child {
-  margin-right: 0;
-}
-
-.tile-dnes {
-  -webkit-box-flex: 1.35;
-  flex: 1.35 1 0;
-}
-
-.tile-member {
-  -webkit-box-flex: 1;
-  flex: 1 1 0;
-  -webkit-box-align: start;
-  align-items: flex-start;
-}
-
-.tile .avatar {
-  width: 72px;
-  height: 72px;
-  margin-bottom: 18px;
-}
-
-.tile-kicker {
-  font-size: 16px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  opacity: 0.75;
-}
-
-.tile-title {
-  font-size: 36px;
-  font-weight: 800;
-  line-height: 1.05;
-}
-
-.tile-sub {
-  margin-top: 8px;
-  font-size: 18px;
-  opacity: 0.85;
 }
 
 @font-face {
@@ -673,7 +653,7 @@ a:focus {
   src: url("fonts/atkinson-bold.woff2") format("woff2");
 }
 
-/* C · Večerná — dark ambient living-room frame. */
+/* C · Večerná — dark ambient living-room */
 :root {
   --bg: #0b1220;
   --panel: #141c2c;
@@ -696,24 +676,14 @@ body.theme-vecerna {
 
 .theme-vecerna h1,
 .theme-vecerna h2,
-.theme-vecerna .tile-title {
+.theme-vecerna .who-name,
+.theme-vecerna .sidebar-title {
   font-family: "Fraunces", Georgia, serif;
   font-weight: 600;
   color: #f4efe6;
 }
 
-.theme-vecerna .eyebrow {
-  color: var(--amber);
-  opacity: 1;
-}
-
-.theme-vecerna .nav-back:focus,
-.theme-vecerna .lane-head:focus,
-.theme-vecerna .tile:focus,
-.theme-vecerna a:focus {
-  outline-color: var(--focus);
-  outline-offset: 4px;
-}
+.theme-vecerna .eyebrow { color: var(--amber); opacity: 1; }
 
 .theme-vecerna .panel {
   background: rgba(20, 28, 44, 0.92);
@@ -722,20 +692,12 @@ body.theme-vecerna {
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
 }
 
-.theme-vecerna .nav-back {
-  background: rgba(231, 181, 106, 0.12);
-  border-color: var(--line);
-  color: var(--amber);
-  border-radius: 999px;
-}
+.theme-vecerna .home-icon { color: var(--amber); }
 
-.theme-vecerna .weather {
-  color: var(--muted);
-}
-
-.theme-vecerna .wx-temps {
-  color: var(--ink);
-}
+.theme-vecerna .wx-icon { color: var(--amber); }
+.theme-vecerna .wx-summary,
+.theme-vecerna .wx-temps { color: var(--ink); }
+.theme-vecerna .wx-summary { color: var(--muted); }
 
 .theme-vecerna .sample-flag {
   background: rgba(231, 181, 106, 0.15);
@@ -743,37 +705,18 @@ body.theme-vecerna {
   border: 1px solid var(--line);
 }
 
-.theme-vecerna .hl-block h3 {
-  color: var(--amber);
-  opacity: 1;
-}
-
-.theme-vecerna .lane-head,
-.theme-vecerna .lane-head-static {
+.theme-vecerna .lane-head {
   background: rgba(26, 36, 56, 0.9);
-  border-color: transparent;
   color: var(--ink);
 }
 
-.theme-vecerna .lane-head:focus {
-  background: rgba(231, 181, 106, 0.12);
-}
-
 .theme-vecerna .tl-body {
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.02), transparent 30%),
-    #0f1726;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.02), transparent 30%), #0f1726;
   border: 1px solid var(--line);
 }
 
-.theme-vecerna .tl-hour {
-  border-top-color: rgba(154, 168, 188, 0.18);
-}
-
-.theme-vecerna .tl-hour-label {
-  color: var(--muted);
-  opacity: 1;
-}
+.theme-vecerna .tl-hour { border-top-color: rgba(154, 168, 188, 0.18); }
+.theme-vecerna .tl-hour-label { color: var(--muted); opacity: 1; }
 
 .theme-vecerna .event-block {
   border-width: 0;
@@ -784,17 +727,6 @@ body.theme-vecerna {
 
 .theme-vecerna .event-block.is-conflict {
   box-shadow: 0 0 0 2px var(--amber), 0 6px 16px rgba(0, 0, 0, 0.35);
-  background-image: repeating-linear-gradient(
-    -45deg,
-    transparent,
-    transparent 5px,
-    rgba(0, 0, 0, 0.18) 5px,
-    rgba(0, 0, 0, 0.18) 10px
-  );
-}
-
-.theme-vecerna .event-block.is-conflict .ev-flags {
-  color: var(--amber);
 }
 
 .theme-vecerna .allday-chip {
@@ -803,100 +735,137 @@ body.theme-vecerna {
   color: var(--ink);
 }
 
-.theme-vecerna .tl-now {
-  border-top-color: var(--amber);
+.theme-vecerna .tl-now { border-top-color: var(--amber); }
+.theme-vecerna .tl-now-label { background: var(--amber); color: #1a1208; }
+
+.theme-vecerna .outlook-box {
+  background: rgba(231, 181, 106, 0.08);
+  border-color: rgba(231, 181, 106, 0.45);
+  border-style: solid;
 }
 
-.theme-vecerna .tl-now-label {
-  background: var(--amber);
-  color: #1a1208;
-}
+.theme-vecerna .outlook-box h3 { color: var(--amber); }
 
-.theme-vecerna .agenda-item {
-  background: var(--panel2);
-  border: 1px solid var(--line);
-  border-left-width: 8px;
-}
-
-.theme-vecerna .agenda-loc,
-.theme-vecerna .empty-inline,
-.theme-vecerna .member-meta,
-.theme-vecerna .page-home .lede {
-  color: var(--muted);
-  opacity: 1;
-}
+.theme-vecerna .hl-block h3 { color: var(--amber); opacity: 1; }
 
 .theme-vecerna .ev-status {
   background: rgba(231, 181, 106, 0.16);
   color: var(--amber);
 }
 
-.theme-vecerna .tile {
-  background: linear-gradient(165deg, rgba(231, 181, 106, 0.10), rgba(20, 28, 44, 0.95));
-  border-color: var(--line);
-  color: var(--ink);
-  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.4);
-}
+.theme-vecerna .lane-head-others { opacity: 0.5; border-bottom-color: var(--line); }
 
-.theme-vecerna .tile-dnes {
-  background:
-    radial-gradient(ellipse at 30% 20%, rgba(231, 181, 106, 0.28), transparent 55%),
-    linear-gradient(160deg, #1e2a42, #121a2a);
-  border-color: rgba(231, 181, 106, 0.45);
-}
-
-.theme-vecerna .tile-member {
-  border-bottom: 6px solid var(--m);
-}
-
-.theme-vecerna .empty-state {
-  border: 1px dashed var(--line);
-  border-radius: 16px;
-  background: rgba(255, 255, 255, 0.02);
-}
-
-.theme-vecerna .empty-state p {
-  color: var(--muted);
-  opacity: 1;
-}
-
-.theme-vecerna .hl-who {
-  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.15);
-}
+.theme-vecerna .empty-inline { color: var(--muted); opacity: 1; }
 
 </style>
 </head>
-<body class="theme-vecerna page-overview">
+<body class="theme-vecerna page-day"
+  data-view="rodina"
+  data-date="2026-11-03"
+  data-timezone="Europe/Prague"
+  data-fallback-now="14:45"
+  data-day-start="420"
+  data-day-end="1260"
+  data-lock-now="0">
 
-<div class="frame page-overview">
+<div class="frame page-day">
   <header class="topbar">
-    <a class="nav-back" href="home.html">Domov</a>
+    <div class="home-icon" title="Domov" aria-hidden="true"><svg class="home-glyph" xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path fill="currentColor" d="M12 3.2 21 11h-2.5v8.5h-5V13H10.5v6.5h-5V11H3L12 3.2z"/></svg></div>
+    <div class="view-who"><div class="who who-rodina" data-who="rodina" style="--m:#4A6670"><img class="avatar" src="avatars/rodina.svg" alt="" width="52" height="52"><span class="who-name">Rodina</span></div><div class="who who-branislav" data-who="branislav" style="--m:#1F6AA5"><img class="avatar" src="avatars/branislav.svg" alt="" width="52" height="52"><span class="who-name">Braňo</span></div><div class="who who-zuzka" data-who="zuzka" style="--m:#C45C4A"><img class="avatar" src="avatars/zuzka.svg" alt="" width="52" height="52"><span class="who-name">Zuzka</span></div><div class="who who-andrej" data-who="andrej" style="--m:#2F7D4A"><img class="avatar" src="avatars/andrej.svg" alt="" width="52" height="52"><span class="who-name">Andrej</span></div><div class="who who-tomas" data-who="tomas" style="--m:#D97706"><img class="avatar" src="avatars/tomas.svg" alt="" width="52" height="52"><span class="who-name">Tomáš</span></div></div>
     <div class="topbar-main">
       <p class="eyebrow">Rodinný prehľad</p>
       <h1>utorok 3. november 2026</h1>
     </div>
-    <div class="weather" data-icon="cloudy"><span class="wx-summary">Zamračené</span><span class="wx-temps">3–9 °C</span> <span class="sample-flag" title="Ukážkové údaje">ukážka</span></div>
+    <div class="weather" data-icon="cloudy">
+      <span class="wx-icon"><svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+  <path fill="currentColor" d="M17 10a4 4 0 0 1 0 8H8a4 4 0 1 1 .7-7.9A5 5 0 0 1 17 10z"/>
+</svg></span>
+      <div class="wx-text">
+        <span class="wx-summary">Zamračené</span>
+        <span class="wx-temps">3–9 °C</span>
+        <span class="sample-flag">ukážka</span>
+      </div>
+    </div>
   </header>
-  <div class="overview-grid">
-    <section class="panel timeline-panel" aria-label="Časová os">
-      
-
-<div class="timeline" style="--lanes:5">
-  <div class="lane-heads" style="--lanes:5"><a class="lane-head" href="2026-11-03-branislav.html" style="--m:#1F6AA5" autofocus><img class="avatar" src="avatars/branislav.svg" alt="" width="48" height="48"><span class="lane-name">Braňo</span></a><a class="lane-head" href="2026-11-03-mama.html" style="--m:#C45C4A"><img class="avatar" src="avatars/mama.svg" alt="" width="48" height="48"><span class="lane-name">Mama</span></a><a class="lane-head" href="2026-11-03-andrej.html" style="--m:#2F7D4A"><img class="avatar" src="avatars/andrej.svg" alt="" width="48" height="48"><span class="lane-name">Andrej</span></a><a class="lane-head" href="2026-11-03-tomas.html" style="--m:#D97706"><img class="avatar" src="avatars/tomas.svg" alt="" width="48" height="48"><span class="lane-name">Tomáš</span></a><div class="lane-head lane-head-static" style="--m:#4A6670"><img class="avatar" src="avatars/rodina.svg" alt="" width="48" height="48"><span class="lane-name">Rodina</span></div></div>
-  <div class="tl-body" style="--lanes:5">
+  <div class="day-main">
+    <section class="panel cal-panel">
+      <div class="allday-row" hidden></div>
+      <div class="calendars">
+        
+<div class="calendar calendar-family" data-mode="family">
+  <div class="lane-heads lane-heads-4"><div class="lane-head" style="--m:#1F6AA5" data-person="branislav"><img class="avatar" src="avatars/branislav.svg" alt="" width="44" height="44"><span class="lane-name">Braňo</span></div><div class="lane-head" style="--m:#C45C4A" data-person="zuzka"><img class="avatar" src="avatars/zuzka.svg" alt="" width="44" height="44"><span class="lane-name">Zuzka</span></div><div class="lane-head" style="--m:#2F7D4A" data-person="andrej"><img class="avatar" src="avatars/andrej.svg" alt="" width="44" height="44"><span class="lane-name">Andrej</span></div><div class="lane-head" style="--m:#D97706" data-person="tomas"><img class="avatar" src="avatars/tomas.svg" alt="" width="44" height="44"><span class="lane-name">Tomáš</span></div></div>
+  <div class="tl-body">
     <div class="tl-hours"><div class="tl-hour" style="top:0.000%"><span class="tl-hour-label">07:00</span></div><div class="tl-hour" style="top:7.143%"><span class="tl-hour-label">08:00</span></div><div class="tl-hour" style="top:14.286%"><span class="tl-hour-label">09:00</span></div><div class="tl-hour" style="top:21.429%"><span class="tl-hour-label">10:00</span></div><div class="tl-hour" style="top:28.571%"><span class="tl-hour-label">11:00</span></div><div class="tl-hour" style="top:35.714%"><span class="tl-hour-label">12:00</span></div><div class="tl-hour" style="top:42.857%"><span class="tl-hour-label">13:00</span></div><div class="tl-hour" style="top:50.000%"><span class="tl-hour-label">14:00</span></div><div class="tl-hour" style="top:57.143%"><span class="tl-hour-label">15:00</span></div><div class="tl-hour" style="top:64.286%"><span class="tl-hour-label">16:00</span></div><div class="tl-hour" style="top:71.429%"><span class="tl-hour-label">17:00</span></div><div class="tl-hour" style="top:78.571%"><span class="tl-hour-label">18:00</span></div><div class="tl-hour" style="top:85.714%"><span class="tl-hour-label">19:00</span></div><div class="tl-hour" style="top:92.857%"><span class="tl-hour-label">20:00</span></div><div class="tl-hour" style="top:100.000%"><span class="tl-hour-label">21:00</span></div></div>
-    <div class="tl-lanes"><div class="lane-col" style="--m:#1F6AA5"><div class="event-block" style="top:64.286%;height:21.429%;left:0.000%;width:100.000%;--m:#1F6AA5"><span class="ev-time">16:00–19:00</span><span class="ev-title">Bicykel</span></div></div><div class="lane-col" style="--m:#C45C4A"></div><div class="lane-col" style="--m:#2F7D4A"><div class="event-block is-conflict" style="top:58.929%;height:10.714%;left:0.000%;width:100.000%;--m:#2F7D4A"><span class="ev-time">15:15–16:45</span><span class="ev-title">Príprava z matematiky</span><span class="ev-loc">Gymnázium Českolipská</span><span class="ev-flags">konflikt · odvoz</span></div><div class="event-block is-conflict" style="top:64.286%;height:14.286%;left:50.000%;width:50.000%;--m:#2F7D4A"><span class="ev-time">16:00–18:00</span><span class="ev-title">Baseball SaBaT</span><span class="ev-loc">U Vltavy 816/1</span><span class="ev-flags">konflikt · odvoz</span></div><div class="event-block" style="top:82.143%;height:8.500%;left:0.000%;width:100.000%;--m:#2F7D4A"><span class="ev-time">18:30–19:30</span><span class="ev-title">Konzultácia rehabilitácie</span><span class="ev-loc">KYKO med, Tišická 396/1</span><span class="ev-flags">odvoz</span></div></div><div class="lane-col" style="--m:#D97706"></div><div class="lane-col" style="--m:#4A6670"><div class="event-block is-short is-todo" style="top:92.857%;height:8.500%;left:0.000%;width:100.000%;--m:#4A6670"><span class="ev-time">20:00–20:15</span><span class="ev-title">Vyniesť odpadky</span><span class="ev-loc">doma</span><span class="ev-status">úloha</span></div></div></div>
-    <div class="tl-now" style="top:55.357%"><span class="tl-now-label">teraz 14:45</span></div>
+    <div class="tl-lanes tl-lanes-4"><div class="lane-col" data-person="branislav" style="--m:#1F6AA5"><div class="event-block" style="top:64.286%;height:21.429%;left:0.000%;width:100.000%;--m:#1F6AA5" data-members="branislav" data-end-min="1140"><span class="ev-time">16:00–19:00</span><span class="ev-title">Bicykel</span></div></div><div class="lane-col" data-person="zuzka" style="--m:#C45C4A"></div><div class="lane-col" data-person="andrej" style="--m:#2F7D4A"><div class="event-block is-conflict" style="top:58.929%;height:10.714%;left:0.000%;width:100.000%;--m:#2F7D4A" data-members="andrej" data-end-min="1005"><span class="ev-time">15:15–16:45</span><span class="ev-title">Príprava z matematiky</span><span class="ev-loc">Gymnázium Českolipská</span><span class="ev-flags">konflikt · odvoz</span></div><div class="event-block is-conflict" style="top:64.286%;height:14.286%;left:50.000%;width:50.000%;--m:#2F7D4A" data-members="andrej" data-end-min="1080"><span class="ev-time">16:00–18:00</span><span class="ev-title">Baseball SaBaT</span><span class="ev-loc">U Vltavy 816/1</span><span class="ev-flags">konflikt · odvoz</span></div><div class="event-block" style="top:82.143%;height:8.500%;left:0.000%;width:100.000%;--m:#2F7D4A" data-members="andrej" data-end-min="1170"><span class="ev-time">18:30–19:30</span><span class="ev-title">Konzultácia rehabilitácie</span><span class="ev-loc">KYKO med, Tišická 396/1</span><span class="ev-flags">odvoz</span></div></div><div class="lane-col" data-person="tomas" style="--m:#D97706"></div></div>
+    <div class="tl-span-layer"><div class="event-block is-short is-todo is-span" style="top:92.857%;height:8.500%;left:0.000%;width:100.000%;--m:#4A6670" data-members="branislav,zuzka,andrej,tomas" data-end-min="1215"><span class="ev-time">20:00–20:15</span><span class="ev-title">Vyniesť odpadky</span><span class="ev-loc">doma</span><span class="ev-status">úloha</span></div></div>
+    <div class="tl-now" style="top:0"><span class="tl-now-label">teraz</span></div>
   </div>
 </div>
 
+<div class="calendar calendar-member" data-mode="member" data-focus="branislav">
+  <div class="lane-heads lane-heads-2"><div class="lane-head lane-head-focus" style="--m:#1F6AA5"><img class="avatar" src="avatars/branislav.svg" alt="" width="48" height="48"><span class="lane-name">Braňo</span></div><div class="lane-head lane-head-others"><span class="lane-name">ostatní</span></div></div>
+  <div class="tl-body">
+    <div class="tl-hours"><div class="tl-hour" style="top:0.000%"><span class="tl-hour-label">07:00</span></div><div class="tl-hour" style="top:7.143%"><span class="tl-hour-label">08:00</span></div><div class="tl-hour" style="top:14.286%"><span class="tl-hour-label">09:00</span></div><div class="tl-hour" style="top:21.429%"><span class="tl-hour-label">10:00</span></div><div class="tl-hour" style="top:28.571%"><span class="tl-hour-label">11:00</span></div><div class="tl-hour" style="top:35.714%"><span class="tl-hour-label">12:00</span></div><div class="tl-hour" style="top:42.857%"><span class="tl-hour-label">13:00</span></div><div class="tl-hour" style="top:50.000%"><span class="tl-hour-label">14:00</span></div><div class="tl-hour" style="top:57.143%"><span class="tl-hour-label">15:00</span></div><div class="tl-hour" style="top:64.286%"><span class="tl-hour-label">16:00</span></div><div class="tl-hour" style="top:71.429%"><span class="tl-hour-label">17:00</span></div><div class="tl-hour" style="top:78.571%"><span class="tl-hour-label">18:00</span></div><div class="tl-hour" style="top:85.714%"><span class="tl-hour-label">19:00</span></div><div class="tl-hour" style="top:92.857%"><span class="tl-hour-label">20:00</span></div><div class="tl-hour" style="top:100.000%"><span class="tl-hour-label">21:00</span></div></div>
+    <div class="tl-lanes tl-lanes-2">
+      <div class="lane-col lane-col-focus" style="--m:#1F6AA5"><div class="event-block" style="top:64.286%;height:21.429%;left:0.000%;width:100.000%;--m:#1F6AA5" data-members="branislav" data-end-min="1140"><span class="ev-time">16:00–19:00</span><span class="ev-title">Bicykel</span></div><div class="event-block is-short is-todo" style="top:92.857%;height:8.500%;left:0.000%;width:100.000%;--m:#1F6AA5" data-members="branislav,zuzka,andrej,tomas" data-end-min="1215"><span class="ev-time">20:00–20:15</span><span class="ev-title">Vyniesť odpadky</span><span class="ev-loc">doma</span><span class="ev-status">úloha</span></div></div>
+      <div class="lane-col lane-col-others"><div class="event-block is-conflict" style="top:58.929%;height:10.714%;left:0.000%;width:100.000%;--m:#2F7D4A" data-members="andrej" data-end-min="1005"><span class="ev-time">15:15–16:45</span><span class="ev-title">Príprava z matematiky</span><span class="ev-loc">Gymnázium Českolipská</span><span class="ev-flags">konflikt · odvoz</span></div><div class="event-block is-conflict" style="top:64.286%;height:14.286%;left:50.000%;width:50.000%;--m:#2F7D4A" data-members="andrej" data-end-min="1080"><span class="ev-time">16:00–18:00</span><span class="ev-title">Baseball SaBaT</span><span class="ev-loc">U Vltavy 816/1</span><span class="ev-flags">konflikt · odvoz</span></div><div class="event-block" style="top:82.143%;height:8.500%;left:0.000%;width:100.000%;--m:#2F7D4A" data-members="andrej" data-end-min="1170"><span class="ev-time">18:30–19:30</span><span class="ev-title">Konzultácia rehabilitácie</span><span class="ev-loc">KYKO med, Tišická 396/1</span><span class="ev-flags">odvoz</span></div><div class="event-block is-short is-todo" style="top:92.857%;height:8.500%;left:0.000%;width:100.000%;--m:#C45C4A" data-members="branislav,zuzka,andrej,tomas" data-end-min="1215"><span class="ev-time">20:00–20:15</span><span class="ev-title">Vyniesť odpadky</span><span class="ev-loc">doma</span><span class="ev-status">úloha</span></div></div>
+    </div>
+    <div class="tl-now" style="top:0"><span class="tl-now-label">teraz</span></div>
+  </div>
+</div>
+
+<div class="calendar calendar-member" data-mode="member" data-focus="zuzka">
+  <div class="lane-heads lane-heads-2"><div class="lane-head lane-head-focus" style="--m:#C45C4A"><img class="avatar" src="avatars/zuzka.svg" alt="" width="48" height="48"><span class="lane-name">Zuzka</span></div><div class="lane-head lane-head-others"><span class="lane-name">ostatní</span></div></div>
+  <div class="tl-body">
+    <div class="tl-hours"><div class="tl-hour" style="top:0.000%"><span class="tl-hour-label">07:00</span></div><div class="tl-hour" style="top:7.143%"><span class="tl-hour-label">08:00</span></div><div class="tl-hour" style="top:14.286%"><span class="tl-hour-label">09:00</span></div><div class="tl-hour" style="top:21.429%"><span class="tl-hour-label">10:00</span></div><div class="tl-hour" style="top:28.571%"><span class="tl-hour-label">11:00</span></div><div class="tl-hour" style="top:35.714%"><span class="tl-hour-label">12:00</span></div><div class="tl-hour" style="top:42.857%"><span class="tl-hour-label">13:00</span></div><div class="tl-hour" style="top:50.000%"><span class="tl-hour-label">14:00</span></div><div class="tl-hour" style="top:57.143%"><span class="tl-hour-label">15:00</span></div><div class="tl-hour" style="top:64.286%"><span class="tl-hour-label">16:00</span></div><div class="tl-hour" style="top:71.429%"><span class="tl-hour-label">17:00</span></div><div class="tl-hour" style="top:78.571%"><span class="tl-hour-label">18:00</span></div><div class="tl-hour" style="top:85.714%"><span class="tl-hour-label">19:00</span></div><div class="tl-hour" style="top:92.857%"><span class="tl-hour-label">20:00</span></div><div class="tl-hour" style="top:100.000%"><span class="tl-hour-label">21:00</span></div></div>
+    <div class="tl-lanes tl-lanes-2">
+      <div class="lane-col lane-col-focus" style="--m:#C45C4A"><div class="event-block is-short is-todo" style="top:92.857%;height:8.500%;left:0.000%;width:100.000%;--m:#C45C4A" data-members="branislav,zuzka,andrej,tomas" data-end-min="1215"><span class="ev-time">20:00–20:15</span><span class="ev-title">Vyniesť odpadky</span><span class="ev-loc">doma</span><span class="ev-status">úloha</span></div></div>
+      <div class="lane-col lane-col-others"><div class="event-block is-conflict" style="top:58.929%;height:10.714%;left:0.000%;width:100.000%;--m:#2F7D4A" data-members="andrej" data-end-min="1005"><span class="ev-time">15:15–16:45</span><span class="ev-title">Príprava z matematiky</span><span class="ev-loc">Gymnázium Českolipská</span><span class="ev-flags">konflikt · odvoz</span></div><div class="event-block is-conflict" style="top:64.286%;height:14.286%;left:50.000%;width:50.000%;--m:#2F7D4A" data-members="andrej" data-end-min="1080"><span class="ev-time">16:00–18:00</span><span class="ev-title">Baseball SaBaT</span><span class="ev-loc">U Vltavy 816/1</span><span class="ev-flags">konflikt · odvoz</span></div><div class="event-block" style="top:64.286%;height:21.429%;left:66.667%;width:33.333%;--m:#1F6AA5" data-members="branislav" data-end-min="1140"><span class="ev-time">16:00–19:00</span><span class="ev-title">Bicykel</span></div><div class="event-block" style="top:82.143%;height:8.500%;left:0.000%;width:33.333%;--m:#2F7D4A" data-members="andrej" data-end-min="1170"><span class="ev-time">18:30–19:30</span><span class="ev-title">Konzultácia rehabilitácie</span><span class="ev-loc">KYKO med, Tišická 396/1</span><span class="ev-flags">odvoz</span></div><div class="event-block is-short is-todo" style="top:92.857%;height:8.500%;left:0.000%;width:100.000%;--m:#1F6AA5" data-members="branislav,zuzka,andrej,tomas" data-end-min="1215"><span class="ev-time">20:00–20:15</span><span class="ev-title">Vyniesť odpadky</span><span class="ev-loc">doma</span><span class="ev-status">úloha</span></div></div>
+    </div>
+    <div class="tl-now" style="top:0"><span class="tl-now-label">teraz</span></div>
+  </div>
+</div>
+
+<div class="calendar calendar-member" data-mode="member" data-focus="andrej">
+  <div class="lane-heads lane-heads-2"><div class="lane-head lane-head-focus" style="--m:#2F7D4A"><img class="avatar" src="avatars/andrej.svg" alt="" width="48" height="48"><span class="lane-name">Andrej</span></div><div class="lane-head lane-head-others"><span class="lane-name">ostatní</span></div></div>
+  <div class="tl-body">
+    <div class="tl-hours"><div class="tl-hour" style="top:0.000%"><span class="tl-hour-label">07:00</span></div><div class="tl-hour" style="top:7.143%"><span class="tl-hour-label">08:00</span></div><div class="tl-hour" style="top:14.286%"><span class="tl-hour-label">09:00</span></div><div class="tl-hour" style="top:21.429%"><span class="tl-hour-label">10:00</span></div><div class="tl-hour" style="top:28.571%"><span class="tl-hour-label">11:00</span></div><div class="tl-hour" style="top:35.714%"><span class="tl-hour-label">12:00</span></div><div class="tl-hour" style="top:42.857%"><span class="tl-hour-label">13:00</span></div><div class="tl-hour" style="top:50.000%"><span class="tl-hour-label">14:00</span></div><div class="tl-hour" style="top:57.143%"><span class="tl-hour-label">15:00</span></div><div class="tl-hour" style="top:64.286%"><span class="tl-hour-label">16:00</span></div><div class="tl-hour" style="top:71.429%"><span class="tl-hour-label">17:00</span></div><div class="tl-hour" style="top:78.571%"><span class="tl-hour-label">18:00</span></div><div class="tl-hour" style="top:85.714%"><span class="tl-hour-label">19:00</span></div><div class="tl-hour" style="top:92.857%"><span class="tl-hour-label">20:00</span></div><div class="tl-hour" style="top:100.000%"><span class="tl-hour-label">21:00</span></div></div>
+    <div class="tl-lanes tl-lanes-2">
+      <div class="lane-col lane-col-focus" style="--m:#2F7D4A"><div class="event-block is-conflict" style="top:58.929%;height:10.714%;left:0.000%;width:100.000%;--m:#2F7D4A" data-members="andrej" data-end-min="1005"><span class="ev-time">15:15–16:45</span><span class="ev-title">Príprava z matematiky</span><span class="ev-loc">Gymnázium Českolipská</span><span class="ev-flags">konflikt · odvoz</span></div><div class="event-block is-conflict" style="top:64.286%;height:14.286%;left:50.000%;width:50.000%;--m:#2F7D4A" data-members="andrej" data-end-min="1080"><span class="ev-time">16:00–18:00</span><span class="ev-title">Baseball SaBaT</span><span class="ev-loc">U Vltavy 816/1</span><span class="ev-flags">konflikt · odvoz</span></div><div class="event-block" style="top:82.143%;height:8.500%;left:0.000%;width:100.000%;--m:#2F7D4A" data-members="andrej" data-end-min="1170"><span class="ev-time">18:30–19:30</span><span class="ev-title">Konzultácia rehabilitácie</span><span class="ev-loc">KYKO med, Tišická 396/1</span><span class="ev-flags">odvoz</span></div><div class="event-block is-short is-todo" style="top:92.857%;height:8.500%;left:0.000%;width:100.000%;--m:#2F7D4A" data-members="branislav,zuzka,andrej,tomas" data-end-min="1215"><span class="ev-time">20:00–20:15</span><span class="ev-title">Vyniesť odpadky</span><span class="ev-loc">doma</span><span class="ev-status">úloha</span></div></div>
+      <div class="lane-col lane-col-others"><div class="event-block" style="top:64.286%;height:21.429%;left:0.000%;width:100.000%;--m:#1F6AA5" data-members="branislav" data-end-min="1140"><span class="ev-time">16:00–19:00</span><span class="ev-title">Bicykel</span></div><div class="event-block is-short is-todo" style="top:92.857%;height:8.500%;left:0.000%;width:100.000%;--m:#1F6AA5" data-members="branislav,zuzka,andrej,tomas" data-end-min="1215"><span class="ev-time">20:00–20:15</span><span class="ev-title">Vyniesť odpadky</span><span class="ev-loc">doma</span><span class="ev-status">úloha</span></div></div>
+    </div>
+    <div class="tl-now" style="top:0"><span class="tl-now-label">teraz</span></div>
+  </div>
+</div>
+
+<div class="calendar calendar-member" data-mode="member" data-focus="tomas">
+  <div class="lane-heads lane-heads-2"><div class="lane-head lane-head-focus" style="--m:#D97706"><img class="avatar" src="avatars/tomas.svg" alt="" width="48" height="48"><span class="lane-name">Tomáš</span></div><div class="lane-head lane-head-others"><span class="lane-name">ostatní</span></div></div>
+  <div class="tl-body">
+    <div class="tl-hours"><div class="tl-hour" style="top:0.000%"><span class="tl-hour-label">07:00</span></div><div class="tl-hour" style="top:7.143%"><span class="tl-hour-label">08:00</span></div><div class="tl-hour" style="top:14.286%"><span class="tl-hour-label">09:00</span></div><div class="tl-hour" style="top:21.429%"><span class="tl-hour-label">10:00</span></div><div class="tl-hour" style="top:28.571%"><span class="tl-hour-label">11:00</span></div><div class="tl-hour" style="top:35.714%"><span class="tl-hour-label">12:00</span></div><div class="tl-hour" style="top:42.857%"><span class="tl-hour-label">13:00</span></div><div class="tl-hour" style="top:50.000%"><span class="tl-hour-label">14:00</span></div><div class="tl-hour" style="top:57.143%"><span class="tl-hour-label">15:00</span></div><div class="tl-hour" style="top:64.286%"><span class="tl-hour-label">16:00</span></div><div class="tl-hour" style="top:71.429%"><span class="tl-hour-label">17:00</span></div><div class="tl-hour" style="top:78.571%"><span class="tl-hour-label">18:00</span></div><div class="tl-hour" style="top:85.714%"><span class="tl-hour-label">19:00</span></div><div class="tl-hour" style="top:92.857%"><span class="tl-hour-label">20:00</span></div><div class="tl-hour" style="top:100.000%"><span class="tl-hour-label">21:00</span></div></div>
+    <div class="tl-lanes tl-lanes-2">
+      <div class="lane-col lane-col-focus" style="--m:#D97706"><div class="event-block is-short is-todo" style="top:92.857%;height:8.500%;left:0.000%;width:100.000%;--m:#D97706" data-members="branislav,zuzka,andrej,tomas" data-end-min="1215"><span class="ev-time">20:00–20:15</span><span class="ev-title">Vyniesť odpadky</span><span class="ev-loc">doma</span><span class="ev-status">úloha</span></div></div>
+      <div class="lane-col lane-col-others"><div class="event-block is-conflict" style="top:58.929%;height:10.714%;left:0.000%;width:100.000%;--m:#2F7D4A" data-members="andrej" data-end-min="1005"><span class="ev-time">15:15–16:45</span><span class="ev-title">Príprava z matematiky</span><span class="ev-loc">Gymnázium Českolipská</span><span class="ev-flags">konflikt · odvoz</span></div><div class="event-block is-conflict" style="top:64.286%;height:14.286%;left:50.000%;width:50.000%;--m:#2F7D4A" data-members="andrej" data-end-min="1080"><span class="ev-time">16:00–18:00</span><span class="ev-title">Baseball SaBaT</span><span class="ev-loc">U Vltavy 816/1</span><span class="ev-flags">konflikt · odvoz</span></div><div class="event-block" style="top:64.286%;height:21.429%;left:66.667%;width:33.333%;--m:#1F6AA5" data-members="branislav" data-end-min="1140"><span class="ev-time">16:00–19:00</span><span class="ev-title">Bicykel</span></div><div class="event-block" style="top:82.143%;height:8.500%;left:0.000%;width:33.333%;--m:#2F7D4A" data-members="andrej" data-end-min="1170"><span class="ev-time">18:30–19:30</span><span class="ev-title">Konzultácia rehabilitácie</span><span class="ev-loc">KYKO med, Tišická 396/1</span><span class="ev-flags">odvoz</span></div><div class="event-block is-short is-todo" style="top:92.857%;height:8.500%;left:0.000%;width:100.000%;--m:#1F6AA5" data-members="branislav,zuzka,andrej,tomas" data-end-min="1215"><span class="ev-time">20:00–20:15</span><span class="ev-title">Vyniesť odpadky</span><span class="ev-loc">doma</span><span class="ev-status">úloha</span></div></div>
+    </div>
+    <div class="tl-now" style="top:0"><span class="tl-now-label">teraz</span></div>
+  </div>
+</div>
+
+      </div>
     </section>
-    <aside class="panel highlights-panel sidebar-panel" aria-label="Dôležité"><h2>Dôležité</h2><section class="hl-block" data-section="rodina"><h3>Rodina</h3><ul>
-<li><span class="hl-who" style="--m:#2F7D4A">Andrej</span> Rozhodnúť konflikt 16:00–16:45 (matematika vs. baseball) a zabezpečiť odvoz.</li>
-</ul></section></aside>
+    
+<aside class="panel sidebar-panel">
+  <div class="sidebar-main">
+    <h2 class="sidebar-title">Dôležité</h2>
+    <section class="hl-block" data-section="rodina"><h3>Rodina</h3><ul>
+<li data-member="andrej" data-family-item="0"><span class="hl-who" style="--m:#2F7D4A">Andrej</span> <span class="item-text">Rozhodnúť konflikt matematika vs baseball + odvoz.</span><span class="item-detail">Andrej 16:00–16:45: konflikt prípravy z matematiky a baseballu SaBaT. Rozhodnúť, ktorý ide, a zabezpečiť odvoz.</span></li>
+</ul></section>
+  </div>
+  
+</aside>
+
   </div>
 </div>
+<script src="view.js"></script>
 
-<script>document.addEventListener('DOMContentLoaded',function(){var e=document.querySelector('a.lane-head');if(e)e.focus();});</script>
 </body>
 </html>

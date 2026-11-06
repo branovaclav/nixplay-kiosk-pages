@@ -18,7 +18,7 @@
   "events": [
     {
       "id": "andrej-math-prep",
-      "member": "andrej",
+      "members": ["andrej"],
       "title": "Príprava z matematiky",
       "start": "15:15",
       "end": "16:45",
@@ -32,7 +32,7 @@
     },
     {
       "id": "andrej-baseball-uvltavy",
-      "member": "andrej",
+      "members": ["andrej"],
       "title": "Baseball SaBaT",
       "start": "16:00",
       "end": "18:00",
@@ -46,7 +46,7 @@
     },
     {
       "id": "brano-bike",
-      "member": "branislav",
+      "members": ["branislav"],
       "title": "Bicykel",
       "start": "16:00",
       "end": "19:00",
@@ -60,7 +60,7 @@
     },
     {
       "id": "andrej-rehab",
-      "member": "andrej",
+      "members": ["andrej"],
       "title": "Konzultácia rehabilitácie",
       "start": "18:30",
       "end": "19:30",
@@ -74,7 +74,7 @@
     },
     {
       "id": "rodina-trash",
-      "member": "rodina",
+      "members": ["branislav", "zuzka", "andrej", "tomas"],
       "title": "Vyniesť odpadky",
       "start": "20:00",
       "end": "20:15",
@@ -94,7 +94,8 @@
       "items": [
         {
           "member": "andrej",
-          "text": "Rozhodnúť konflikt 16:00–16:45 (matematika vs. baseball) a zabezpečiť odvoz."
+          "text": "Rozhodnúť konflikt matematika vs baseball + odvoz.",
+          "detail": "Andrej 16:00–16:45: konflikt prípravy z matematiky a baseballu SaBaT. Rozhodnúť, ktorý ide, a zabezpečiť odvoz."
         }
       ]
     }

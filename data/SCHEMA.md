@@ -1,68 +1,56 @@
-# Denný rodinný prehľad — JSON schéma (návrh)
+# Denný rodinný prehľad — JSON schéma
 
-Jeden súbor na deň: `data/YYYY-MM-DD.json`. Stabilní členovia: `data/members.json`.
-**Pravidlá obsahu (kde čo patrí, duplicity, sekcie, chat):** [`RULES.md`](RULES.md).
+Jeden súbor na deň: `data/YYYY-MM-DD.json`. Členovia: `data/members.json`.
+**Pravidlá:** [`RULES.md`](RULES.md).
 
-Vzor podľa [kucharka-recepty](https://github.com/branovaclav/kucharka-recepty):
-obsah (JSON) oddelený od prezentácie (témy). Build: JSON + téma → statické HTML.
+Rám zobrazí **jednu stránku na deň** s pohľadmi Rodina → osoby (žiadne samostatné member HTML).
 
-## `data/members.json`
+## `members.json`
 
-Bezo zmeny oproti predchádzajúcemu návrhu — pozri pole `members[]`
-(`id`, `display_name`, `role`, `color`, `avatar`, voliteľné `meta`).
+```json
+{
+  "members": [
+    {
+      "id": "branislav",
+      "display_name": "Braňo",
+      "role": "otec",
+      "color": "#1F6AA5",
+      "avatar": "branislav.svg"
+    }
+  ],
+  "family": {
+    "id": "rodina",
+    "display_name": "Rodina",
+    "color": "#4A6670",
+    "avatar": "rodina.svg"
+  }
+}
+```
 
-## `data/YYYY-MM-DD.json`
+Štyria ľudia v pevnom poradí stĺpcov: Braňo, Zuzka, Andrej, Tomáš.
+`family` je meta pre pohľad Rodina (avatar/farba) — **nie** stĺpec kalendára.
+
+## Deň `YYYY-MM-DD.json`
 
 ```json
 {
   "date": "2026-11-06",
   "locale": "sk-SK",
   "timezone": "Europe/Prague",
-  "title": "Dnes",
   "now": "09:30",
-  "weather": {
-    "sample": true,
-    "summary": "Polojasno",
-    "temp_high_c": 12,
-    "temp_low_c": 4,
-    "icon": "partly-cloudy"
-  },
-  "timeline": {
-    "start": "07:00",
-    "end": "21:00"
-  },
+  "weather": { "sample": true, "summary": "Polojasno", "temp_high_c": 12, "temp_low_c": 4, "icon": "partly-cloudy" },
+  "timeline": { "start": "07:00", "end": "21:00" },
   "events": [],
-  "sections": [
-    {
-      "id": "rodina",
-      "title": "Rodina",
-      "items": [
-        { "text": "…", "member": "andrej" }
-      ]
-    }
-  ]
+  "sections": []
 }
 ```
 
-### Počasie (`weather`)
-
-| Pole | Typ | Poznámka |
-|---|---|---|
-| `sample` | bool | `true` = placeholder |
-| `summary` | string | krátky text SK |
-| `temp_high_c` / `temp_low_c` | number | °C |
-| `icon` | string | `sunny` · `partly-cloudy` · `cloudy` · `rain` · `snow` |
-
-### Časová os (`timeline`)
-
-`start` / `end` v `HH:MM`. Build môže predĺžiť `end`, ak udalosť končí neskôr.
-
-### Udalosti (`events[]`)
+### Udalosti
 
 ```json
 {
   "id": "andrej-baseball",
-  "member": "andrej",
+  "members": ["andrej"],
   "title": "Baseball",
   "start": "17:00",
   "end": "19:00",
@@ -71,73 +59,46 @@ Bezo zmeny oproti predchádzajúcemu návrhu — pozri pole `members[]`
   "status": "confirmed",
   "flags": [],
   "conflict_with": [],
-  "notes": ["Vchod bočným vchodom, nie hlavným."],
+  "notes": [],
   "reminders": [],
   "time_note": null
 }
 ```
 
-| Pole | Typ | Poznámka |
-|---|---|---|
-| `id` | string | unikátne v rámci dňa |
-| `member` | string | `members.id` |
-| `title` | string | nadpis |
-| `start` / `end` | `HH:MM` \| `null` | bez `start` → nečasovaný pás |
-| `all_day` | bool | celodenná |
-| `location` | string | môže byť `""` |
-| `status` | string | `confirmed` · `unconfirmed` · `tentative` · `todo` |
-| `flags` | string[] | `conflict` · `needs-ride` · `pickup` · `time-tbd` |
-| `conflict_with` | string[] | id prekrývajúcich sa udalostí |
-| `notes` / `reminders` | string[] | viazané **len** na túto udalosť |
-| `time_note` | string \| null | keď chýba `start` |
+| Pole | Poznámka |
+|---|---|
+| `members` | pole id (`branislav` · `zuzka` · `andrej` · `tomas`); celá rodina = všetci štyria |
+| `start` / `end` | `HH:MM` alebo `null` (nečasovaný pás) |
+| `status` | `confirmed` · `unconfirmed` · `tentative` · `todo` |
+| `flags` | `conflict` · `needs-ride` · `pickup` · `time-tbd` |
 
-### Sekcie (`sections[]`) — dynamický sidebar / chat
+Staré pole `member` (string) sa už nepoužíva.
 
-**Nie** sú fixné kľúče `family_notes` / `reminders` / `bring` / `weekend`.
-Autor volí `title` (SK); témy vykreslia sekcie v poradí poľa. Prázdna sekcia sa nezapisuje.
+### Sekcie
 
 ```json
 {
-  "id": "pripomienky",
-  "title": "Pripomienky",
+  "id": "vyhlad",
+  "title": "Zajtra / Víkend",
   "items": [
-    { "text": "Diplom odložiť do portfólia.", "member": "andrej" },
-    { "text": "…", "member": "tomas", "event_id": "tomas-tripartita" }
+    { "text": "So — voľno.", "detail": "Sobota — nič naplánované." }
   ]
 }
 ```
 
-| Pole | Typ | Poznámka |
-|---|---|---|
-| `id` | string | slug sekcie |
-| `title` | string | voľný nadpis SK (odporúčané štandardy v RULES.md) |
-| `items[].text` | string | povinné |
-| `items[].member` | string? | voliteľný chip |
-| `items[].event_id` | string? | voliteľný odkaz; predvolene vynechať |
+| Pole | Poznámka |
+|---|---|
+| `text` | krátky (pohľad Rodina) |
+| `detail` | voliteľný dlhší (pohľad člena) |
+| `member` | voliteľný filter pre pohľad člena |
 
-Odporúčané `id` / `title`: `rodina` / Rodina, `pripomienky` / Pripomienky,
-`zobrat` / Zobrať / vybaviť, `vyhlad` / Výhľad — pozri RULES.md §3.
+Štandardné title: Rodina, Pripomienky, Zobrať / vybaviť, **Zajtra / Víkend**.
 
-### `now`
+### Počasie `icon`
 
-Voliteľný `HH:MM` pre značku „teraz“ (mockupy pevné; neskôr čas generovania).
+`sunny` · `partly-cloudy` · `cloudy` · `rain` · `snow` · `fog` · `storm` — SVG v `assets/weather/`.
 
-## Súbory a build
+## Build
 
-```
-data/RULES.md              kuchárka pre autora/bota (+ chat derivácia)
-data/SCHEMA.md             tento súbor
-data/members.json
-data/YYYY-MM-DD.json
-themes/<id>/
-tools/build.py             sections → sidebar; member page = events + položky zo sections
-designs/<id>/              výstup návrhov
-```
-
-Timeline sa počíta pri builde (minúty → `top`/`height` %). Na ráme takmer žiadny JS.
-
-## Otvorené body schémy
-
-- Snapshot `members` do denného JSON vs. vždy `members.json`.
-- Zdroj počasia a timezone (`Europe/Prague` vs. rám `Europe/Amsterdam`).
-- Finálny formát chat postu (Markdown vs. plain) — RULES.md §6 popisuje obsah, nie transport.
+`tools/build.py` → `designs/<theme>/<date>.html` (jedna stránka) + `designs/<theme>/index.html` (dnes / fallback).
+Žiadne member HTML. JS: prepínanie pohľadov, now-marker, idle → Rodina, reload ~30 min.

@@ -3,7 +3,7 @@
   "name": "Farbičky",
   "letter": "B",
   "theme_color": "#E85D04",
-  "blurb": "Odvážne detské farbičky — silné plochy, zaoblené tvary, veľké mená a jasné pruhy členov.",
+  "blurb": "Odvážne detské farbičky — silné plochy, jedna stránka s pohľadmi Rodina → osoby.",
   "css": ["fonts.css", "design.css"],
   "fonts": [
     "nunito-regular.woff2",
