@@ -81,8 +81,8 @@ html.theme-light .event-block {
 }
 
 html.theme-light .event-block.is-unconfirmed {
-  border: 2px dotted var(--m);
-  border-left: 6px dotted var(--m);
+  /* Uniform dashed — no thick left stripe */
+  border: 2px dashed var(--m);
   background: #fff;
 }
 
@@ -105,7 +105,8 @@ html.theme-light .allday-chip {
 }
 
 html.theme-light .allday-chip.is-unconfirmed {
-  border-style: dotted;
+  border-style: dashed;
+  border-left-width: 1px;
 }
 
 html.theme-light .tl-now { border-top-color: var(--now); }

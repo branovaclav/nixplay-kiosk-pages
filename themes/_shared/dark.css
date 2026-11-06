@@ -72,8 +72,8 @@ html.theme-dark .event-block {
 }
 
 html.theme-dark .event-block.is-unconfirmed {
-  border: 2px dotted rgba(255, 255, 255, 0.75);
-  border-left: 4px dotted rgba(255, 255, 255, 0.9);
+  /* Uniform dashed — no thick left stripe */
+  border: 2px dashed rgba(255, 255, 255, 0.75);
   box-shadow: 0 6px 16px rgba(0, 0, 0, 0.35);
 }
 
@@ -85,6 +85,11 @@ html.theme-dark .allday-chip {
   background: var(--chip-bg);
   border: 1px solid var(--line);
   color: var(--ink);
+}
+
+html.theme-dark .allday-chip.is-unconfirmed {
+  border-style: dashed;
+  border-left-width: 1px;
 }
 
 html.theme-dark .tl-now { border-top-color: var(--now); }

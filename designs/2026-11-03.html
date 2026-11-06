@@ -156,9 +156,9 @@ body[data-view="tomas"] .eyebrow-tomas {
   display: flex;
   -webkit-box-align: center;
   align-items: center;
-  /* 65px + day-main pad-top 15px → cards at y≈80 (same as pre–PR #4) */
+  /* Full y=0..80 region above cards — content centered in this box */
   padding: 0 16px;
-  height: 65px;
+  height: 80px;
 }
 
 .topbar-date {
@@ -279,9 +279,6 @@ body[data-view="tomas"] .who-tomas {
   line-height: 0;
   -webkit-flex-shrink: 0;
   flex-shrink: 0;
-  /* optical: weather glyphs sit low in their viewBox */
-  -webkit-transform: translateY(-3px);
-  transform: translateY(-3px);
 }
 
 .wx-icon svg {
@@ -328,8 +325,9 @@ body[data-view="tomas"] .who-tomas {
   display: flex;
   -webkit-box-align: stretch;
   align-items: stretch;
-  height: 703px; /* 768 − 65 topbar; pad-top 15 → cards at y≈80 */
-  padding: 15px;
+  /* 768 − 80 topbar; pad-top 0 so cards sit at y=80; L/R/B stay 15 */
+  height: 688px;
+  padding: 0 15px 15px;
   -webkit-box-sizing: border-box;
   box-sizing: border-box;
 }
@@ -758,7 +756,7 @@ body[data-view="tomas"] .calendar-member[data-focus="tomas"] {
 
 .event-block .ev-time {
   font-size: var(--fs-ev-time);
-  font-weight: 700;
+  font-weight: 400;
   opacity: 0.9;
   /* Atkinson’s default zero is slashed — reads as a strikethrough on times */
   font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
@@ -789,9 +787,16 @@ body[data-view="tomas"] .calendar-member[data-focus="tomas"] {
 .event-block.is-short .ev-status,
 .event-block.is-short .ev-flags { display: none; }
 
-.event-block.is-unconfirmed,
+/* Unconfirmed: uniform dashed outline (no thick left stripe) */
+.event-block.is-unconfirmed {
+  border-style: dashed;
+  border-left-width: 2px;
+  opacity: 0.92;
+}
+
 .allday-chip.is-unconfirmed {
-  border-style: dotted;
+  border-style: dashed;
+  border-left-width: 1px;
   opacity: 0.92;
 }
 
@@ -930,8 +935,8 @@ html.theme-dark .event-block {
 }
 
 html.theme-dark .event-block.is-unconfirmed {
-  border: 2px dotted rgba(255, 255, 255, 0.75);
-  border-left: 4px dotted rgba(255, 255, 255, 0.9);
+  /* Uniform dashed — no thick left stripe */
+  border: 2px dashed rgba(255, 255, 255, 0.75);
   box-shadow: 0 6px 16px rgba(0, 0, 0, 0.35);
 }
 
@@ -943,6 +948,11 @@ html.theme-dark .allday-chip {
   background: var(--chip-bg);
   border: 1px solid var(--line);
   color: var(--ink);
+}
+
+html.theme-dark .allday-chip.is-unconfirmed {
+  border-style: dashed;
+  border-left-width: 1px;
 }
 
 html.theme-dark .tl-now { border-top-color: var(--now); }
@@ -1048,8 +1058,8 @@ html.theme-light .event-block {
 }
 
 html.theme-light .event-block.is-unconfirmed {
-  border: 2px dotted var(--m);
-  border-left: 6px dotted var(--m);
+  /* Uniform dashed — no thick left stripe */
+  border: 2px dashed var(--m);
   background: #fff;
 }
 
@@ -1072,7 +1082,8 @@ html.theme-light .allday-chip {
 }
 
 html.theme-light .allday-chip.is-unconfirmed {
-  border-style: dotted;
+  border-style: dashed;
+  border-left-width: 1px;
 }
 
 html.theme-light .tl-now { border-top-color: var(--now); }
