@@ -1,0 +1,80 @@
+{
+  "date": "2026-11-08",
+  "locale": "sk-SK",
+  "timezone": "Europe/Prague",
+  "now": "18:57",
+  "refresh_at": "06:30",
+  "weather": {
+    "sample": false,
+    "summary": "Hmla",
+    "icon": "fog",
+    "temp_high_c": 5,
+    "temp_low_c": -1
+  },
+  "timeline": {
+    "start": "07:00",
+    "end": "21:00"
+  },
+  "events": [
+    {
+      "id": "sabat-brigada",
+      "members": [
+        "andrej"
+      ],
+      "title": "SaBaT brigáda",
+      "start": null,
+      "end": null,
+      "all_day": true,
+      "location": null,
+      "status": "confirmed",
+      "flags": [],
+      "conflict_with": [],
+      "notes": [],
+      "reminders": [],
+      "time_note": "celý deň"
+    }
+  ],
+  "sections": [
+    {
+      "id": "rodina",
+      "title": "Rodina",
+      "items": [
+        {
+          "text": "Skontrolovať kontá na obedoch — škola hlásila nezrovnalosti.",
+          "detail": "Škola prosí rodičov skontrolovať kontá na obedoch. Overiť zostatok pre Andreja aj Tomáša; stav splnenia neznámy."
+        }
+      ]
+    },
+    {
+      "id": "pripomienky",
+      "title": "Pripomienky",
+      "items": [
+        {
+          "member": "andrej",
+          "text": "Diplom Finančnej gramotnosti do portfólia.",
+          "detail": "Diplom z Finančnej gramotnosti odložiť do portfólia na gymnázium — nestratiť medzi školskými papiermi."
+        },
+        {
+          "member": "tomas",
+          "family": false,
+          "text": "Albatros — knižný darček do 24. 11.",
+          "detail": "Trieda 2025A zbiera nápady na vianočné darčeky (Albatros kniha; objednávka do 24. 11.). Označiť knižku hviezdičkou k objednávke."
+        }
+      ]
+    },
+    {
+      "id": "vyhlad",
+      "title": "Pondelok",
+      "outlook": {
+        "from": "2026-11-09",
+        "to": "2026-11-09"
+      },
+      "items": [
+        {
+          "text": "Po 9. 11. — Tomáš Veselá věda 15:30–16:30.",
+          "detail": "Pondelok 9. 11. — Tomáš: Veselá věda 15:30–16:30."
+        }
+      ]
+    }
+  ]
+}
