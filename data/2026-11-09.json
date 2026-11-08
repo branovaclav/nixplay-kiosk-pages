@@ -1,0 +1,88 @@
+{
+  "date": "2026-11-09",
+  "locale": "sk-SK",
+  "timezone": "Europe/Prague",
+  "now": "18:57",
+  "refresh_at": "06:30",
+  "weather": {
+    "sample": false,
+    "summary": "Dážď",
+    "icon": "rain",
+    "temp_high_c": 7,
+    "temp_low_c": 1
+  },
+  "timeline": {
+    "start": "07:00",
+    "end": "21:00"
+  },
+  "events": [
+    {
+      "id": "tomas-vesela-veda",
+      "members": [
+        "tomas"
+      ],
+      "title": "Veselá věda",
+      "start": "15:30",
+      "end": "16:30",
+      "all_day": false,
+      "location": null,
+      "status": "confirmed",
+      "flags": [],
+      "conflict_with": [],
+      "notes": [],
+      "reminders": []
+    }
+  ],
+  "sections": [
+    {
+      "id": "rodina",
+      "title": "Rodina",
+      "items": [
+        {
+          "text": "Skontrolovať kontá na obedoch — škola hlásila nezrovnalosti.",
+          "detail": "Škola prosí rodičov skontrolovať kontá na obedoch. Overiť zostatok pre Andreja aj Tomáša; stav splnenia neznámy."
+        }
+      ]
+    },
+    {
+      "id": "pripomienky",
+      "title": "Pripomienky",
+      "items": [
+        {
+          "member": "andrej",
+          "text": "Diplom Finančnej gramotnosti do portfólia.",
+          "detail": "Diplom z Finančnej gramotnosti odložiť do portfólia na gymnázium — nestratiť medzi školskými papiermi."
+        },
+        {
+          "member": "tomas",
+          "family": false,
+          "text": "Albatros — knižný darček do 24. 11.",
+          "detail": "Trieda 2025A zbiera nápady na vianočné darčeky (Albatros kniha; objednávka do 24. 11.). Označiť knižku hviezdičkou k objednávke."
+        }
+      ]
+    },
+    {
+      "id": "vyhlad",
+      "title": "Zajtra",
+      "outlook": {
+        "from": "2026-11-10",
+        "to": "2026-11-10"
+      },
+      "items": [
+        {
+          "text": "Zuzka premiéra v práci od 15:00 do polnoci.",
+          "detail": "Utorok 10. 11. — Zuzka: premiéra v práci 15:00–24:00."
+        },
+        {
+          "member": "andrej",
+          "text": "Príprava MAT 15:15–16:45 a baseball 16:00–18:00 sa prekrývajú.",
+          "detail": "Utorok 10. 11. — príprava na gymnázium (MAT) 15:15–16:45 na Českolipskej a SaBaT baseball 16:00–18:00 sa prekrývajú; dohodnúť presun."
+        },
+        {
+          "text": "Ďalej: Logopédia 9:00, upratovanie 12:30, vyniesť kôš 20:00.",
+          "detail": "Utorok 10. 11. — Logopédia 9:00–9:30, upratovanie 12:30–13:30, vyniesť kôš 20:00–21:00."
+        }
+      ]
+    }
+  ]
+}
