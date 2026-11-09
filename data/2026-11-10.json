@@ -1,0 +1,140 @@
+{
+  "date": "2026-11-10",
+  "locale": "sk-SK",
+  "timezone": "Europe/Prague",
+  "now": "18:48",
+  "refresh_at": "06:30",
+  "weather": {
+    "sample": false,
+    "summary": "Dážď",
+    "icon": "rain",
+    "temp_high_c": 8,
+    "temp_low_c": 4
+  },
+  "timeline": {
+    "start": "07:00",
+    "end": "21:00"
+  },
+  "events": [
+    {
+      "id": "zuzka-premiera-praca",
+      "members": [
+        "zuzka"
+      ],
+      "title": "Premiéra v práci",
+      "start": "15:00",
+      "end": "23:59",
+      "all_day": false,
+      "location": null,
+      "status": "confirmed",
+      "flags": [],
+      "conflict_with": [],
+      "notes": [
+        "do polnoci"
+      ],
+      "reminders": []
+    },
+    {
+      "id": "andrej-priprava-mat",
+      "members": [
+        "andrej"
+      ],
+      "title": "Príprava MAT",
+      "start": "15:15",
+      "end": "16:45",
+      "all_day": false,
+      "location": "Českolipská",
+      "status": "confirmed",
+      "flags": [
+        "conflict"
+      ],
+      "conflict_with": [
+        "andrej-baseball-sabat"
+      ],
+      "notes": [
+        "Prekrýva sa s baseballom SaBaT (16:00–18:00)."
+      ],
+      "reminders": []
+    },
+    {
+      "id": "andrej-baseball-sabat",
+      "members": [
+        "andrej"
+      ],
+      "title": "Baseball SaBaT",
+      "start": "16:00",
+      "end": "18:00",
+      "all_day": false,
+      "location": null,
+      "status": "confirmed",
+      "flags": [
+        "conflict"
+      ],
+      "conflict_with": [
+        "andrej-priprava-mat"
+      ],
+      "notes": [
+        "Prekrýva sa s prípravou MAT (15:15–16:45)."
+      ],
+      "reminders": []
+    }
+  ],
+  "sections": [
+    {
+      "id": "rodina",
+      "title": "Rodina",
+      "items": [
+        {
+          "text": "Logopédia 9:00, upratovanie 12:30, vyniesť kôš 20:00.",
+          "detail": "V rodinnom kalendári bez konkrétnej osoby: logopédia 9:00–9:30, upratovanie 12:30–13:30, vyniesť kôš 20:00–21:00."
+        },
+        {
+          "text": "Skontrolovať kontá na obedoch — škola hlásila nezrovnalosti.",
+          "detail": "Škola prosí rodičov skontrolovať kontá na obedoch. Overiť zostatok pre Andreja aj Tomáša; stav splnenia neznámy."
+        }
+      ]
+    },
+    {
+      "id": "pripomienky",
+      "title": "Pripomienky",
+      "items": [
+        {
+          "member": "andrej",
+          "text": "Diplom Finančnej gramotnosti do portfólia.",
+          "detail": "Diplom z Finančnej gramotnosti odložiť do portfólia na gymnázium — nestratiť medzi školskými papiermi."
+        },
+        {
+          "member": "andrej",
+          "text": "Deň otvorených dverí na Trojskom gymnáziu 8. 12.",
+          "detail": "Škola písala ročníku 2022 (Andrej): deň otvorených dverí na Trojskom gymnáziu je 8. 12. 2026."
+        },
+        {
+          "member": "tomas",
+          "family": false,
+          "text": "Albatros — knižný darček do 24. 11.",
+          "detail": "Trieda 2025A zbiera nápady na vianočné darčeky (Albatros kniha; objednávka do 24. 11.). Označiť knižku hviezdičkou k objednávke."
+        }
+      ]
+    },
+    {
+      "id": "vyhlad",
+      "title": "Streda",
+      "outlook": {
+        "from": "2026-11-11",
+        "to": "2026-11-11"
+      },
+      "items": [
+        {
+          "member": "tomas",
+          "text": "Diagnostika INEP celý deň a angličtina 13:10–13:55.",
+          "detail": "Streda 11. 11. — Tomáš: diagnostika INEP celý deň; angličtina 13:10–13:55."
+        },
+        {
+          "member": "andrej",
+          "text": "Príprava ČJ 15:15–16:45 a baseball LOB 17:00–19:00.",
+          "detail": "Streda 11. 11. — Andrej: príprava ČJ 15:15–16:45 na Českolipskej, potom baseball LOB v Bohniciach 17:00–19:00."
+        }
+      ]
+    }
+  ]
+}
