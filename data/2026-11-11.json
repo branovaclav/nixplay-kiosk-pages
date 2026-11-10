@@ -1,0 +1,145 @@
+{
+  "date": "2026-11-11",
+  "locale": "sk-SK",
+  "timezone": "Europe/Prague",
+  "now": "18:54",
+  "refresh_at": "06:30",
+  "weather": {
+    "sample": false,
+    "summary": "Dážď",
+    "icon": "rain",
+    "temp_high_c": 6,
+    "temp_low_c": 3
+  },
+  "timeline": {
+    "start": "07:00",
+    "end": "21:00"
+  },
+  "events": [
+    {
+      "id": "tomas-diagnostika-inep",
+      "members": [
+        "tomas"
+      ],
+      "title": "Diagnostika INEP",
+      "start": null,
+      "end": null,
+      "all_day": true,
+      "time_note": "celý deň",
+      "location": null,
+      "status": "confirmed",
+      "flags": [],
+      "conflict_with": [],
+      "notes": [],
+      "reminders": []
+    },
+    {
+      "id": "tomas-anglictina",
+      "members": [
+        "tomas"
+      ],
+      "title": "Angličtina",
+      "start": "13:10",
+      "end": "13:55",
+      "all_day": false,
+      "location": null,
+      "status": "confirmed",
+      "flags": [],
+      "conflict_with": [],
+      "notes": [],
+      "reminders": []
+    },
+    {
+      "id": "andrej-priprava-cj",
+      "members": [
+        "andrej"
+      ],
+      "title": "Príprava ČJ",
+      "start": "15:15",
+      "end": "16:45",
+      "all_day": false,
+      "location": "Českolipská",
+      "status": "confirmed",
+      "flags": [],
+      "conflict_with": [],
+      "notes": [],
+      "reminders": []
+    },
+    {
+      "id": "andrej-baseball-lob",
+      "members": [
+        "andrej"
+      ],
+      "title": "Baseball LOB",
+      "start": "17:00",
+      "end": "19:00",
+      "all_day": false,
+      "location": "LOB Bohnice",
+      "status": "confirmed",
+      "flags": [],
+      "conflict_with": [],
+      "notes": [],
+      "reminders": []
+    }
+  ],
+  "sections": [
+    {
+      "id": "zobrat",
+      "title": "Zobrať / vybaviť",
+      "items": [
+        {
+          "member": "andrej",
+          "text": "Záloha na hory 3 000 Kč do 30. 11.",
+          "detail": "Škola žiada zálohu 3 000 Kč na hory 2027 do 30. 11. 2026 ako záväznú prihlášku. Údaje na platbu sú v školskom e-maile."
+        }
+      ]
+    },
+    {
+      "id": "pripomienky",
+      "title": "Pripomienky",
+      "items": [
+        {
+          "member": "andrej",
+          "text": "Deň otvorených dverí na Trojskom gymnáziu 8. 12.",
+          "detail": "Škola písala ročníku 2022 (Andrej): deň otvorených dverí na Trojskom gymnáziu je 8. 12. 2026."
+        },
+        {
+          "member": "tomas",
+          "text": "Piatok — krátky test z prvouky.",
+          "detail": "V piatok 13. 11. píšu v 2025A (Tomáš) krátky opakovací test z prvouky: druhy vtákov a stromov, smerová ružica a mesiace v roku."
+        },
+        {
+          "member": "andrej",
+          "family": false,
+          "text": "Diplom Finančnej gramotnosti do portfólia.",
+          "detail": "Diplom z Finančnej gramotnosti odložiť do portfólia na gymnázium — nestratiť medzi školskými papiermi."
+        },
+        {
+          "member": "tomas",
+          "family": false,
+          "text": "Albatros — knižný darček do 24. 11.",
+          "detail": "Trieda 2025A zbiera nápady na vianočné darčeky (Albatros kniha; objednávka do 24. 11.). Označiť knižku hviezdičkou k objednávke."
+        }
+      ]
+    },
+    {
+      "id": "vyhlad",
+      "title": "Štvrtok",
+      "outlook": {
+        "from": "2026-11-12",
+        "to": "2026-11-12"
+      },
+      "items": [
+        {
+          "member": "andrej",
+          "text": "Príprava v škole 13:30–15:45.",
+          "detail": "Štvrtok 12. 11. — Andrej: príprava v škole 13:30–15:45."
+        },
+        {
+          "text": "Oslava narodenín Tea a Sary 15:00–18:00.",
+          "detail": "Štvrtok 12. 11. — v rodinnom kalendári oslava narodenín Tea a Sary 15:00–18:00; kto ide, nie je uvedené."
+        }
+      ]
+    }
+  ]
+}
