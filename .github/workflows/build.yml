@@ -1,15 +1,13 @@
-# Build day JSON → site/ and deploy to GitHub Pages.
-# Triggers on morning-bot data commits and theme/tool changes.
+# Build every project under projects/ → site/ and deploy to GitHub Pages.
+# Triggers on data commits, project/theme changes, and shared tools.
 name: build
 
 on:
   push:
     branches: [main]
     paths:
-      - "data/**"
-      - "themes/**"
+      - "projects/**"
       - "tools/**"
-      - "assets/**"
       - ".github/workflows/build.yml"
       - ".nojekyll"
   workflow_dispatch:
@@ -34,10 +32,10 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Validate day JSON (SCHEMA.md)
+      - name: Validate project data
         run: python3 tools/validate.py
 
-      - name: Build production site
+      - name: Build all projects → site/
         run: python3 tools/build.py
 
       - name: Upload Pages artifact

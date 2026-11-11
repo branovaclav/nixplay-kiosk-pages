@@ -1,6 +1,7 @@
 # Denný JSON — pravidlá pre autora / bota
 
-Tento súbor je **jediná kuchárka** pre generovanie `data/YYYY-MM-DD.json`.
+Tento súbor je **jediná kuchárka** pre generovanie
+`projects/daily-summary/data/YYYY-MM-DD.json`.
 Rovnaký súbor napája (1) jednu stránku na Nixplay ráme (pohľady Rodina → osoby)
 a (2) textový ranný súhrn do chatu. Schéma: [`SCHEMA.md`](SCHEMA.md).
 Členovia: [`members.json`](members.json).
@@ -18,14 +19,14 @@ Dva behy denne (Europe/Prague) — **jeden súbor na deň** slúži večer (ako 
 
 | Beh | Úloha |
 |---|---|
-| **Večer (~18:55)** | Hlavný generátor: vytvorí / prepíše `data/<zajtra>.json`. |
+| **Večer (~18:55)** | Hlavný generátor: vytvorí / prepíše `projects/daily-summary/data/<zajtra>.json`. |
 | **Ráno (~06:55)** | Len prekontroluje kalendáre; nový commit **len ak** sa niečo zmysluplne zmenilo. Inak reuse večerného súboru. |
 
 Generátor **zapisuje len JSON**, nie HTML:
 
-1. Vytvorí / aktualizuje `data/YYYY-MM-DD.json` (Europe/Prague, podľa tejto kuchárky).
-2. V tom istom commite **vymaže** súbory `data/YYYY-MM-DD.json` staršie než **~14 dní**.
-3. Push na `main` → Action `validate` + `build` → GitHub Pages (`site/index.html`).
+1. Vytvorí / aktualizuje `projects/daily-summary/data/YYYY-MM-DD.json` (Europe/Prague, podľa tejto kuchárky).
+2. V tom istom commite **vymaže** súbory `projects/daily-summary/data/YYYY-MM-DD.json` staršie než **~14 dní**.
+3. Push na `main` → Action `validate` + `build` → GitHub Pages (`site/index.html` + `site/daily-summary/`).
 
 Relatívne popisky na ráme (**Zajtra** / **Rodinný prehľad**, názov výhľadu) počíta **klient** podľa Prague času pri pozeraní — nie pri generovaní. Pozri §3.
 

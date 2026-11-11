@@ -1,30 +1,44 @@
 # Agent entry point — nixplay-kiosk-pages
 
 Static pages for a Nixplay Seed 8″ frame (Chromium 81 kiosk, 1024×768).
-Start with [`FRAME.md`](FRAME.md), then this file.
+**Start with [`FRAME.md`](FRAME.md)**, then this file and [`projects/README.md`](projects/README.md).
 
-## Production
+## What this repo is
 
-| Mode | Source |
-|---|---|
-| **dark** | Večerná layout + colors |
-| **light** | Same layout, Papier palette |
+A **multi-project** GitHub Pages site. Each content type is a self-contained
+folder under `projects/`. The frame’s home URL is the site root and must keep
+showing the **daily summary** (identical files also under `/daily-summary/`).
 
-`tools/build.py` → **`site/index.html`** (today Europe/Prague, else newest day JSON) + assets.  
-Theme: `theme_schedule.mode` **sun** (NOAA sunrise/sunset, Prague lat/lon) or **fixed** clock; `?theme=` override.  
-GitHub Action validates (`tools/validate.py`) and deploys `site/` to Pages on push to `main` (paths: `data/`, `themes/`, `tools/`, `assets/`).
+| Project | Path on Pages | Source |
+|---|---|---|
+| daily-summary | `/` and `/daily-summary/` | `projects/daily-summary/` |
+| example | `/example/` | `projects/example/` |
+
+## Build
 
 ```bash
 python3 tools/validate.py && python3 tools/build.py
 ```
 
-Local dated previews: `designs/<date>.html`. Archives (`designs/archive/`, `themes/archive/`) stay in the repo, not deployed.
+CI deploys `site/` on push to `main` when `projects/`, `tools/`, or the
+workflow change.
 
-Morning generator commits only `data/YYYY-MM-DD.json` (prune &gt; ~14 days in the same commit) — see [`data/README.md`](data/README.md).
+## Daily summary — data publish path
+
+Writers (evening/morning bots) commit:
+
+**`projects/daily-summary/data/YYYY-MM-DD.json`**
+
+Prune files older than ~14 days in the same commit. Details:
+[`projects/daily-summary/data/README.md`](projects/daily-summary/data/README.md).
 
 ## Hard rules
 
-- Target Chromium 81: no flex `gap`, `inset`, `aspect-ratio`, `:is()`/`:where()`, `:focus-visible`, `replaceAll`, etc. (see FRAME.md). Animate `flex-basis`/`width`, not `grid-template-columns`.
-- Gestures: Tab/Enter = next view, Shift+Tab = previous (`preventDefault`); Alt+ArrowLeft → Rodina. Idle ~60 s → Rodina.
-- UI text Slovak, 24h time. Timeline build-time; `view.js` for views + now-marker + theme + daily reload.
+- Target Chromium 81: no flex `gap`, `inset`, `aspect-ratio`, `:is()`/`:where()`,
+  `:focus-visible`, `replaceAll`, etc. (FRAME.md).
+- Gestures: Tab/Enter / Shift+Tab / Alt+ArrowLeft — see FRAME.md and each
+  project README.
+- UI text for the family summary: Slovak, 24h time.
 - Public site: no pickup codes / passwords / home address in JSON (RULES.md).
+- Structure changes must not break the root home URL (serve daily-summary at
+  `/` directly — no flashy redirect).

@@ -1,6 +1,7 @@
 # Denný rodinný prehľad — JSON schéma
 
-Jeden súbor na deň: `data/YYYY-MM-DD.json`. Členovia + site config: `data/members.json`.
+Jeden súbor na deň: `projects/daily-summary/data/YYYY-MM-DD.json`.
+Členovia + site config: `projects/daily-summary/data/members.json`.
 **Pravidlá:** [`RULES.md`](RULES.md).
 
 Rám zobrazí **jednu stránku na deň** s pohľadmi Rodina → osoby (žiadne samostatné member HTML).
@@ -142,9 +143,10 @@ Mock pre screenshoty / test: `?today=YYYY-MM-DD` + `?now=HH:MM` (Europe/Prague l
 
 ```bash
 python3 tools/validate.py   # fail CI if JSON breaks this schema / RULES
-python3 tools/build.py      # → site/ (Pages) + designs/ (local dated previews)
+python3 tools/build.py      # → site/ (Pages) + projects/daily-summary/designs/
 ```
 
-Produkcia: `site/index.html` = dnešný súbor (Europe/Prague), inak najnovší `data/YYYY-MM-DD.json`.
+Produkcia: `site/index.html` a `site/daily-summary/index.html` = dnešný súbor
+(Europe/Prague), inak najnovší day JSON.
 Žiadne member HTML. JS: pohľady, now-marker, theme podľa času / `?theme=`, idle → Rodina, denný reload.
-Archív A/B/C: `designs/archive/`, `themes/archive/` (v repo, nie na Pages).
+Archív A/B/C: `designs/archive/`, `themes/archive/` (v projekte, nie na Pages).
