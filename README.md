@@ -1,30 +1,51 @@
 # nixplay-kiosk-pages
 
-Statické stránky pre Nixplay Seed 8″ rám (kiosk Chromium 81, 1024×768).
-Denný rodinný prehľad — **dark** (Večerná) + **light** (Papier paleta).
+Static pages for a self-managed **Nixplay Seed 8″** photo frame (Chromium 81
+kiosk, 1024×768). This repo hosts **several content projects** side by side;
+each lives under [`projects/`](projects/) and publishes to its own Pages path.
 
-Prečítaj najprv [`FRAME.md`](FRAME.md).
+**Read [`FRAME.md`](FRAME.md) first** (display, Chromium 81 limits, gestures,
+home/back behaviour). Keep it in sync with sibling `../nixplay-kiosk`.
 
-## Produkcia
+## Live URLs
 
-Live: [branovaclav.github.io/nixplay-kiosk-pages](https://branovaclav.github.io/nixplay-kiosk-pages/)  
-(`site/index.html` = dnešný `data/YYYY-MM-DD.json`, inak najnovší súbor.)
+Base: [branovaclav.github.io/nixplay-kiosk-pages](https://branovaclav.github.io/nixplay-kiosk-pages/)
+
+| Path | Project |
+|---|---|
+| `/` | **daily-summary** (frame home — served directly, no redirect) |
+| `/daily-summary/` | daily-summary (same page) |
+| `/example/` | minimal example project |
+
+## Layout
 
 ```
-data/members.json + data/YYYY-MM-DD.json
-        │
-        ▼
-tools/validate.py → tools/build.py → site/   (Pages)
-                                 ↘ designs/  (lokálny náhľad dátumov)
+FRAME.md                 Frame facts (shared)
+README.md / AGENTS.md    Repo entry points
+projects/                One folder per content type
+  daily-summary/         Denný rodinný prehľad (+ its data, themes, build)
+  example/               Trivial Chromium 81 demo
+tools/                   Shared validate + build orchestrator → site/
+.github/workflows/       One Pages deploy for every project
 ```
+
+Project convention: [`projects/README.md`](projects/README.md).
+
+## Build & deploy
 
 ```bash
 python3 tools/validate.py
-python3 tools/build.py
+python3 tools/build.py          # → site/ (gitignored; CI artifact)
 ```
 
-Téma: predvolene **`mode: sun`** (NOAA východ/západ pre Prahu, bez siete); fallback `fixed` 19:00–06:30; test `?theme=light|dark`.  
-Pohľady Rodina→osoby (Tab/Enter); idle → Rodina; denný reload o `refresh_at`.
+Push to `main` (paths under `projects/`, `tools/`, workflow) runs validate +
+build and deploys `site/` to GitHub Pages.
 
-Obsah: [`data/RULES.md`](data/RULES.md) · [`data/SCHEMA.md`](data/SCHEMA.md) · [`data/README.md`](data/README.md).  
-Archív starých A/B/C návrhov je v repo (`designs/archive/`, `themes/archive/`), na Pages sa nenasadzuje.
+## Daily summary data (publisher)
+
+External scripts publish day JSON via the GitHub Contents API to:
+
+**`projects/daily-summary/data/YYYY-MM-DD.json`**
+
+(Previously `data/YYYY-MM-DD.json` at repo root — update publishers.)
+Format unchanged. See [`projects/daily-summary/data/README.md`](projects/daily-summary/data/README.md).

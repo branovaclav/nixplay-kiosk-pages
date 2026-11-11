@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=1024, height=768, initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Example project — nixplay-kiosk-pages</title>
+<style>
+  /* Chromium 81-safe: no flex gap, inset, aspect-ratio, :is(), :where(), :has() */
+  html, body {
+    margin: 0;
+    padding: 0;
+    width: 1024px;
+    height: 768px;
+    overflow: hidden;
+    background: #1a2332;
+    color: #e8eef6;
+    font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  }
+  .frame {
+    box-sizing: border-box;
+    width: 1024px;
+    height: 768px;
+    padding: 48px 56px;
+    display: -webkit-box;
+    display: flex;
+    -webkit-box-orient: vertical;
+    -webkit-box-direction: normal;
+    flex-direction: column;
+    -webkit-box-pack: center;
+    justify-content: center;
+  }
+  h1 {
+    margin: 0 0 16px;
+    font-size: 42px;
+    font-weight: 600;
+    line-height: 1.15;
+  }
+  p {
+    margin: 0;
+    font-size: 22px;
+    line-height: 1.4;
+    opacity: 0.85;
+    max-width: 720px;
+  }
+  .path {
+    margin-top: 28px;
+    font-size: 18px;
+    opacity: 0.55;
+    font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  }
+</style>
+</head>
+<body>
+  <div class="frame">
+    <h1>Example project</h1>
+    <p>
+      Minimal Chromium&nbsp;81 page proving the multi-project layout.
+      Real content projects live beside this one under <code>projects/</code>.
+    </p>
+    <p class="path">/example/</p>
+  </div>
+</body>
+</html>

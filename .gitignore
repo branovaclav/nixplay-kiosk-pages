@@ -9,3 +9,5 @@ screenshots-raw/
 *.log
 # Built by tools/build.py; CI uploads site/ to Pages
 /site/
+# Optional per-project dist when building a project in isolation
+projects/*/dist/
