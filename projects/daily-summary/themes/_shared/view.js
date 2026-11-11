@@ -3,6 +3,8 @@
    Enter / Tab = next; Shift+Tab = previous; Alt+ArrowLeft = Rodina.
    Theme: sun (NOAA sunrise/sunset) or fixed clock; ?theme= locks.
    Idle 60s → rodina. Now-marker every minute. Daily reload at refresh_at.
+   Stale past day: keep showing + header note; version.json poll / 5‑min retry
+   (no immediate reload loop). Test: ?asOf=YYYY-MM-DD mocks today without freeze.
 */
 (function () {
   var VIEWS = ["rodina", "branislav", "zuzka", "andrej", "tomas"];
@@ -58,8 +60,30 @@
   }
 
   function mockTodayParam() {
-    var m = (location.search || "").match(/[?&]today=(\d{4}-\d{2}-\d{2})/);
+    // ?today= freezes auto-reload (demos); ?asOf= mocks the date only (tests).
+    var m = (location.search || "").match(/[?&](?:today|asOf)=(\d{4}-\d{2}-\d{2})/);
     return m ? m[1] : "";
+  }
+
+  function isFrozenReload() {
+    return (
+      /[?&]now=/.test(location.search || "") ||
+      /[?&]today=/.test(location.search || "") ||
+      body.getAttribute("data-lock-now") === "1"
+    );
+  }
+
+  function isStalePage() {
+    var pageDate = body.getAttribute("data-date") || "";
+    var today = pragueToday();
+    return !!(pageDate && today && pageDate < today);
+  }
+
+  /** Short Slovak date from ISO YYYY-MM-DD → "11. 11. 2026". */
+  function fmtIsoShortSk(iso) {
+    var p = (iso || "").split("-");
+    if (p.length !== 3) return iso || "";
+    return parseInt(p[2], 10) + ". " + parseInt(p[1], 10) + ". " + p[0];
   }
 
   function pragueToday() {
@@ -390,18 +414,46 @@
     return !!(pageDate && today && pageDate === today);
   }
 
+  function syncStaleNote() {
+    var pageDate = body.getAttribute("data-date") || "";
+    var stale = isStalePage();
+    if (stale) body.classList.add("is-stale-day");
+    else body.classList.remove("is-stale-day");
+
+    var note = document.querySelector(".stale-note");
+    if (!stale) {
+      if (note) note.style.display = "none";
+      return;
+    }
+    if (!note) {
+      note = document.createElement("p");
+      note.className = "stale-note";
+      var dateBox = document.querySelector(".topbar-date");
+      if (dateBox) dateBox.appendChild(note);
+      else return;
+    }
+    note.style.display = "";
+    note.textContent = "Neaktualizované · údaje z " + fmtIsoShortSk(pageDate);
+  }
+
   function syncRelativeChrome() {
     var today = pragueToday();
     var tomorrow = isTomorrowPage();
     var todayPage = isTodayPage();
+    var stale = isStalePage();
     if (tomorrow) body.classList.add("is-future-day");
     else body.classList.remove("is-future-day");
-    body.setAttribute("data-day-role", tomorrow ? "tomorrow" : todayPage ? "today" : "other");
+    body.setAttribute(
+      "data-day-role",
+      tomorrow ? "tomorrow" : todayPage ? "today" : stale ? "stale" : "other"
+    );
 
     var rodinaEyebrow = document.querySelector(".eyebrow-rodina");
     if (rodinaEyebrow) {
       rodinaEyebrow.textContent = tomorrow ? "Zajtra" : "Rodinný prehľad";
     }
+
+    syncStaleNote();
 
     var boxes = document.querySelectorAll(".outlook-box[data-outlook-from]");
     for (var i = 0; i < boxes.length; i++) {
@@ -489,18 +541,23 @@
   }
 
   function armDailyRefresh() {
-    // Only bail when the page is *past* (page date < Prague today).
+    // Stale past day: never softReload immediately (that looped forever when
+    // no newer JSON was published). Keep the page, show a header note, and
+    // retry via version.json poll + a cheap 5‑min soft reload.
     // Tomorrow's evening file (page > today) must stay — no redirect loop.
-    var pageDate = body.getAttribute("data-date") || "";
-    var today = pragueToday();
-    var frozen =
-      /[?&]now=/.test(location.search || "") ||
-      /[?&]today=/.test(location.search || "") ||
-      body.getAttribute("data-lock-now") === "1";
-    if (pageDate && today && pageDate < today && !frozen) {
-      softReload(); // index.html rebuilt to today/tomorrow
+    var frozen = isFrozenReload();
+
+    if (isStalePage()) {
+      if (!frozen) {
+        setInterval(function () {
+          softReload();
+        }, VERSION_MS);
+      }
       return;
     }
+
+    // Today / tomorrow: one reload at refresh_at (skipped when frozen for demos).
+    if (frozen) return;
     var wait = msUntilRefresh();
     if (wait < 5000) wait = 5000;
     setTimeout(function () {

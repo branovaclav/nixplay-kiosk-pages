@@ -168,7 +168,9 @@ Tab / Enter = ďalší, Shift+Tab = predchádzajúci; **krátky shake (Alt+←) 
 (Dlhý shake môže neskôr ísť na iný URL — nespoliehaj sa naň pre reset pohľadu.)  
 Kalendár: 4 stĺpce osôb (Rodina pohľad) alebo široký stĺpec osoby + úzky „ostatní“ (pohľad člena).
 
-Obnova stránky: raz denne o `refresh_at` (predvolene **06:30** Europe/Prague, po rannom súhrne), plus ak dátum na stránke ≠ dnes → skok na dnešný súbor.
+Obnova stránky: raz denne o `refresh_at` (predvolene **06:30** Europe/Prague, po rannom súhrne).
+Ak je na ráme ešte včerajší súbor (stale), stránka sa **neobnovuje v slučke** — ostane zobrazená
+s poznámkou „Neaktualizované“, čaká na nový deploy (`version.json`) alebo skúsi znova každých ~5 min.
 
 Téma **dark** / **light**: podľa `theme_schedule` — predvolene `mode: sun` (východ/západ, Praha); fallback `fixed` 19:00–06:30; `?theme=light|dark` na test.
 

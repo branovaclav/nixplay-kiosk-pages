@@ -132,6 +132,25 @@ body[data-view="tomas"] .eyebrow-tomas {
   white-space: nowrap;
 }
 
+/* Stale past-day banner (JS adds .is-stale-day + inserts .stale-note) */
+.stale-note {
+  display: none;
+  margin: 3px 0 0;
+  padding: 0;
+  font-size: var(--fs-flags);
+  line-height: 1.15;
+  font-weight: 400;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--muted);
+  opacity: 0.9;
+  white-space: nowrap;
+}
+
+body.is-stale-day .stale-note {
+  display: block;
+}
+
 .view-who {
   position: relative;
   -webkit-box-flex: 0;
