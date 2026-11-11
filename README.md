@@ -16,6 +16,7 @@ Base: [branovaclav.github.io/nixplay-kiosk-pages](https://branovaclav.github.io/
 | `/` | **daily-summary** (frame home — served directly, no redirect) |
 | `/daily-summary/` | daily-summary (same page) |
 | `/example/` | minimal example project |
+| `/photo-slideshow/` | photo slideshow (`#cfg=` / `?demo=1`) |
 
 ## Layout
 

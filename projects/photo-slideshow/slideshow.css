@@ -1,0 +1,169 @@
+/* Photo slideshow — Chromium 81, 1024×768. No flex gap / :has / aspect-ratio. */
+html,
+body {
+  margin: 0;
+  padding: 0;
+  width: 1024px;
+  height: 768px;
+  overflow: hidden;
+  background: #000;
+  color: #fff;
+  font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+}
+
+.stage {
+  position: relative;
+  width: 1024px;
+  height: 768px;
+  background: #000;
+}
+
+.layer {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 1024px;
+  height: 768px;
+  object-fit: contain;
+  object-position: center center;
+  opacity: 0;
+  will-change: opacity;
+  pointer-events: none;
+}
+
+.layer.is-visible {
+  opacity: 1;
+}
+
+.status {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 40%;
+  text-align: center;
+  font-size: 28px;
+  opacity: 0.85;
+  z-index: 5;
+  pointer-events: none;
+}
+
+.status.is-hidden {
+  display: none;
+}
+
+.shuffle-toast {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  -webkit-transform: translate(-50%, -50%);
+  transform: translate(-50%, -50%);
+  padding: 14px 22px;
+  background: rgba(0, 0, 0, 0.55);
+  border-radius: 10px;
+  font-size: 28px;
+  letter-spacing: 0.02em;
+  z-index: 8;
+  opacity: 0;
+  -webkit-transition: opacity 0.2s linear;
+  transition: opacity 0.2s linear;
+  pointer-events: none;
+}
+
+.shuffle-toast.is-on {
+  opacity: 1;
+}
+
+.overlay {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 6;
+  display: none;
+  -webkit-box-sizing: border-box;
+  box-sizing: border-box;
+  padding: 10px 16px;
+  background: rgba(0, 0, 0, 0.5);
+  color: #fff;
+  font-size: 18px;
+  line-height: 1.25;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.overlay.is-on {
+  display: block;
+}
+
+.overlay-inner {
+  display: -webkit-box;
+  display: flex;
+  -webkit-box-align: center;
+  align-items: center;
+  width: 100%;
+  min-width: 0;
+}
+
+.overlay-main {
+  -webkit-box-flex: 1;
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.overlay-date {
+  margin-right: 14px;
+}
+
+.overlay-slot {
+  display: inline;
+}
+
+.overlay-icon {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  margin-right: 5px;
+  vertical-align: -2px;
+}
+
+.overlay-icon svg {
+  display: block;
+  width: 16px;
+  height: 16px;
+  fill: currentColor;
+}
+
+.overlay-primary {
+  margin-right: 12px;
+}
+
+.overlay-secondary {
+  opacity: 0.6;
+}
+
+.overlay-osm {
+  -webkit-box-flex: 0;
+  flex: 0 0 auto;
+  margin-left: 12px;
+  font-size: 12px;
+  opacity: 0.7;
+}
+
+.sync-dot {
+  position: absolute;
+  right: 10px;
+  top: 10px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #e11d48;
+  opacity: 0;
+  z-index: 7;
+  pointer-events: none;
+}
+
+.sync-dot.is-on {
+  opacity: 0.7;
+}
