@@ -64,13 +64,17 @@
   }
 
   function applyClockFont(name) {
-    var font = name || (cfg && cfg.clockFont) || "system";
+    var font = name || (cfg && cfg.clockFont) || "manrope";
     var fromQ = PS.config.clockFontFromQuery && PS.config.clockFontFromQuery();
     if (fromQ) font = fromQ;
-    if (!PS.config.CLOCK_FONTS[font]) font = "system";
+    if (!PS.config.CLOCK_FONTS[font]) font = "manrope";
     try {
-      if (font === "system") document.documentElement.removeAttribute("data-clock-font");
-      else document.documentElement.setAttribute("data-clock-font", font);
+      // Default Manrope is CSS :root; only set the attribute for the system escape hatch.
+      if (font === "system") {
+        document.documentElement.setAttribute("data-clock-font", "system");
+      } else {
+        document.documentElement.removeAttribute("data-clock-font");
+      }
     } catch (e) {}
   }
 

@@ -1,11 +1,8 @@
-Self-hosted clock faces (OFL)
-=============================
+Clock face — Manrope ExtraLight (200)
+=====================================
 
-Manrope, Inter, Outfit, and Figtree (SIL Open Font License 1.1).
-latin + latin-ext woff2 subsets for Slovak diacritics.
+Self-hosted Manrope (SIL Open Font License 1.1), latin + latin-ext woff2
+subsets for Slovak diacritics. Licence: OFL-manrope.txt.
 
-Licence text: OFL-*.txt in this folder.
-Source packages: @fontsource/{manrope,inter,outfit,figtree} (OFL).
-
-Default slideshow clock stays the system stack until the owner picks one
-via #cfg= clockFont / SLIDESHOW_CLOCK_FONT / ?clockFont=.
+Default for the top-left clock + date. Optional override:
+  clockFont=system  (#cfg= / SLIDESHOW_CLOCK_FONT / ?clockFont=)

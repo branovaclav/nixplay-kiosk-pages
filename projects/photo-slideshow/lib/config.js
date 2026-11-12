@@ -5,11 +5,8 @@
   var LS_KEY = "ps.cfg";
 
   var CLOCK_FONTS = {
-    system: true,
     manrope: true,
-    inter: true,
-    outfit: true,
-    figtree: true,
+    system: true,
   };
 
   var DEFAULTS = {
@@ -17,7 +14,7 @@
     interval: 5,
     fade: 0.6,
     sharpen: 0.3,
-    clockFont: "system",
+    clockFont: "manrope",
     nominatimUrl: "https://nominatim.openstreetmap.org/reverse",
     photonUrl: "https://photon.komoot.io/reverse",
   };
@@ -98,7 +95,7 @@
     return out;
   }
 
-  /** Optional ?clockFont=manrope|inter|outfit|figtree|system for A/B without rewriting #cfg=. */
+  /** Optional ?clockFont=manrope|system without rewriting #cfg=. */
   function clockFontFromQuery() {
     try {
       var m = /[?&]clockFont=([A-Za-z0-9_-]+)/.exec(

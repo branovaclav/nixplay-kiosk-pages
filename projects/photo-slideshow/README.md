@@ -28,7 +28,7 @@ Status: decisions agreed with Braňo, 11 Nov 2026. Project `projects/photo-slide
   SLIDESHOW_INTERVAL=5                # seconds per photo
   SLIDESHOW_FADE=0.6                  # dissolve seconds
   SLIDESHOW_SHARPEN=0.3               # unsharp-mask amount, 0 = off
-  # SLIDESHOW_CLOCK_FONT=system       # optional: manrope | inter | outfit | figtree
+  # SLIDESHOW_CLOCK_FONT=manrope      # default Manrope 200; or system
   ```
 - `tools/make-kiosk-url.sh slideshow.env` → `…/photo-slideshow/#cfg=<base64url JSON>`.
   The frame agent sets this as the slideshow tab's URL in the kiosk launcher config.
