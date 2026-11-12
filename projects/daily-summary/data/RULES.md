@@ -164,8 +164,8 @@ Slovak, krátke, 24 h. Bez emoji. Bez tajomstiev (pozri úvod). `weather.sample:
 ## 7. Rám — jedna stránka, pohľady
 
 Nie sú samostatné HTML odkazy. Pohľady: **Rodina → Braňo → Zuzka → Andrej → Tomáš → (cyklus)**.  
-Tab / Enter = ďalší, Shift+Tab = predchádzajúci; **krátky shake (Alt+←) = hneď Rodina**; idle ~60 s → Rodina.  
-(Dlhý shake môže neskôr ísť na iný URL — nespoliehaj sa naň pre reset pohľadu.)  
+Tab / Enter = ďalší, Shift+Tab = predchádzajúci; idle ~60 s → Rodina.  
+(Krátky/dlhý shake rieši frame — prepína projekty / reload prvého; stránka nedostane Alt+←.)  
 Kalendár: 4 stĺpce osôb (Rodina pohľad) alebo široký stĺpec osoby + úzky „ostatní“ (pohľad člena).
 
 Obnova stránky: raz denne o `refresh_at` (predvolene **06:30** Europe/Prague, po rannom súhrne).

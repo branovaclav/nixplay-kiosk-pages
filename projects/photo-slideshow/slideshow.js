@@ -10,6 +10,8 @@
   var modeShuffle = true;
   var overlayOn = true;
   var paused = false;
+  var pageHidden = false;
+  var allowBackgroundWork = true;
   var timer = null;
   var fadeMs = 600;
   var intervalMs = 5000;
@@ -34,6 +36,10 @@
   var lastKeyAt = 0;
   var objectUrls = {};
   var clockTimer = null;
+  var clockAlignTimer = null;
+  var syncInterval = null;
+  var hideReleaseTimer = null;
+  var syncGeneration = 0;
 
   var ICON_COMMENT =
     '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h16a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H9l-5 4v-4H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"/></svg>';
@@ -60,17 +66,85 @@
     clockDateEl.textContent = PS.datefmt.formatClockDate(now);
   }
 
+  function stopClock() {
+    if (clockTimer) {
+      clearInterval(clockTimer);
+      clockTimer = null;
+    }
+    if (clockAlignTimer) {
+      clearTimeout(clockAlignTimer);
+      clockAlignTimer = null;
+    }
+  }
+
   function armClock() {
+    stopClock();
+    if (pageHidden) return;
     tickClock();
-    clearInterval(clockTimer);
     clockTimer = setInterval(tickClock, 30000);
     // Align to next minute boundary
     var ms = (60 - new Date().getSeconds()) * 1000 - new Date().getMilliseconds();
-    setTimeout(function () {
+    clockAlignTimer = setTimeout(function () {
+      clockAlignTimer = null;
+      if (pageHidden) return;
       tickClock();
       clearInterval(clockTimer);
       clockTimer = setInterval(tickClock, 60000);
     }, Math.max(0, ms));
+  }
+
+  function revokeAllUrls() {
+    var ids = [];
+    var id;
+    for (id in objectUrls) {
+      if (objectUrls.hasOwnProperty(id)) ids.push(id);
+    }
+    for (var i = 0; i < ids.length; i++) revokeUrl(ids[i]);
+  }
+
+  /** Drop decoded images / object URLs so a hidden tab frees RAM. */
+  function freeDisplayMemory() {
+    nextPrepared = null;
+    revokeAllUrls();
+    if (layerA) {
+      layerA.removeAttribute("src");
+      layerA.src = "";
+      layerA.className = "layer";
+      layerA.style.transition = "none";
+    }
+    if (layerB) {
+      layerB.removeAttribute("src");
+      layerB.src = "";
+      layerB.className = "layer";
+      layerB.style.transition = "none";
+    }
+  }
+
+  function restoreDisplay() {
+    if (!currentId) {
+      return refreshFromCache(true);
+    }
+    return prepareId(currentId).then(function (prep) {
+      if (!prep) return refreshFromCache(true);
+      var front = frontLayer();
+      var back = backLayer();
+      if (back) {
+        back.src = "";
+        back.className = "layer";
+      }
+      front.style.transition = "none";
+      front.src = prep.url;
+      front.className = "layer is-visible";
+      void front.offsetWidth;
+      front.style.transition = "opacity " + fadeMs + "ms linear";
+      if (back) back.style.transition = "opacity " + fadeMs + "ms linear";
+      return renderOverlay(currentId).then(function () {
+        if (pageHidden) return null;
+        return prepareId(pickNextId()).then(function (p) {
+          if (!pageHidden) nextPrepared = p;
+        });
+      });
+    });
   }
 
   function showOsmCreditSplash() {
@@ -366,13 +440,47 @@
     }
   }
 
+  function setPausedAttr(on) {
+    try {
+      document.documentElement.setAttribute("data-paused", on ? "1" : "0");
+    } catch (e) {}
+  }
+
   function onVisibility() {
     if (document.hidden) {
+      pageHidden = true;
       paused = true;
+      allowBackgroundWork = false;
+      setPausedAttr(true);
       clearTimeout(timer);
+      timer = null;
+      stopClock();
+      if (PS.geo && PS.geo.setPaused) PS.geo.setPaused(true);
+      // Finish the in-flight sync/download item, then free decoded images.
+      if (hideReleaseTimer) clearTimeout(hideReleaseTimer);
+      hideReleaseTimer = setTimeout(function () {
+        hideReleaseTimer = null;
+        if (!pageHidden) return;
+        freeDisplayMemory();
+      }, 800);
     } else {
+      pageHidden = false;
       paused = false;
-      armTimer();
+      allowBackgroundWork = true;
+      setPausedAttr(false);
+      if (hideReleaseTimer) {
+        clearTimeout(hideReleaseTimer);
+        hideReleaseTimer = null;
+      }
+      if (PS.geo && PS.geo.setPaused) PS.geo.setPaused(false);
+      tickClock();
+      armClock();
+      restoreDisplay().then(function () {
+        if (pageHidden) return;
+        armTimer();
+        // Catch up album sync only while visible (new photos download on-screen).
+        backgroundSync();
+      });
     }
   }
 
@@ -445,16 +553,21 @@
                 keep[id] = true;
                 var fp = fingerprintOf(asset, master);
                 work = work.then(function () {
+                  // Stop starting new downloads while hidden; finish the current item only.
+                  if (!allowBackgroundWork) return null;
                   return PS.idb.getMeta(id).then(function (old) {
+                    if (!allowBackgroundWork) return null;
                     if (old && old.fingerprint === fp) return null;
                     var url = PS.cloudkit.pickJpegMedUrl(asset, master);
                     if (!url) return null;
+                    // Once download starts, finish resize+store even if we go hidden.
                     return PS.cloudkit
                       .downloadBlob(url)
                       .then(function (blob) {
                         return PS.image.processForFrame(blob, cfg.sharpen);
                       })
                       .then(function (proc) {
+                        if (!proc) return null;
                         var loc = PS.bplist.parseLocationEnc(
                           PS.cloudkit.fieldVal(asset, "locationEnc")
                         );
@@ -514,11 +627,16 @@
 
   function backgroundSync() {
     if (demoMode || !cfg || !cfg.albums.length) return Promise.resolve();
+    if (!allowBackgroundWork || pageHidden) return Promise.resolve();
+    var gen = ++syncGeneration;
     var chain = Promise.resolve();
     var i;
     for (i = 0; i < cfg.albums.length; i++) {
       (function (key) {
         chain = chain.then(function () {
+          if (!allowBackgroundWork || pageHidden || gen !== syncGeneration) {
+            return null;
+          }
           return syncAlbum(key).catch(function () {
             setSyncWarn(true);
           });
@@ -526,6 +644,9 @@
       })(cfg.albums[i]);
     }
     return chain.then(function () {
+      if (!allowBackgroundWork || pageHidden || gen !== syncGeneration) {
+        return null;
+      }
       return refreshFromCache(false);
     });
   }
@@ -575,8 +696,16 @@
     document.addEventListener("keydown", onKey, true);
     document.addEventListener("visibilitychange", onVisibility, false);
 
+    // Boot may happen while already hidden (frame opens all projects then hides).
+    pageHidden = !!document.hidden;
+    paused = pageHidden;
+    allowBackgroundWork = !pageHidden;
+    setPausedAttr(pageHidden);
+    if (PS.geo && PS.geo.setPaused) PS.geo.setPaused(pageHidden);
+
     PS.idb.tryPersist();
-    armClock();
+    if (!pageHidden) armClock();
+    else tickClock();
     setChromeVisible(overlayOn);
 
     var ready;
@@ -609,6 +738,12 @@
         return refreshFromCache(true);
       })
       .then(function () {
+        if (pageHidden) {
+          // Stay paused; free decoded buffers until first visible.
+          clearTimeout(timer);
+          timer = null;
+          freeDisplayMemory();
+        }
         if (demoMode) {
           // Preview helper: ?demo=1&slide=demo-1 (also window.__psShow)
           window.__psShow = function (id) {
@@ -623,11 +758,13 @@
           var sm = /[?&]slide=([A-Za-z0-9_-]+)/.exec(
             location.search || ""
           );
-          if (sm && sm[1]) return window.__psShow(sm[1]);
+          if (sm && sm[1] && !pageHidden) return window.__psShow(sm[1]);
           return null;
         }
-        backgroundSync();
-        setInterval(function () {
+        if (!pageHidden) backgroundSync();
+        if (syncInterval) clearInterval(syncInterval);
+        syncInterval = setInterval(function () {
+          if (pageHidden || !allowBackgroundWork) return;
           backgroundSync();
         }, 6 * 60 * 60 * 1000);
         return null;

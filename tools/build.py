@@ -2,8 +2,8 @@
 """Build every project under projects/ into site/ for GitHub Pages.
 
 Each project is published at /<project-id>/. The daily-summary page is ALSO
-copied to the site root so the frame's existing home URL keeps working with
-no redirect flash (Chromium 81).
+copied to the site root as a convenience mirror (identical bytes, no redirect).
+The frame opens project URLs directly, not the site root.
 
   python3 tools/validate.py && python3 tools/build.py
 """
@@ -101,10 +101,6 @@ def _copy_static_project(project_id, skip_names=None):
     print(f"built site/{project_id}/index.html")
 
 
-def build_example():
-    _copy_static_project("example")
-
-
 def build_photo_slideshow():
     _copy_static_project("photo-slideshow")
 
@@ -115,7 +111,6 @@ def build():
     os.makedirs(SITE, exist_ok=True)
 
     build_daily_summary()
-    build_example()
     build_photo_slideshow()
     ensure_nojekyll(SITE)
     print(f"site ready → {SITE}")

@@ -4,14 +4,12 @@ Status: decisions agreed with Braňo, 11 Nov 2026. Project `projects/photo-slide
 `branovaclav/nixplay-kiosk-pages`, served at `https://branovaclav.github.io/nixplay-kiosk-pages/photo-slideshow/`.
 **[M]** = measured on the box, **[A]** = assumption to verify on the frame.
 
-> **Frame agent (Claude Code on the Nixplay box):** start with
-> **[`FRAME-DEPLOY.md`](FRAME-DEPLOY.md)** — prerequisites, extracting album keys from
-> iCloud links, private `slideshow.env` + `tools/make-kiosk-url.sh`, two-tab setup,
-> shake remap, keys, OSM splash, cache, troubleshooting, privacy. Do not rely on chat
-> history; that file is the runbook.
+> **Frame agent:** start with **[`FRAME-DEPLOY.md`](FRAME-DEPLOY.md)** — album keys,
+> private env + `tools/make-kiosk-url.sh`, page keys, visibility pause, privacy.
+> Do not rely on chat history; that file is the runbook.
 
 ## 1. Target & constraints
-- Hacked Nixplay 8", 1024×768, Chromium 81 kiosk, Android 7, ~512 MB RAM, weak CPU.
+- Hacked Nixplay 8", 1024×768, Chromium 81 kiosk, Android 4.4.4, ~512 MB RAM, weak CPU.
 - ES5 only; no flex `gap`, `:has()`, `aspect-ratio`. Chromium 81 APIs only.
 - Scale: 1–5 shared albums (iOS 27 / CloudKit format), ~2 000 photos max in total.
 - Non-goals v1: video / Live Photo motion, editing, uploading, weather.
@@ -102,22 +100,28 @@ boot → config → IndexedDB → play from cache immediately
 - **No fallback**: if a photo's post has no comment, no trip name is shown (not even the album name).
 - The comment often already contains the place (e.g. "Dovolenka v Paríži, Francúzsko"); this drives the overlay rule in §10.
 
-## 9. Tabs, keys, lifecycle
-- Two Chromium tabs: **slideshow** and **daily overview**. Shake is remapped at browser level to switch to the overview tab, so
-  the page does not handle shake.
-- On `visibilitychange` hidden, pause the timer; on visible, resume (no reload).
-- A long shake reloads to index (a reset done at the frame level).
+## 9. Projects, keys, lifecycle
+- Each project is its own fullscreen Chromium window (no tabs / iframes). The frame
+  order puts **photo-slideshow first**, then daily-summary. Short shake cycles
+  projects (page gets no key). **Long shake = the frame reloads the first project**
+  (this slideshow) and shows it.
+- On `visibilitychange` hidden: pause timer, clock, sync, downloads, resize and
+  geocoding (finish the current download item, then wait); free decoded images,
+  object URLs and canvas buffers. On visible: restore display, catch up clock,
+  resume timer and sync (new album photos download only while on screen). No
+  forced reload on switch.
 
 | Gesture | Key | Action |
 |---|---|---|
 | Tap | Enter | Toggle overlay |
 | Left-corner lift | Tab | Toggle shuffle (always, overlay shown or hidden); show a brief shuffle-state icon in the centre (~1.5 s, not part of the overlay) |
 | Right-corner lift | Shift+Tab | Previous photo + auto-show overlay |
-| Shake | (browser level) | Switch to the overview tab (not handled by the page) |
+| Short shake | (frame) | Next project — not delivered to the page |
+| Long shake | (frame) | Reload first project (photo-slideshow) and show it |
 
 - `preventDefault()` on every handled key (capture phase on `document`). Ignore `e.repeat`; debounce 400 ms.
 - There is no "next" gesture: photos advance only on the timer.
-- Note **[M]**: unhandled Alt+Left/BrowserBack navigate back in Chromium 81, which is irrelevant now that shake is remapped above the page.
+- `Alt+ArrowLeft` / browser back no longer arrives from the frame.
 
 ## 10. Overlay
 - Thin bar at the bottom, full width, semi-transparent black (~`rgba(0,0,0,0.5)`), white text, small and unobtrusive.
@@ -159,6 +163,6 @@ boot → config → IndexedDB → play from cache immediately
 
 ## 13. Resolved / later
 1. Post comments confirmed on the live album (11 Nov): `records/query` `CPLPostByPostTimestamp` (descending, startRank 0) returns `CPLPost.caption` (STRING) with the public anonymous token; post members via `CPLAssetAndMasterInPost` / matching `assetBatchId`. Note: a full `changes/zone` sync can die on a sentinel `INTERNAL_ERROR`; posts must be fetched via the query, not only via changes/zone.
-2. Long shake = frame-level reload only; saved settings, position, seen state and cache are kept (consistent with resume).
-3. Deployment (frame agent, documented in FRAME-DEPLOY.md): browser-level shake→overview remap, two-tab setup, `df -h /data`, `storage.estimate()`.
+2. Long shake = the frame reloads the first project; saved settings, position, seen state and cache are kept (consistent with resume).
+3. Deployment (frame agent, documented in FRAME-DEPLOY.md): multi-window projects, env → `#cfg=` URL, visibility pause.
 4. Overlay visual polish after a first on-frame look.

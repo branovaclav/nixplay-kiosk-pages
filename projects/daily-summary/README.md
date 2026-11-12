@@ -9,8 +9,8 @@ Read repo [`FRAME.md`](../../FRAME.md) for frame constraints and gestures.
 
 | URL | Role |
 |---|---|
-| https://branovaclav.github.io/nixplay-kiosk-pages/ | **Frame home** (identical copy — no redirect) |
-| https://branovaclav.github.io/nixplay-kiosk-pages/daily-summary/ | Canonical project path |
+| https://branovaclav.github.io/nixplay-kiosk-pages/daily-summary/ | Canonical project path (frame opens this) |
+| https://branovaclav.github.io/nixplay-kiosk-pages/ | Convenience copy (identical — no redirect) |
 
 Both serve the same `index.html` + assets + `version.json`.
 
@@ -53,11 +53,14 @@ python3 projects/daily-summary/tools/build.py   # → projects/daily-summary/dis
 Local dated previews: `designs/<date>.html` (not deployed). Archives under
 `designs/archive/` and `themes/archive/` stay in-repo only.
 
-## Behaviour (unchanged)
+## Behaviour
 
 - Theme: `theme_schedule.mode` **sun** (NOAA) or **fixed**; `?theme=light|dark` override.
-- Views Rodina → people (Tab/Enter); idle → Rodina; reload at `refresh_at`.
-- Frame polls `version.json` (~5 min) after evening deploys.
+- Views Rodina → people (Tab/Enter / Shift+Tab); idle → Rodina; reload at `refresh_at`.
+- Polls `version.json` (~5 min) after evening deploys.
+- `visibilitychange` hidden → stop clock, auto-scroll, idle, version poll and refresh
+  timers. Visible → catch up clock/teraz, show Rodina, version/stale check (reload if
+  needed), then resume.
 
 ## Header, fonts, auto-scroll
 

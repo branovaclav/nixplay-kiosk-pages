@@ -4,6 +4,11 @@
 
   var lastReqAt = 0;
   var MIN_GAP_MS = 15000;
+  var paused = false;
+
+  function setPaused(p) {
+    paused = !!p;
+  }
 
   function cellKey(lat, lon) {
     return (Math.round(lat * 100) / 100).toFixed(2) + "," + (Math.round(lon * 100) / 100).toFixed(2);
@@ -99,8 +104,11 @@
     return getCached(cell).then(function (hit) {
       if (hit != null && hit !== "") return hit;
       if (hit === "") return null;
+      // While the page is hidden, serve cache only — no network geocode.
+      if (paused) return null;
       return waitGap()
         .then(function () {
+          if (paused) return null;
           var url =
             cfg.nominatimUrl +
             "?format=jsonv2&zoom=10&accept-language=sk&lat=" +
@@ -114,7 +122,9 @@
         })
         .then(function (label) {
           if (label) return label;
+          if (paused) return null;
           return waitGap().then(function () {
+            if (paused) return null;
             var url =
               cfg.photonUrl +
               "?lat=" +
@@ -128,6 +138,7 @@
           });
         })
         .then(function (label) {
+          if (label == null && paused) return null;
           return setCached(cell, label || "").then(function () {
             return label || null;
           });
@@ -141,5 +152,6 @@
     rounded: rounded,
     lookup: lookup,
     pickLocality: pickLocality,
+    setPaused: setPaused,
   };
 })(typeof window !== "undefined" ? window : global);

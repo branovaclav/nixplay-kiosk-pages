@@ -11,3 +11,6 @@ screenshots-raw/
 /site/
 # Optional per-project dist when building a project in isolation
 projects/*/dist/
+# Private env files (keep .env.example)
+.env
+*.env
