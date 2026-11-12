@@ -6,13 +6,13 @@ Static pages for a Nixplay Seed 8″ frame (Chromium 81 kiosk, 1024×768).
 ## What this repo is
 
 A **multi-project** GitHub Pages site. Each content type is a self-contained
-folder under `projects/`. The frame’s home URL is the site root and must keep
-showing the **daily summary** (identical files also under `/daily-summary/`).
+folder under `projects/`. Every folder is a frame project at `/<project-id>/`.
+The site root `/` still serves a convenience copy of **daily-summary** (identical
+to `/daily-summary/`); the frame itself opens project URLs, not the root.
 
 | Project | Path on Pages | Source |
 |---|---|---|
-| daily-summary | `/` and `/daily-summary/` | `projects/daily-summary/` |
-| example | `/example/` | `projects/example/` |
+| daily-summary | `/daily-summary/` (and `/` copy) | `projects/daily-summary/` |
 | photo-slideshow | `/photo-slideshow/` | `projects/photo-slideshow/` — frame runbook: [`FRAME-DEPLOY.md`](projects/photo-slideshow/FRAME-DEPLOY.md) |
 
 ## Build
@@ -37,9 +37,9 @@ Prune files older than ~14 days in the same commit. Details:
 
 - Target Chromium 81: no flex `gap`, `inset`, `aspect-ratio`, `:is()`/`:where()`,
   `:focus-visible`, `replaceAll`, etc. (FRAME.md).
-- Gestures: Tab/Enter / Shift+Tab / Alt+ArrowLeft — see FRAME.md and each
-  project README.
+- Gestures: Tab / Enter / Shift+Tab on the page; short/long shake are frame-only
+  (no `Alt+ArrowLeft`) — see FRAME.md and each project README.
 - UI text for the family summary: Slovak, 24h time.
 - Public site: no pickup codes / passwords / home address in JSON (RULES.md).
-- Structure changes must not break the root home URL (serve daily-summary at
-  `/` directly — no flashy redirect).
+- Project contract (visibility pause, no demo folders in `projects/`, private
+  `#` config via `make-kiosk-url.sh`) — see FRAME.md and `projects/README.md`.

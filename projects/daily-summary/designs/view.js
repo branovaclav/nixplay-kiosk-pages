@@ -1,8 +1,14 @@
 /* Chromium 81–safe view cycling + light/dark theme for the daily recap.
    Views: rodina → branislav → zuzka → andrej → tomas → (cycle).
-   Enter / Tab = next; Shift+Tab = previous; Alt+ArrowLeft = Rodina.
+   Enter / Tab = next; Shift+Tab = previous. (No Alt+ArrowLeft — frame has no back.)
    Theme: sun (NOAA sunrise/sunset) or fixed clock; ?theme= locks.
    Idle 60s → rodina. Now-marker every minute. Daily reload at refresh_at.
+   Stale past day: keep showing + header note; version.json poll / 5‑min retry
+   (no immediate reload loop). Test: ?asOf=YYYY-MM-DD mocks today without freeze.
+   Header clock ticks once per second (one timeout aligned to the second).
+   Sidebar .autoscroll areas slowly loop when their content overflows.
+   visibilitychange → hidden: stop clock, scroll, idle, version poll, refresh.
+   → visible: catch up clock/teraz, Rodina, version/stale check, then resume.
 */
 (function () {
   var VIEWS = ["rodina", "branislav", "zuzka", "andrej", "tomas"];
@@ -11,6 +17,13 @@
   var body = document.body;
   var root = document.documentElement;
   var idleTimer = null;
+  var pageHidden = false;
+  var clockTimer = null;
+  var nowInterval = null;
+  var refreshTimer = null;
+  var staleReloadInterval = null;
+  var versionPollInterval = null;
+  var refreshDeadline = null;
   var fallbackNow = body.getAttribute("data-fallback-now") || "";
   var tz = body.getAttribute("data-timezone") || "Europe/Prague";
   var dayStart = parseInt(body.getAttribute("data-day-start") || "420", 10);
@@ -58,8 +71,30 @@
   }
 
   function mockTodayParam() {
-    var m = (location.search || "").match(/[?&]today=(\d{4}-\d{2}-\d{2})/);
+    // ?today= freezes auto-reload (demos); ?asOf= mocks the date only (tests).
+    var m = (location.search || "").match(/[?&](?:today|asOf)=(\d{4}-\d{2}-\d{2})/);
     return m ? m[1] : "";
+  }
+
+  function isFrozenReload() {
+    return (
+      /[?&]now=/.test(location.search || "") ||
+      /[?&]today=/.test(location.search || "") ||
+      body.getAttribute("data-lock-now") === "1"
+    );
+  }
+
+  function isStalePage() {
+    var pageDate = body.getAttribute("data-date") || "";
+    var today = pragueToday();
+    return !!(pageDate && today && pageDate < today);
+  }
+
+  /** Short Slovak date from ISO YYYY-MM-DD → "11. 11. 2026". */
+  function fmtIsoShortSk(iso) {
+    var p = (iso || "").split("-");
+    if (p.length !== 3) return iso || "";
+    return parseInt(p[2], 10) + ". " + parseInt(p[1], 10) + ". " + p[0];
   }
 
   function pragueToday() {
@@ -185,6 +220,7 @@
     setTimeout(function () {
       refreshSectionVisibility();
       fitEventBlocks();
+      setupAutoscroll();
     }, 0);
     try {
       if (history.replaceState) {
@@ -201,9 +237,19 @@
     setView(VIEWS[i]);
   }
 
+  function clearIdle() {
+    if (idleTimer) {
+      clearTimeout(idleTimer);
+      idleTimer = null;
+    }
+  }
+
   function armIdle() {
-    if (idleTimer) clearTimeout(idleTimer);
+    clearIdle();
+    if (pageHidden) return;
     idleTimer = setTimeout(function () {
+      idleTimer = null;
+      if (pageHidden) return;
       setView("rodina");
     }, IDLE_MS);
   }
@@ -357,8 +403,10 @@
     if (!mode) {
       mode = isDarkNow() ? "dark" : "light";
     }
+    var changed = !root.classList.contains("theme-" + mode);
     root.classList.remove("theme-dark", "theme-light");
     root.classList.add("theme-" + mode);
+    if (changed && scrollGen > 0) scheduleAutoscroll(50);
     root.setAttribute("data-theme", mode);
     try {
       var p = pragueParts();
@@ -390,18 +438,48 @@
     return !!(pageDate && today && pageDate === today);
   }
 
+  function syncStaleNote() {
+    var pageDate = body.getAttribute("data-date") || "";
+    var stale = isStalePage();
+    if (stale) body.classList.add("is-stale-day");
+    else body.classList.remove("is-stale-day");
+
+    var note = document.querySelector(".stale-note");
+    if (!stale) {
+      if (note) note.style.display = "none";
+      return;
+    }
+    if (!note) {
+      note = document.createElement("p");
+      note.className = "stale-note";
+      var dateBox = document.querySelector(".topbar-date");
+      if (dateBox) dateBox.appendChild(note);
+      else return;
+    }
+    note.style.display = "";
+    note.textContent = "Neaktualizované · údaje z " + fmtIsoShortSk(pageDate);
+  }
+
   function syncRelativeChrome() {
     var today = pragueToday();
     var tomorrow = isTomorrowPage();
     var todayPage = isTodayPage();
+    var stale = isStalePage();
     if (tomorrow) body.classList.add("is-future-day");
     else body.classList.remove("is-future-day");
-    body.setAttribute("data-day-role", tomorrow ? "tomorrow" : todayPage ? "today" : "other");
+    body.setAttribute(
+      "data-day-role",
+      tomorrow ? "tomorrow" : todayPage ? "today" : stale ? "stale" : "other"
+    );
 
-    var rodinaEyebrow = document.querySelector(".eyebrow-rodina");
-    if (rodinaEyebrow) {
-      rodinaEyebrow.textContent = tomorrow ? "Zajtra" : "Rodinný prehľad";
+    // Kicker: family + personal both read „Zajtra“ on tomorrow's page
+    var kickers = document.querySelectorAll(".eyebrow[data-kicker]");
+    for (var k = 0; k < kickers.length; k++) {
+      var label = tomorrow ? "Zajtra" : kickers[k].getAttribute("data-kicker");
+      if (kickers[k].textContent !== label) kickers[k].textContent = label;
     }
+
+    syncStaleNote();
 
     var boxes = document.querySelectorAll(".outlook-box[data-outlook-from]");
     for (var i = 0; i < boxes.length; i++) {
@@ -488,48 +566,299 @@
     }
   }
 
+  function clearRefreshTimers() {
+    if (refreshTimer) {
+      clearTimeout(refreshTimer);
+      refreshTimer = null;
+    }
+    if (staleReloadInterval) {
+      clearInterval(staleReloadInterval);
+      staleReloadInterval = null;
+    }
+  }
+
   function armDailyRefresh() {
-    // Only bail when the page is *past* (page date < Prague today).
+    // Stale past day: never softReload immediately (that looped forever when
+    // no newer JSON was published). Keep the page, show a header note, and
+    // retry via version.json poll + a cheap 5‑min soft reload.
     // Tomorrow's evening file (page > today) must stay — no redirect loop.
-    var pageDate = body.getAttribute("data-date") || "";
-    var today = pragueToday();
-    var frozen =
-      /[?&]now=/.test(location.search || "") ||
-      /[?&]today=/.test(location.search || "") ||
-      body.getAttribute("data-lock-now") === "1";
-    if (pageDate && today && pageDate < today && !frozen) {
-      softReload(); // index.html rebuilt to today/tomorrow
+    clearRefreshTimers();
+    if (pageHidden) return;
+    var frozen = isFrozenReload();
+
+    if (isStalePage()) {
+      if (!frozen) {
+        refreshDeadline = Date.now() + VERSION_MS;
+        staleReloadInterval = setInterval(function () {
+          if (pageHidden) return;
+          softReload();
+        }, VERSION_MS);
+      }
+      return;
+    }
+
+    // Today / tomorrow: one reload at refresh_at (skipped when frozen for demos).
+    if (frozen) {
+      refreshDeadline = null;
       return;
     }
     var wait = msUntilRefresh();
     if (wait < 5000) wait = 5000;
-    setTimeout(function () {
+    refreshDeadline = Date.now() + wait;
+    refreshTimer = setTimeout(function () {
+      refreshTimer = null;
+      if (pageHidden) return;
       softReload();
     }, wait);
+  }
+
+  /** One version.json check. Returns a Promise; reloads if id changed. */
+  function checkVersion() {
+    if (typeof fetch !== "function") return Promise.resolve(false);
+    var url = "version.json?_=" + String(Date.now());
+    return fetch(url)
+      .then(function (r) {
+        if (!r || !r.ok) return null;
+        return r.json();
+      })
+      .then(function (data) {
+        if (!data || !data.id) return false;
+        if (knownVersionId == null) {
+          knownVersionId = data.id;
+          return false;
+        }
+        if (data.id !== knownVersionId) {
+          softReload();
+          return true;
+        }
+        return false;
+      })
+      .catch(function () {
+        return false;
+      });
   }
 
   /** Poll site/version.json so evening Pages deploys reach the frame quickly. */
   function armVersionPoll() {
     if (typeof fetch !== "function") return;
-    function check() {
-      var url = "version.json?_=" + String(Date.now());
-      fetch(url)
-        .then(function (r) {
-          if (!r || !r.ok) return null;
-          return r.json();
-        })
-        .then(function (data) {
-          if (!data || !data.id) return;
-          if (knownVersionId == null) {
-            knownVersionId = data.id;
-            return;
-          }
-          if (data.id !== knownVersionId) softReload();
-        })
-        .catch(function () {});
+    if (versionPollInterval) {
+      clearInterval(versionPollInterval);
+      versionPollInterval = null;
     }
-    check();
-    setInterval(check, VERSION_MS);
+    if (pageHidden) return;
+    checkVersion();
+    versionPollInterval = setInterval(function () {
+      if (pageHidden) return;
+      checkVersion();
+    }, VERSION_MS);
+  }
+
+  function clearVersionPoll() {
+    if (versionPollInterval) {
+      clearInterval(versionPollInterval);
+      versionPollInterval = null;
+    }
+  }
+
+  /* ---------- Header clock (HH:MM + small :SS) ---------- */
+  var clockFmt = null;
+  var clockHmEl = null;
+  var clockSEl = null;
+  var clockLastHm = "";
+
+  function clockNow() {
+    try {
+      if (!clockFmt) {
+        clockFmt = new Intl.DateTimeFormat("en-GB", {
+          timeZone: tz,
+          hour: "2-digit",
+          minute: "2-digit",
+          second: "2-digit",
+          hour12: false,
+        });
+      }
+      var parts = clockFmt.formatToParts(new Date());
+      var o = { hour: "00", minute: "00", second: "00" };
+      for (var i = 0; i < parts.length; i++) {
+        if (o.hasOwnProperty(parts[i].type)) o[parts[i].type] = parts[i].value;
+      }
+      if (o.hour === "24") o.hour = "00";
+      return o;
+    } catch (e) {
+      var d = new Date();
+      var p2 = function (n) { return (n < 10 ? "0" : "") + n; };
+      return { hour: p2(d.getHours()), minute: p2(d.getMinutes()), second: p2(d.getSeconds()) };
+    }
+  }
+
+  /** ?now=HH:MM (or data-lock-now) freezes the clock at HH:MM:00 for screenshots. */
+  function clockMock() {
+    var m = (location.search || "").match(/[?&]now=(\d{1,2}:\d{2})/);
+    if (m) return m[1].length === 4 ? "0" + m[1] : m[1];
+    if (body.getAttribute("data-lock-now") === "1" && fallbackNow) return fallbackNow;
+    return "";
+  }
+
+  function clearClock() {
+    if (clockTimer) {
+      clearTimeout(clockTimer);
+      clockTimer = null;
+    }
+    if (nowInterval) {
+      clearInterval(nowInterval);
+      nowInterval = null;
+    }
+  }
+
+  function tickClock() {
+    if (pageHidden) return;
+    var t = clockNow();
+    var hm = t.hour + ":" + t.minute;
+    if (hm !== clockLastHm) {
+      var first = clockLastHm === "";
+      clockLastHm = hm;
+      clockHmEl.textContent = hm;
+      // keep the „teraz“ marker / theme in step with the clock's minute
+      if (!first) updateNow();
+    }
+    clockSEl.textContent = ":" + t.second;
+    // next tick just after the next whole second (one timer, no interval drift)
+    clockTimer = setTimeout(tickClock, 1000 - (Date.now() % 1000) + 15);
+  }
+
+  function paintClockOnce() {
+    clockHmEl = clockHmEl || document.querySelector(".topbar-clock .clock-hm");
+    clockSEl = clockSEl || document.querySelector(".topbar-clock .clock-s");
+    if (!clockHmEl || !clockSEl) return;
+    var mock = clockMock();
+    if (mock) {
+      clockHmEl.textContent = mock;
+      clockSEl.textContent = ":00";
+      return;
+    }
+    var t = clockNow();
+    clockLastHm = t.hour + ":" + t.minute;
+    clockHmEl.textContent = clockLastHm;
+    clockSEl.textContent = ":" + t.second;
+  }
+
+  function startClock() {
+    clearClock();
+    clockHmEl = document.querySelector(".topbar-clock .clock-hm");
+    clockSEl = document.querySelector(".topbar-clock .clock-s");
+    if (!clockHmEl || !clockSEl) return false;
+    var mock = clockMock();
+    if (mock) {
+      clockHmEl.textContent = mock;
+      clockSEl.textContent = ":00";
+      return false;
+    }
+    if (pageHidden) {
+      paintClockOnce();
+      return true;
+    }
+    tickClock();
+    return true;
+  }
+
+  /* ---------- Sidebar auto-scroll ----------
+     Each .autoscroll viewport: if .autoscroll-inner is taller, loop
+     pause(top) → translateY linear at --autoscroll-speed px/s → pause(bottom)
+     → fade out, jump to top, fade in. Transform + opacity only (composited).
+     Debug: ?scrollpos=0..1 freezes every overflowing area at that fraction. */
+  var scrollGen = 0;
+  var FADE_MS = 500;
+
+  function cssNum(name, dflt) {
+    try {
+      var v = parseFloat(getComputedStyle(root).getPropertyValue(name));
+      return isNaN(v) ? dflt : v;
+    } catch (e) {
+      return dflt;
+    }
+  }
+
+  function stopAutoscroll() {
+    scrollGen++;
+  }
+
+  function setupAutoscroll() {
+    scrollGen++;
+    if (pageHidden) return;
+    var gen = scrollGen;
+    var speed = cssNum("--autoscroll-speed", 16);
+    var pause = cssNum("--autoscroll-pause", 4000);
+    var dbg = (location.search || "").match(/[?&]scrollpos=([0-9.]+)/);
+    var areas = document.querySelectorAll(".autoscroll");
+    var report = [];
+    for (var i = 0; i < areas.length; i++) {
+      var vp = areas[i];
+      var inner = vp.firstElementChild;
+      if (!inner) continue;
+      inner.style.transition = "none";
+      inner.style.transform = "translateY(0)";
+      inner.style.opacity = "";
+      vp.classList.remove("is-overflowing");
+      vp.removeAttribute("data-pos");
+      if (vp.offsetParent === null) continue; // hidden view
+      var over = Math.ceil(inner.offsetHeight - vp.clientHeight);
+      report.push(vp.clientHeight + "/" + inner.offsetHeight);
+      if (over <= 2) continue;
+      vp.classList.add("is-overflowing");
+      if (dbg) {
+        var f = Math.max(0, Math.min(1, parseFloat(dbg[1])));
+        inner.style.transform = "translateY(" + -Math.round(over * f) + "px)";
+        vp.setAttribute("data-pos", f <= 0 ? "top" : f >= 1 ? "bottom" : "moving");
+        continue;
+      }
+      runLoop(vp, inner, over, speed, pause, gen);
+    }
+    body.setAttribute("data-scroll-debug", report.join(" "));
+  }
+
+  function runLoop(vp, inner, over, speed, pause, gen) {
+    var dur = Math.max(1000, Math.round((over / speed) * 1000));
+    function alive() { return gen === scrollGen; }
+    function atTop() {
+      if (!alive()) return;
+      vp.setAttribute("data-pos", "top");
+      setTimeout(down, pause);
+    }
+    function down() {
+      if (!alive()) return;
+      vp.setAttribute("data-pos", "moving");
+      inner.style.transition = "transform " + dur + "ms linear";
+      inner.style.transform = "translateY(" + -over + "px)";
+      setTimeout(atBottom, dur);
+    }
+    function atBottom() {
+      if (!alive()) return;
+      vp.setAttribute("data-pos", "bottom");
+      setTimeout(fadeOut, pause);
+    }
+    function fadeOut() {
+      if (!alive()) return;
+      inner.style.transition = "opacity " + FADE_MS + "ms ease";
+      inner.style.opacity = "0";
+      setTimeout(function () {
+        if (!alive()) return;
+        inner.style.transition = "none";
+        inner.style.transform = "translateY(0)";
+        vp.setAttribute("data-pos", "top");
+        void inner.offsetHeight; // commit jump before fading in
+        inner.style.transition = "opacity " + FADE_MS + "ms ease";
+        inner.style.opacity = "1";
+        setTimeout(atTop, FADE_MS);
+      }, FADE_MS);
+    }
+    atTop();
+  }
+
+  var resizeT = null;
+  function scheduleAutoscroll(delay) {
+    if (resizeT) clearTimeout(resizeT);
+    if (pageHidden) return;
+    resizeT = setTimeout(setupAutoscroll, delay || 0);
   }
 
   function onKey(e) {
@@ -537,15 +866,7 @@
     var code = e.keyCode || e.which;
     var isTab = key === "Tab" || code === 9;
     var isEnter = key === "Enter" || code === 13;
-    var isBack = (key === "ArrowLeft" || code === 37) && e.altKey;
 
-    if (isBack) {
-      e.preventDefault();
-      e.stopPropagation();
-      setView("rodina");
-      armIdle();
-      return;
-    }
     if (isEnter || isTab) {
       e.preventDefault();
       e.stopPropagation();
@@ -555,6 +876,66 @@
       return;
     }
     armIdle();
+  }
+
+  function pauseAllWork() {
+    pageHidden = true;
+    body.setAttribute("data-paused", "1");
+    clearClock();
+    clearIdle();
+    stopAutoscroll();
+    clearRefreshTimers();
+    clearVersionPoll();
+    if (resizeT) {
+      clearTimeout(resizeT);
+      resizeT = null;
+    }
+  }
+
+  function needsCatchupReload() {
+    if (isFrozenReload()) return false;
+    if (isStalePage()) return true;
+    if (refreshDeadline != null && Date.now() >= refreshDeadline) return true;
+    return false;
+  }
+
+  function resumeAllWork() {
+    pageHidden = false;
+    body.setAttribute("data-paused", "0");
+    // Catch up UI immediately, then freshness; restart work only if we stay.
+    setView("rodina");
+    paintClockOnce();
+    updateNow();
+
+    if (needsCatchupReload()) {
+      softReload();
+      return;
+    }
+
+    checkVersion().then(function (reloading) {
+      if (reloading || pageHidden) return;
+      if (needsCatchupReload()) {
+        softReload();
+        return;
+      }
+      var live = startClock();
+      if (!live) {
+        clearClock();
+        nowInterval = setInterval(function () {
+          if (pageHidden) return;
+          updateNow();
+        }, NOW_MS);
+      }
+      armIdle();
+      setupAutoscroll();
+      armDailyRefresh();
+      armVersionPoll();
+    });
+  }
+
+  function onVisibility() {
+    if (document.hidden) pauseAllWork();
+    else resumeAllWork();
   }
 
   function boot() {
@@ -567,13 +948,41 @@
     else if (hash && viewIndex(hash) >= 0) initial = hash;
     applyTheme();
     setView(initial);
-    armIdle();
     updateNow();
-    setInterval(updateNow, NOW_MS);
+    paintClockOnce();
+
+    document.addEventListener("keydown", onKey, true);
+    document.addEventListener("visibilitychange", onVisibility, false);
+    window.addEventListener("resize", function () {
+      if (pageHidden) return;
+      fitEventBlocks();
+      scheduleAutoscroll(200);
+    });
+    // Webfonts change text metrics — re-measure once they are in
+    try {
+      if (document.fonts && document.fonts.ready) {
+        document.fonts.ready.then(function () { scheduleAutoscroll(0); });
+      }
+    } catch (e) {}
+
+    // Load-while-hidden (boot sequence): stay paused until first visible.
+    if (document.hidden) {
+      pageHidden = true;
+      body.setAttribute("data-paused", "1");
+      return;
+    }
+    body.setAttribute("data-paused", "0");
+    armIdle();
+    // Live clock drives updateNow on each minute change; fall back to the
+    // old 60 s interval when the clock is frozen (?now=) or missing.
+    if (!startClock()) {
+      nowInterval = setInterval(function () {
+        if (pageHidden) return;
+        updateNow();
+      }, NOW_MS);
+    }
     armDailyRefresh();
     armVersionPoll();
-    document.addEventListener("keydown", onKey, true);
-    window.addEventListener("resize", fitEventBlocks);
   }
 
   if (document.readyState === "loading") {

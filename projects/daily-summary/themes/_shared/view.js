@@ -1,12 +1,14 @@
 /* Chromium 81–safe view cycling + light/dark theme for the daily recap.
    Views: rodina → branislav → zuzka → andrej → tomas → (cycle).
-   Enter / Tab = next; Shift+Tab = previous; Alt+ArrowLeft = Rodina.
+   Enter / Tab = next; Shift+Tab = previous. (No Alt+ArrowLeft — frame has no back.)
    Theme: sun (NOAA sunrise/sunset) or fixed clock; ?theme= locks.
    Idle 60s → rodina. Now-marker every minute. Daily reload at refresh_at.
    Stale past day: keep showing + header note; version.json poll / 5‑min retry
    (no immediate reload loop). Test: ?asOf=YYYY-MM-DD mocks today without freeze.
    Header clock ticks once per second (one timeout aligned to the second).
    Sidebar .autoscroll areas slowly loop when their content overflows.
+   visibilitychange → hidden: stop clock, scroll, idle, version poll, refresh.
+   → visible: catch up clock/teraz, Rodina, version/stale check, then resume.
 */
 (function () {
   var VIEWS = ["rodina", "branislav", "zuzka", "andrej", "tomas"];
@@ -15,6 +17,13 @@
   var body = document.body;
   var root = document.documentElement;
   var idleTimer = null;
+  var pageHidden = false;
+  var clockTimer = null;
+  var nowInterval = null;
+  var refreshTimer = null;
+  var staleReloadInterval = null;
+  var versionPollInterval = null;
+  var refreshDeadline = null;
   var fallbackNow = body.getAttribute("data-fallback-now") || "";
   var tz = body.getAttribute("data-timezone") || "Europe/Prague";
   var dayStart = parseInt(body.getAttribute("data-day-start") || "420", 10);
@@ -228,9 +237,19 @@
     setView(VIEWS[i]);
   }
 
+  function clearIdle() {
+    if (idleTimer) {
+      clearTimeout(idleTimer);
+      idleTimer = null;
+    }
+  }
+
   function armIdle() {
-    if (idleTimer) clearTimeout(idleTimer);
+    clearIdle();
+    if (pageHidden) return;
     idleTimer = setTimeout(function () {
+      idleTimer = null;
+      if (pageHidden) return;
       setView("rodina");
     }, IDLE_MS);
   }
@@ -547,16 +566,31 @@
     }
   }
 
+  function clearRefreshTimers() {
+    if (refreshTimer) {
+      clearTimeout(refreshTimer);
+      refreshTimer = null;
+    }
+    if (staleReloadInterval) {
+      clearInterval(staleReloadInterval);
+      staleReloadInterval = null;
+    }
+  }
+
   function armDailyRefresh() {
     // Stale past day: never softReload immediately (that looped forever when
     // no newer JSON was published). Keep the page, show a header note, and
     // retry via version.json poll + a cheap 5‑min soft reload.
     // Tomorrow's evening file (page > today) must stay — no redirect loop.
+    clearRefreshTimers();
+    if (pageHidden) return;
     var frozen = isFrozenReload();
 
     if (isStalePage()) {
       if (!frozen) {
-        setInterval(function () {
+        refreshDeadline = Date.now() + VERSION_MS;
+        staleReloadInterval = setInterval(function () {
+          if (pageHidden) return;
           softReload();
         }, VERSION_MS);
       }
@@ -564,36 +598,66 @@
     }
 
     // Today / tomorrow: one reload at refresh_at (skipped when frozen for demos).
-    if (frozen) return;
+    if (frozen) {
+      refreshDeadline = null;
+      return;
+    }
     var wait = msUntilRefresh();
     if (wait < 5000) wait = 5000;
-    setTimeout(function () {
+    refreshDeadline = Date.now() + wait;
+    refreshTimer = setTimeout(function () {
+      refreshTimer = null;
+      if (pageHidden) return;
       softReload();
     }, wait);
+  }
+
+  /** One version.json check. Returns a Promise; reloads if id changed. */
+  function checkVersion() {
+    if (typeof fetch !== "function") return Promise.resolve(false);
+    var url = "version.json?_=" + String(Date.now());
+    return fetch(url)
+      .then(function (r) {
+        if (!r || !r.ok) return null;
+        return r.json();
+      })
+      .then(function (data) {
+        if (!data || !data.id) return false;
+        if (knownVersionId == null) {
+          knownVersionId = data.id;
+          return false;
+        }
+        if (data.id !== knownVersionId) {
+          softReload();
+          return true;
+        }
+        return false;
+      })
+      .catch(function () {
+        return false;
+      });
   }
 
   /** Poll site/version.json so evening Pages deploys reach the frame quickly. */
   function armVersionPoll() {
     if (typeof fetch !== "function") return;
-    function check() {
-      var url = "version.json?_=" + String(Date.now());
-      fetch(url)
-        .then(function (r) {
-          if (!r || !r.ok) return null;
-          return r.json();
-        })
-        .then(function (data) {
-          if (!data || !data.id) return;
-          if (knownVersionId == null) {
-            knownVersionId = data.id;
-            return;
-          }
-          if (data.id !== knownVersionId) softReload();
-        })
-        .catch(function () {});
+    if (versionPollInterval) {
+      clearInterval(versionPollInterval);
+      versionPollInterval = null;
     }
-    check();
-    setInterval(check, VERSION_MS);
+    if (pageHidden) return;
+    checkVersion();
+    versionPollInterval = setInterval(function () {
+      if (pageHidden) return;
+      checkVersion();
+    }, VERSION_MS);
+  }
+
+  function clearVersionPoll() {
+    if (versionPollInterval) {
+      clearInterval(versionPollInterval);
+      versionPollInterval = null;
+    }
   }
 
   /* ---------- Header clock (HH:MM + small :SS) ---------- */
@@ -635,7 +699,19 @@
     return "";
   }
 
+  function clearClock() {
+    if (clockTimer) {
+      clearTimeout(clockTimer);
+      clockTimer = null;
+    }
+    if (nowInterval) {
+      clearInterval(nowInterval);
+      nowInterval = null;
+    }
+  }
+
   function tickClock() {
+    if (pageHidden) return;
     var t = clockNow();
     var hm = t.hour + ":" + t.minute;
     if (hm !== clockLastHm) {
@@ -647,10 +723,27 @@
     }
     clockSEl.textContent = ":" + t.second;
     // next tick just after the next whole second (one timer, no interval drift)
-    setTimeout(tickClock, 1000 - (Date.now() % 1000) + 15);
+    clockTimer = setTimeout(tickClock, 1000 - (Date.now() % 1000) + 15);
+  }
+
+  function paintClockOnce() {
+    clockHmEl = clockHmEl || document.querySelector(".topbar-clock .clock-hm");
+    clockSEl = clockSEl || document.querySelector(".topbar-clock .clock-s");
+    if (!clockHmEl || !clockSEl) return;
+    var mock = clockMock();
+    if (mock) {
+      clockHmEl.textContent = mock;
+      clockSEl.textContent = ":00";
+      return;
+    }
+    var t = clockNow();
+    clockLastHm = t.hour + ":" + t.minute;
+    clockHmEl.textContent = clockLastHm;
+    clockSEl.textContent = ":" + t.second;
   }
 
   function startClock() {
+    clearClock();
     clockHmEl = document.querySelector(".topbar-clock .clock-hm");
     clockSEl = document.querySelector(".topbar-clock .clock-s");
     if (!clockHmEl || !clockSEl) return false;
@@ -659,6 +752,10 @@
       clockHmEl.textContent = mock;
       clockSEl.textContent = ":00";
       return false;
+    }
+    if (pageHidden) {
+      paintClockOnce();
+      return true;
     }
     tickClock();
     return true;
@@ -681,8 +778,13 @@
     }
   }
 
+  function stopAutoscroll() {
+    scrollGen++;
+  }
+
   function setupAutoscroll() {
     scrollGen++;
+    if (pageHidden) return;
     var gen = scrollGen;
     var speed = cssNum("--autoscroll-speed", 16);
     var pause = cssNum("--autoscroll-pause", 4000);
@@ -755,6 +857,7 @@
   var resizeT = null;
   function scheduleAutoscroll(delay) {
     if (resizeT) clearTimeout(resizeT);
+    if (pageHidden) return;
     resizeT = setTimeout(setupAutoscroll, delay || 0);
   }
 
@@ -763,15 +866,7 @@
     var code = e.keyCode || e.which;
     var isTab = key === "Tab" || code === 9;
     var isEnter = key === "Enter" || code === 13;
-    var isBack = (key === "ArrowLeft" || code === 37) && e.altKey;
 
-    if (isBack) {
-      e.preventDefault();
-      e.stopPropagation();
-      setView("rodina");
-      armIdle();
-      return;
-    }
     if (isEnter || isTab) {
       e.preventDefault();
       e.stopPropagation();
@@ -781,6 +876,66 @@
       return;
     }
     armIdle();
+  }
+
+  function pauseAllWork() {
+    pageHidden = true;
+    body.setAttribute("data-paused", "1");
+    clearClock();
+    clearIdle();
+    stopAutoscroll();
+    clearRefreshTimers();
+    clearVersionPoll();
+    if (resizeT) {
+      clearTimeout(resizeT);
+      resizeT = null;
+    }
+  }
+
+  function needsCatchupReload() {
+    if (isFrozenReload()) return false;
+    if (isStalePage()) return true;
+    if (refreshDeadline != null && Date.now() >= refreshDeadline) return true;
+    return false;
+  }
+
+  function resumeAllWork() {
+    pageHidden = false;
+    body.setAttribute("data-paused", "0");
+    // Catch up UI immediately, then freshness; restart work only if we stay.
+    setView("rodina");
+    paintClockOnce();
+    updateNow();
+
+    if (needsCatchupReload()) {
+      softReload();
+      return;
+    }
+
+    checkVersion().then(function (reloading) {
+      if (reloading || pageHidden) return;
+      if (needsCatchupReload()) {
+        softReload();
+        return;
+      }
+      var live = startClock();
+      if (!live) {
+        clearClock();
+        nowInterval = setInterval(function () {
+          if (pageHidden) return;
+          updateNow();
+        }, NOW_MS);
+      }
+      armIdle();
+      setupAutoscroll();
+      armDailyRefresh();
+      armVersionPoll();
+    });
+  }
+
+  function onVisibility() {
+    if (document.hidden) pauseAllWork();
+    else resumeAllWork();
   }
 
   function boot() {
@@ -793,15 +948,13 @@
     else if (hash && viewIndex(hash) >= 0) initial = hash;
     applyTheme();
     setView(initial);
-    armIdle();
     updateNow();
-    // Live clock drives updateNow on each minute change; fall back to the
-    // old 60 s interval when the clock is frozen (?now=) or missing.
-    if (!startClock()) setInterval(updateNow, NOW_MS);
-    armDailyRefresh();
-    armVersionPoll();
+    paintClockOnce();
+
     document.addEventListener("keydown", onKey, true);
+    document.addEventListener("visibilitychange", onVisibility, false);
     window.addEventListener("resize", function () {
+      if (pageHidden) return;
       fitEventBlocks();
       scheduleAutoscroll(200);
     });
@@ -811,6 +964,25 @@
         document.fonts.ready.then(function () { scheduleAutoscroll(0); });
       }
     } catch (e) {}
+
+    // Load-while-hidden (boot sequence): stay paused until first visible.
+    if (document.hidden) {
+      pageHidden = true;
+      body.setAttribute("data-paused", "1");
+      return;
+    }
+    body.setAttribute("data-paused", "0");
+    armIdle();
+    // Live clock drives updateNow on each minute change; fall back to the
+    // old 60 s interval when the clock is frozen (?now=) or missing.
+    if (!startClock()) {
+      nowInterval = setInterval(function () {
+        if (pageHidden) return;
+        updateNow();
+      }, NOW_MS);
+    }
+    armDailyRefresh();
+    armVersionPoll();
   }
 
   if (document.readyState === "loading") {
