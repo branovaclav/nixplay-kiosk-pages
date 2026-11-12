@@ -10,20 +10,23 @@
 
 The frame opens each project as its own fullscreen Chromium window. Slideshow
 is the **first** project. Short shake cycles projects (page gets no key); long
-shake reloads this first project and shows it. See root [`FRAME.md`](../../FRAME.md).
+shake restarts Chromium and reloads **all** projects, with photo-slideshow in
+front. See root [`FRAME.md`](../../FRAME.md).
 
 ---
 
 ## Album keys
 
-iCloud shared albums look like:
+iCloud shared albums (CloudKit / current Photos share links) look like:
 
 ```
-https://www.icloud.com/sharedalbum/#B0xxxxxxxxxxxxxxxxxxxxxxxxxxxx
+https://photos.icloud.com/shared/album/<id>
 ```
 
-**The album key is the fragment after `#`** (starts with `B0…`).  
-Bare `B0…` strings are used as-is.
+**The album key is the `<id>` path segment** (about 25 characters, e.g.
+`AbCdE_fgHijKlMnOpQrStUvWx`). Bare ids are used as-is.
+`tools/make-kiosk-url.sh` also accepts the full `photos.icloud.com` URL and
+strips it down to the id.
 
 - 1–5 keys, **comma-separated**, order = sequential playback order.
 - Contributor-writable links → **passwords**. Never put keys, full `#cfg=` URLs,
@@ -46,7 +49,9 @@ projects/photo-slideshow/tools/make-kiosk-url.sh /path/to/private.env
 Keys (prefix `SLIDESHOW_…`):
 
 ```
-SLIDESHOW_ALBUMS=B0keyOne,B0keyTwo
+SLIDESHOW_ALBUMS=AbCdE_fgHijKlMnOpQrStUvWx,XyZ12_abCdeFgHijKlMnOpQrS
+# or full links:
+# SLIDESHOW_ALBUMS=https://photos.icloud.com/shared/album/AbCdE_fgHijKlMnOpQrStUvWx
 SLIDESHOW_INTERVAL=5
 SLIDESHOW_FADE=0.6
 SLIDESHOW_SHARPEN=0.3
@@ -79,8 +84,12 @@ Optional override: `SLIDESHOW_BASE_URL` if Pages path differs.
 - Ignore key `repeat`; debounce ~400 ms. No “next” key — timer advances photos.
 - `visibilitychange` **hidden** → pause timer, clock, sync/downloads/geocode; finish
   the current download item then free decoded images / object URLs. **visible** →
-  restore images, catch up clock, resume timer + sync (new album photos download
-  only while on screen).
+  restore images, catch up clock, resume timer; run a full album sync only if the
+  previous one was interrupted or the last completed sync is older than a few
+  hours (6 h timer still runs while visible). New album photos download only
+  while on screen.
+- Cache is scoped to configured album ids: photos from removed albums or a prior
+  `?demo=1` visit are deleted and never played. Demo mode uses a separate IndexedDB.
 
 ---
 

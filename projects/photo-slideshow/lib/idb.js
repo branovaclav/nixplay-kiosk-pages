@@ -2,14 +2,26 @@
 (function (global) {
   "use strict";
 
-  var DB_NAME = "ps.v1";
+  var DB_NAME_LIVE = "ps.v1";
+  var DB_NAME_DEMO = "ps.demo.v1";
   var DB_VER = 1;
+  var dbName = DB_NAME_LIVE;
   var dbPromise = null;
+
+  /** Demo mode uses a separate DB so ?demo=1 never pollutes the live cache. */
+  function configure(opts) {
+    var next = opts && opts.demo ? DB_NAME_DEMO : DB_NAME_LIVE;
+    if (next !== dbName) {
+      dbName = next;
+      dbPromise = null;
+    }
+  }
 
   function openDb() {
     if (dbPromise) return dbPromise;
+    var name = dbName;
     dbPromise = new Promise(function (resolve, reject) {
-      var req = indexedDB.open(DB_NAME, DB_VER);
+      var req = indexedDB.open(name, DB_VER);
       req.onupgradeneeded = function (e) {
         var db = e.target.result;
         if (!db.objectStoreNames.contains("photos")) db.createObjectStore("photos");
@@ -143,6 +155,9 @@
 
   global.PS = global.PS || {};
   global.PS.idb = {
+    DB_NAME_LIVE: DB_NAME_LIVE,
+    DB_NAME_DEMO: DB_NAME_DEMO,
+    configure: configure,
     open: openDb,
     put: put,
     get: get,

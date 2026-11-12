@@ -30,7 +30,7 @@ The pages in this repo are shown on a self-managed Nixplay Seed 8" photo frame. 
 | Raise left side, hold ~0.8 s | `key "Tab"`, `keyCode 9`, `shiftKey false` | **the page** |
 | Raise right side, hold ~0.8 s | `key "Tab"`, `keyCode 9`, `shiftKey true` | **the page** |
 | Short shake | *(no key)* | **the frame** cycles to the next project |
-| Long shake | *(no key)* | **the frame** reloads the **first** project (photo-slideshow) and shows it |
+| Long shake | *(no key)* | **the frame** restarts Chromium and reloads **all** projects, with photo-slideshow in front |
 
 - **`Alt+ArrowLeft` (browser back) no longer arrives.** There is no back gesture. Pages must not rely on browser history.
 - **Design for "next + select".**

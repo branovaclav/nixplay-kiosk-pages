@@ -167,6 +167,36 @@
     return xhrJson("POST", ctx.endpoint("records/query"), body);
   }
 
+  /**
+   * Pair CPLAsset + CPLMaster records from one query page.
+   * CloudKit returns all Masters for the page, then all Assets (not interleaved).
+   * Match each asset to its master via fields.masterRef — never by arrival order.
+   */
+  function pairAssetAndMasterRecords(recs) {
+    var mastersByName = {};
+    var i;
+    var rec;
+    var pairs = [];
+    for (i = 0; i < recs.length; i++) {
+      rec = recs[i];
+      if (rec && rec.recordType === "CPLMaster" && rec.recordName) {
+        mastersByName[rec.recordName] = rec;
+      }
+    }
+    for (i = 0; i < recs.length; i++) {
+      rec = recs[i];
+      if (!rec || rec.recordType !== "CPLAsset") continue;
+      var ref =
+        rec.fields &&
+        rec.fields.masterRef &&
+        rec.fields.masterRef.value &&
+        rec.fields.masterRef.value.recordName;
+      var master = ref ? mastersByName[ref] : null;
+      if (master) pairs.push({ asset: rec, master: master });
+    }
+    return pairs;
+  }
+
   /** List all CPLAsset + CPLMaster pairs via startRank paging. */
   function listAssets(ctx) {
     var out = [];
@@ -177,18 +207,9 @@
       return queryPage(ctx, "CPLAssetAndMasterByAddedDate", rank, pageSize).then(function (data) {
         var recs = data.records || [];
         if (!recs.length) return out;
+        var pagePairs = pairAssetAndMasterRecords(recs);
         var i;
-        var asset = null;
-        var master = null;
-        for (i = 0; i < recs.length; i++) {
-          if (recs[i].recordType === "CPLAsset") asset = recs[i];
-          else if (recs[i].recordType === "CPLMaster") master = recs[i];
-          if (asset && master) {
-            out.push({ asset: asset, master: master });
-            asset = null;
-            master = null;
-          }
-        }
+        for (i = 0; i < pagePairs.length; i++) out.push(pagePairs[i]);
         // Each photo ≈ 2 records; advance by photo count
         var photos = 0;
         for (i = 0; i < recs.length; i++) if (recs[i].recordType === "CPLAsset") photos++;
@@ -339,6 +360,7 @@
     resolveAlbum: resolveAlbum,
     sharedBase: sharedBase,
     countAssets: countAssets,
+    pairAssetAndMasterRecords: pairAssetAndMasterRecords,
     listAssets: listAssets,
     listPosts: listPosts,
     listPostAssets: listPostAssets,

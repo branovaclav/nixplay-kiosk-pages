@@ -143,5 +143,132 @@ test("shuffle bag keeps remaining and adds new ids", function () {
   assert.ok(rem2.indexOf(rem[0]) >= 0);
 });
 
+// ---- cloudkit asset/master pairing (synthetic; no network) ----
+function loadCloudkit() {
+  var code = fs.readFileSync(path.join(ROOT, "lib/cloudkit.js"), "utf8");
+  var sandbox = {
+    console: console,
+    Promise: Promise,
+    setTimeout: setTimeout,
+    XMLHttpRequest: function () {},
+    Math: Math,
+  };
+  sandbox.global = sandbox;
+  sandbox.window = undefined;
+  vm.runInNewContext(code, sandbox, { filename: "lib/cloudkit.js" });
+  return sandbox.PS.cloudkit;
+}
+
+function synthMaster(name) {
+  return { recordName: name, recordType: "CPLMaster", fields: {} };
+}
+
+function synthAsset(name, masterName) {
+  return {
+    recordName: name,
+    recordType: "CPLAsset",
+    fields: {
+      masterRef: { value: { recordName: masterName, action: "NONE" } },
+    },
+  };
+}
+
+test("pairAssetAndMasterRecords: masters-then-assets page yields all N pairs", function () {
+  var ck = loadCloudkit();
+  // Mirrors live CloudKit page order: all Masters, then all Assets.
+  var recs = [
+    synthMaster("M1"),
+    synthMaster("M2"),
+    synthMaster("M3"),
+    synthAsset("A1", "M1"),
+    synthAsset("A2", "M2"),
+    synthAsset("A3", "M3"),
+  ];
+  var pairs = ck.pairAssetAndMasterRecords(recs);
+  assert.strictEqual(pairs.length, 3);
+  assert.strictEqual(pairs[0].asset.recordName, "A1");
+  assert.strictEqual(pairs[0].master.recordName, "M1");
+  assert.strictEqual(pairs[1].asset.recordName, "A2");
+  assert.strictEqual(pairs[1].master.recordName, "M2");
+  assert.strictEqual(pairs[2].asset.recordName, "A3");
+  assert.strictEqual(pairs[2].master.recordName, "M3");
+});
+
+test("pairAssetAndMasterRecords: interleaved and single-photo pages still work", function () {
+  var ck = loadCloudkit();
+  var interleaved = [
+    synthMaster("M1"),
+    synthAsset("A1", "M1"),
+    synthMaster("M2"),
+    synthAsset("A2", "M2"),
+  ];
+  var p1 = ck.pairAssetAndMasterRecords(interleaved);
+  assert.strictEqual(p1.length, 2);
+  assert.strictEqual(p1[0].master.recordName, "M1");
+  assert.strictEqual(p1[1].asset.recordName, "A2");
+
+  var one = [synthMaster("Mx"), synthAsset("Ax", "Mx")];
+  var p2 = ck.pairAssetAndMasterRecords(one);
+  assert.strictEqual(p2.length, 1);
+  assert.strictEqual(p2[0].asset.recordName, "Ax");
+  assert.strictEqual(p2[0].master.recordName, "Mx");
+});
+
+test("pairAssetAndMasterRecords: skips asset when master missing on page", function () {
+  var ck = loadCloudkit();
+  var recs = [synthMaster("M1"), synthAsset("A1", "M1"), synthAsset("A2", "M-missing")];
+  var pairs = ck.pairAssetAndMasterRecords(recs);
+  assert.strictEqual(pairs.length, 1);
+  assert.strictEqual(pairs[0].asset.recordName, "A1");
+});
+
+// ---- sync / cache policy ----
+PS = loadLib("lib/sync-policy.js");
+
+test("filterMetasForAlbums drops demo and removed-album leftovers", function () {
+  var metas = [
+    { id: "a1", album: "albumA" },
+    { id: "d1", album: "demo" },
+    { id: "b1", album: "albumB" },
+    { id: "x1", album: "gone" },
+  ];
+  var keep = PS.syncPolicy.filterMetasForAlbums(metas, ["albumA", "albumB"]);
+  assert.strictEqual(keep.length, 2);
+  assert.strictEqual(keep[0].id, "a1");
+  assert.strictEqual(keep[1].id, "b1");
+  var foreign = PS.syncPolicy.foreignMetaIds(metas, ["albumA", "albumB"]).slice().sort();
+  assert.strictEqual(foreign.join(","), "d1,x1");
+});
+
+test("filterMetasForAlbums in demo only keeps demo album", function () {
+  var metas = [
+    { id: "d1", album: "demo" },
+    { id: "a1", album: "albumA" },
+  ];
+  var keep = PS.syncPolicy.filterMetasForAlbums(metas, ["demo"]);
+  assert.strictEqual(keep.length, 1);
+  assert.strictEqual(keep[0].id, "d1");
+});
+
+test("shouldSyncOnVisible resumes interrupted sync", function () {
+  var sp = PS.syncPolicy;
+  var now = 1e12;
+  assert.strictEqual(sp.shouldSyncOnVisible(now - 1000, true, now, sp.VISIBLE_SYNC_MIN_INTERVAL_MS), true);
+  assert.strictEqual(
+    sp.shouldSyncOnVisible(now - 1000, false, now, sp.VISIBLE_SYNC_MIN_INTERVAL_MS),
+    false
+  );
+});
+
+test("shouldSyncOnVisible after stale lastCompletedAt", function () {
+  var sp = PS.syncPolicy;
+  var now = 1e12;
+  var fresh = now - 60 * 1000;
+  var stale = now - sp.VISIBLE_SYNC_MIN_INTERVAL_MS - 1;
+  assert.strictEqual(sp.shouldSyncOnVisible(fresh, false, now), false);
+  assert.strictEqual(sp.shouldSyncOnVisible(stale, false, now), true);
+  assert.strictEqual(sp.shouldSyncOnVisible(null, false, now), true);
+});
+
 console.log("\n" + passed + " passed, " + failed + " failed");
 process.exit(failed ? 1 : 0);
