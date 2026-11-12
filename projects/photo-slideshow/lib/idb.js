@@ -17,10 +17,15 @@
     }
   }
 
+  function resetDbPromise(expected) {
+    // Only clear if this is still the active open — avoids races on reconfigure.
+    if (expected == null || dbPromise === expected) dbPromise = null;
+  }
+
   function openDb() {
     if (dbPromise) return dbPromise;
     var name = dbName;
-    dbPromise = new Promise(function (resolve, reject) {
+    var pending = new Promise(function (resolve, reject) {
       var req = indexedDB.open(name, DB_VER);
       req.onupgradeneeded = function (e) {
         var db = e.target.result;
@@ -31,12 +36,25 @@
         if (!db.objectStoreNames.contains("state")) db.createObjectStore("state");
       };
       req.onsuccess = function () {
-        resolve(req.result);
+        var db = req.result;
+        // Frozen tabs / multi-context upgrades can close the connection; reopen next time.
+        db.onclose = function () {
+          resetDbPromise(pending);
+        };
+        db.onversionchange = function () {
+          try {
+            db.close();
+          } catch (e) {}
+          resetDbPromise(pending);
+        };
+        resolve(db);
       };
       req.onerror = function () {
+        resetDbPromise(pending);
         reject(req.error);
       };
     });
+    dbPromise = pending;
     return dbPromise;
   }
 

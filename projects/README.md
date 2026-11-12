@@ -10,11 +10,14 @@ self-contained and publishes to its own GitHub Pages path.
 2. **Keys:** the page handles Enter / Tab / Shift+Tab itself (`keydown`,
    capture phase, `preventDefault`). Never rely on `Alt+ArrowLeft` or browser
    history (there is no back gesture).
-3. **Pausing:** on `visibilitychange` → hidden, stop all work (timers,
-   animations, polling, downloads, background processing). On → visible, catch
-   up at once (clock, data freshness, reload if stale), then resume. Correct if
-   the page loads while hidden, or is hidden right after load. Persist anything
-   that must survive a reload (`localStorage` / IndexedDB).
+3. **Pausing:** treat visibility as state (`syncVisibility()`), not only
+   `visibilitychange` — also `resume` / `pageshow` / `focus` / a ~10 s poll
+   (after a freeze, Chromium 81 may fire `resume` without visibilitychange).
+   On hidden, stop all work (timers, animations, polling, downloads, background
+   processing). On visible, catch up at once (clock, data freshness, reload if
+   stale), then resume. Correct if the page loads while hidden, or is hidden
+   right after load. Persist anything that must survive a reload
+   (`localStorage` / IndexedDB).
 4. **Runs for days without leaks.**
 5. **Private settings** never go in the repo. A project that needs them
    provides `tools/make-kiosk-url.sh <env-file>` (prints the full URL with the

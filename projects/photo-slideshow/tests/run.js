@@ -304,6 +304,75 @@ test("shouldSyncOnVisible after stale lastCompletedAt", function () {
   assert.strictEqual(sp.shouldSyncOnVisible(null, false, now), true);
 });
 
+// ---- visibility state sync (freeze→resume without visibilitychange) ----
+PS = loadLib("lib/visibility.js");
+
+test("visibility.transition hide/show/idempotent", function () {
+  var v = PS.visibility;
+  assert.strictEqual(v.transition(true, false), "hide");
+  assert.strictEqual(v.transition(false, true), "show");
+  assert.strictEqual(v.transition(false, false), null);
+  assert.strictEqual(v.transition(true, true), null);
+});
+
+test("visibility.restoreFollowUp advances on fail/timeout", function () {
+  var v = PS.visibility;
+  assert.strictEqual(v.restoreFollowUp("ok"), "arm");
+  assert.strictEqual(v.restoreFollowUp("fail"), "advance");
+  assert.strictEqual(v.restoreFollowUp("timeout"), "advance");
+  assert.strictEqual(v.RESTORE_TIMEOUT_MS, 10000);
+  assert.strictEqual(v.POLL_INTERVAL_MS, 10000);
+});
+
+test("resume-only event recovers when page still paused (frame screen-on)", function () {
+  // Reproduces Chromium 81: after freeze, resume fires but visibilitychange does not.
+  var documentHidden = false;
+  var pagePaused = true;
+  var actions = [];
+  var listeners = {};
+
+  function addEventListener(type, fn) {
+    if (!listeners[type]) listeners[type] = [];
+    listeners[type].push(fn);
+  }
+  function dispatchEvent(ev) {
+    var list = listeners[ev.type] || [];
+    for (var i = 0; i < list.length; i++) list[i](ev);
+  }
+  function syncVisibility() {
+    var action = PS.visibility.transition(documentHidden, pagePaused);
+    if (action === "hide") {
+      pagePaused = true;
+      actions.push("hide");
+    } else if (action === "show") {
+      pagePaused = false;
+      actions.push("show");
+    }
+  }
+
+  addEventListener("visibilitychange", syncVisibility);
+  addEventListener("resume", syncVisibility);
+  addEventListener("pageshow", syncVisibility);
+  addEventListener("focus", syncVisibility);
+
+  // Screen-on path measured on the frame: resume only.
+  dispatchEvent({ type: "resume" });
+  assert.deepStrictEqual(actions, ["show"]);
+  assert.strictEqual(pagePaused, false);
+
+  // Idempotent while already matching.
+  dispatchEvent({ type: "resume" });
+  dispatchEvent({ type: "pageshow" });
+  dispatchEvent({ type: "focus" });
+  assert.deepStrictEqual(actions, ["show"]);
+
+  // Normal hide still works via visibilitychange.
+  documentHidden = true;
+  dispatchEvent({ type: "visibilitychange" });
+  assert.deepStrictEqual(actions, ["show", "hide"]);
+  assert.strictEqual(pagePaused, true);
+});
+
 test("assetIdsForPost maps via assetBatchId === post.recordName", function () {
   var ck = loadCloudkit();
   var post = { recordName: "POST-BATCH-1", fields: { caption: { value: "Trip" } } };

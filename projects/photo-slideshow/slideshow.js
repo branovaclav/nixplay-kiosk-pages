@@ -39,6 +39,9 @@
   var clockAlignTimer = null;
   var syncInterval = null;
   var hideReleaseTimer = null;
+  var restoreWatchTimer = null;
+  var restoreGeneration = 0;
+  var visibilityPollTimer = null;
   var syncGeneration = 0;
   var syncInFlight = false;
   var syncInterrupted = false;
@@ -133,11 +136,16 @@
     }
   }
 
-  function restoreDisplay() {
+  function restoreDisplay(gen) {
+    function stale() {
+      return pageHidden || (gen != null && gen !== restoreGeneration);
+    }
     if (!currentId) {
+      if (stale()) return Promise.resolve(null);
       return refreshFromCache(true);
     }
     return prepareId(currentId).then(function (prep) {
+      if (stale()) return null;
       if (!prep) return refreshFromCache(true);
       var front = frontLayer();
       var back = backLayer();
@@ -152,9 +160,9 @@
       front.style.transition = "opacity " + fadeMs + "ms linear";
       if (back) back.style.transition = "opacity " + fadeMs + "ms linear";
       return renderOverlay(currentId).then(function () {
-        if (pageHidden) return null;
+        if (stale()) return null;
         return prepareId(pickNextId()).then(function (p) {
-          if (!pageHidden) nextPrepared = p;
+          if (!stale()) nextPrepared = p;
         });
       });
     });
@@ -473,46 +481,99 @@
     } catch (e) {}
   }
 
-  function onVisibility() {
-    if (document.hidden) {
-      pageHidden = true;
-      paused = true;
-      allowBackgroundWork = false;
-      setPausedAttr(true);
-      clearTimeout(timer);
-      timer = null;
-      stopClock();
-      if (PS.geo && PS.geo.setPaused) PS.geo.setPaused(true);
-      if (syncInFlight) {
-        syncInterrupted = true;
-        persistSyncState();
-      }
-      // Finish the in-flight sync/download item, then free decoded images.
-      if (hideReleaseTimer) clearTimeout(hideReleaseTimer);
-      hideReleaseTimer = setTimeout(function () {
-        hideReleaseTimer = null;
-        if (!pageHidden) return;
-        freeDisplayMemory();
-      }, 800);
-    } else {
-      pageHidden = false;
-      paused = false;
-      allowBackgroundWork = true;
-      setPausedAttr(false);
-      if (hideReleaseTimer) {
-        clearTimeout(hideReleaseTimer);
-        hideReleaseTimer = null;
-      }
-      if (PS.geo && PS.geo.setPaused) PS.geo.setPaused(false);
-      tickClock();
-      armClock();
-      restoreDisplay().then(function () {
-        if (pageHidden) return;
-        armTimer();
-        // Sync on visible only if interrupted or last full sync is stale (few hours).
-        maybeSyncOnVisible();
-      });
+  function clearRestoreWatch() {
+    if (restoreWatchTimer) {
+      clearTimeout(restoreWatchTimer);
+      restoreWatchTimer = null;
     }
+  }
+
+  function finishShowPath(outcome, gen) {
+    if (gen !== restoreGeneration || pageHidden) return;
+    clearRestoreWatch();
+    var follow = PS.visibility.restoreFollowUp(outcome);
+    if (follow === "advance") {
+      // Never leave a black screen if restore rejected or timed out.
+      advance();
+    } else {
+      armTimer();
+    }
+    // Sync on visible only if interrupted or last full sync is stale (few hours).
+    maybeSyncOnVisible();
+  }
+
+  function enterHidden() {
+    pageHidden = true;
+    paused = true;
+    allowBackgroundWork = false;
+    setPausedAttr(true);
+    restoreGeneration++;
+    clearRestoreWatch();
+    clearTimeout(timer);
+    timer = null;
+    stopClock();
+    if (PS.geo && PS.geo.setPaused) PS.geo.setPaused(true);
+    if (syncInFlight) {
+      syncInterrupted = true;
+      persistSyncState();
+    }
+    // Finish the in-flight sync/download item, then free decoded images.
+    if (hideReleaseTimer) clearTimeout(hideReleaseTimer);
+    hideReleaseTimer = setTimeout(function () {
+      hideReleaseTimer = null;
+      if (!pageHidden) return;
+      freeDisplayMemory();
+    }, 800);
+  }
+
+  function enterVisible() {
+    pageHidden = false;
+    paused = false;
+    allowBackgroundWork = true;
+    setPausedAttr(false);
+    if (hideReleaseTimer) {
+      clearTimeout(hideReleaseTimer);
+      hideReleaseTimer = null;
+    }
+    if (PS.geo && PS.geo.setPaused) PS.geo.setPaused(false);
+    tickClock();
+    armClock();
+
+    var gen = ++restoreGeneration;
+    clearRestoreWatch();
+    var settled = false;
+    restoreWatchTimer = setTimeout(function () {
+      restoreWatchTimer = null;
+      if (settled) return;
+      settled = true;
+      // Invalidate in-flight restoreDisplay so it cannot paint over advance().
+      restoreGeneration++;
+      finishShowPath("timeout", restoreGeneration);
+    }, PS.visibility.RESTORE_TIMEOUT_MS);
+
+    restoreDisplay(gen).then(
+      function () {
+        if (settled) return;
+        settled = true;
+        finishShowPath("ok", gen);
+      },
+      function () {
+        if (settled) return;
+        settled = true;
+        finishShowPath("fail", gen);
+      }
+    );
+  }
+
+  /**
+   * Visibility is state, not a stream of events. Chromium 81 may fire `resume`
+   * after a freeze without `visibilitychange`, leaving document.hidden false
+   * while we are still paused — compare flags and only transition on mismatch.
+   */
+  function syncVisibility() {
+    var action = PS.visibility.transition(document.hidden, pageHidden);
+    if (action === "hide") enterHidden();
+    else if (action === "show") enterVisible();
   }
 
   /* ---------- sync (real albums) ---------- */
@@ -839,7 +900,13 @@
     layerB.style.transition = "opacity " + fadeMs + "ms linear";
 
     document.addEventListener("keydown", onKey, true);
-    document.addEventListener("visibilitychange", onVisibility, false);
+    // State sync: visibilitychange alone is not enough after freeze→resume.
+    document.addEventListener("visibilitychange", syncVisibility, false);
+    document.addEventListener("resume", syncVisibility, false);
+    window.addEventListener("pageshow", syncVisibility, false);
+    window.addEventListener("focus", syncVisibility, false);
+    if (visibilityPollTimer) clearInterval(visibilityPollTimer);
+    visibilityPollTimer = setInterval(syncVisibility, PS.visibility.POLL_INTERVAL_MS);
 
     // Boot may happen while already hidden (frame opens all projects then hides).
     pageHidden = !!document.hidden;
