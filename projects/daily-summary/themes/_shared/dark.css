@@ -24,15 +24,14 @@ html.theme-dark {
 html.theme-dark body {
   color: var(--ink);
   background: var(--page-bg);
-  font-family: "Atkinson Hyperlegible", "Segoe UI", sans-serif;
+  font-family: var(--font-body);
 }
 
 html.theme-dark h1,
 html.theme-dark h2,
-html.theme-dark .who-name,
 html.theme-dark .sidebar-title {
-  font-family: "Fraunces", Georgia, serif;
-  font-weight: 600;
+  font-family: var(--font-head);
+  font-weight: var(--fw-head);
   color: #f4efe6;
 }
 
@@ -111,3 +110,6 @@ html.theme-dark .ev-status {
 
 html.theme-dark .lane-head-others { opacity: 0.5; border-bottom-color: var(--line); }
 html.theme-dark .empty-inline { color: var(--muted); opacity: 1; }
+
+html.theme-dark .topbar-date h1 { font-weight: var(--fw-date); }
+html.theme-dark .topbar-clock { color: #f4efe6; }
