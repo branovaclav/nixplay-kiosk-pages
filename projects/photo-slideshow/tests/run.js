@@ -105,6 +105,40 @@ test("overlay neither → date only", function () {
   assert.strictEqual(L.right, null);
 });
 
+test("overlay slotHtml includes comment SVG icon before text", function () {
+  PS = loadLib("lib/overlay-label.js");
+  var html = PS.overlayLabel.slotHtml({ kind: "comment", text: "Demo komentár" });
+  assert.ok(html.indexOf('class="overlay-comment"') >= 0);
+  assert.ok(html.indexOf('class="overlay-icon"') >= 0);
+  assert.ok(html.indexOf("<svg") >= 0);
+  assert.ok(html.indexOf("</svg>") >= 0);
+  assert.ok(html.indexOf(PS.overlayLabel.ICON_COMMENT) >= 0);
+  assert.ok(html.indexOf("Demo komentár") >= 0);
+  // text is after the icon
+  assert.ok(html.indexOf("</svg>") < html.indexOf("Demo komentár"));
+});
+
+test("overlay slotHtml includes place SVG icon and place class", function () {
+  PS = loadLib("lib/overlay-label.js");
+  var html = PS.overlayLabel.slotHtml({ kind: "place", text: "Paríž, Francúzsko" });
+  assert.ok(html.indexOf('class="overlay-place"') >= 0);
+  assert.ok(html.indexOf('class="overlay-icon"') >= 0);
+  assert.ok(html.indexOf(PS.overlayLabel.ICON_PLACE) >= 0);
+  assert.ok(html.indexOf("Paríž, Francúzsko") >= 0);
+  assert.strictEqual(PS.overlayLabel.slotHtml(null), "");
+});
+
+test("overlay both slots each carry their own icon kind", function () {
+  PS = loadLib("lib/overlay-label.js");
+  var L = PS.overlayLabel.build("14. jún 2025", "Dovolenka", "Paríž, Francúzsko");
+  var mid = PS.overlayLabel.slotHtml(L.middle);
+  var right = PS.overlayLabel.slotHtml(L.right);
+  assert.ok(mid.indexOf(PS.overlayLabel.ICON_COMMENT) >= 0);
+  assert.ok(mid.indexOf(PS.overlayLabel.ICON_PLACE) < 0);
+  assert.ok(right.indexOf(PS.overlayLabel.ICON_PLACE) >= 0);
+  assert.ok(right.indexOf(PS.overlayLabel.ICON_COMMENT) < 0);
+});
+
 test("clock date Slovak genitive", function () {
   PS = loadLib("lib/datefmt.js");
   var d = new Date(2026, 10, 12, 15, 4, 0); // Thu 12 Nov 2026
