@@ -72,7 +72,8 @@ Stránka každú minútu prepočíta režim (`html.theme-dark` / `html.theme-lig
 }
 ```
 
-`refresh_at` — `HH:MM` Europe/Prague; stránka sa raz denne obnoví tesne po tomto čase (predvolene `06:30`). Ak `date` ≠ dnešok, skok na `index.html` (dnešný súbor).
+`refresh_at` — `HH:MM` Europe/Prague; stránka sa raz denne obnoví tesne po tomto čase (predvolene `06:30`).
+Ak je `date` v minulosti oproti Prague „dnes“, stránka ostane (žiadna reload-slučka) a čaká na nový build.
 
 `weather.sample` zostáva v dátach (označuje ukážkové počasie), ale **badge UKÁŽKA sa nerenderuje**.
 
