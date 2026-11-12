@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="sk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=1024, height=768, initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<meta name="theme-color" content="#000000">
+<title>Prezentácia fotiek</title>
+<link rel="stylesheet" href="slideshow.css">
+</head>
+<body>
+  <div class="stage" id="stage">
+    <img class="layer is-visible" id="layerA" alt="">
+    <img class="layer" id="layerB" alt="">
+    <div class="status" id="status">Načítavam fotky…</div>
+    <div class="osm-credit" id="osmCredit" aria-hidden="true">
+      Miesta: © OpenStreetMap · ODbL<br>
+      openstreetmap.org/copyright
+    </div>
+    <div class="clock is-on" id="clock" aria-hidden="true">
+      <div class="clock-time" id="clockTime"></div>
+      <div class="clock-date" id="clockDate"></div>
+    </div>
+    <div class="shuffle-toast" id="shuffleToast" aria-hidden="true"></div>
+    <div class="sync-dot" id="syncDot" aria-hidden="true"></div>
+    <div class="overlay is-on" id="overlay">
+      <div class="overlay-row">
+        <div class="overlay-col overlay-date" id="overlayDate"></div>
+        <div class="overlay-col overlay-middle" id="overlayMiddle"></div>
+        <div class="overlay-col overlay-right" id="overlayRight"></div>
+      </div>
+    </div>
+  </div>
+  <script src="lib/bplist.js"></script>
+  <script src="lib/shuffle.js"></script>
+  <script src="lib/datefmt.js"></script>
+  <script src="lib/overlay-label.js"></script>
+  <script src="lib/config.js"></script>
+  <script src="lib/idb.js"></script>
+  <script src="lib/cloudkit.js"></script>
+  <script src="lib/image.js"></script>
+  <script src="lib/geo.js"></script>
+  <script src="lib/demo.js"></script>
+  <script src="slideshow.js"></script>
+</body>
+</html>
