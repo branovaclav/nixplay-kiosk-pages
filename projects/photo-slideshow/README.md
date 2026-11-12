@@ -4,11 +4,18 @@ Status: decisions agreed with Braňo, 11 Nov 2026. Project `projects/photo-slide
 `branovaclav/nixplay-kiosk-pages`, served at `https://branovaclav.github.io/nixplay-kiosk-pages/photo-slideshow/`.
 **[M]** = measured on the box, **[A]** = assumption to verify on the frame.
 
+> **Frame agent (Claude Code on the Nixplay box):** start with
+> **[`FRAME-DEPLOY.md`](FRAME-DEPLOY.md)** — prerequisites, extracting album keys from
+> iCloud links, private `slideshow.env` + `tools/make-kiosk-url.sh`, two-tab setup,
+> shake remap, keys, OSM splash, cache, troubleshooting, privacy. Do not rely on chat
+> history; that file is the runbook.
+
 ## 1. Target & constraints
 - Hacked Nixplay 8", 1024×768, Chromium 81 kiosk, Android 7, ~512 MB RAM, weak CPU.
 - ES5 only; no flex `gap`, `:has()`, `aspect-ratio`. Chromium 81 APIs only.
 - Scale: 1–5 shared albums (iOS 27 / CloudKit format), ~2 000 photos max in total.
-- Non-goals v1: video / Live Photo motion, editing, uploading, weather, clock.
+- Non-goals v1: video / Live Photo motion, editing, uploading, weather.
+  (A small **UI clock** is shown with the overlay; it is not a separate weather/clock page.)
 - **Privacy:** no photos, album keys, GPS, names or comments are ever committed to the public repo.
 
 ## 2. Project layout
@@ -43,7 +50,7 @@ boot → config → IndexedDB → play from cache immediately
        → diff stable asset IDs → for each NEW id: download JPEGMed → resize+sharpen → store blob + meta
        → map post comments → geocode queue; IDs gone from the album are deleted from the cache
 ```
-- Protocol: see `/workspace/icloud-album/notes.md`. XHR with `Content-Type: text/plain` (no preflight); CORS `*` verified in Chromium 81 **[M]**.
+- Protocol: see [`notes/icloud-protocol.md`](notes/icloud-protocol.md). XHR with `Content-Type: text/plain` (no preflight); CORS `*` verified in Chromium 81 **[M]**.
 - Download URLs expire after ~16 min and the token after 20 min, so download each listed page right away;
   on 400/403, re-resolve and re-list.
 - ID = `CPLAsset.recordName`. Re-download when `recordModificationDate` or the derivative fingerprint changes.

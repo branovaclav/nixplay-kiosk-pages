@@ -22,7 +22,7 @@ Optional but common: `tools/validate.py`, `samples/`, local `designs/` previews,
 |---|---|---|
 | [`daily-summary/`](daily-summary/) | `/daily-summary/` **and** `/` | Frame home URL stays at site root (identical copy) |
 | [`example/`](example/) | `/example/` | Minimal Chromium 81 static demo |
-| [`photo-slideshow/`](photo-slideshow/) | `/photo-slideshow/` | Shared-album slideshow (config via `#cfg=`; see `.env.example`) |
+| [`photo-slideshow/`](photo-slideshow/) | `/photo-slideshow/` | Shared-album slideshow (`#cfg=`; **[FRAME-DEPLOY.md](photo-slideshow/FRAME-DEPLOY.md)** for the frame agent) |
 
 ## Root orchestrator
 

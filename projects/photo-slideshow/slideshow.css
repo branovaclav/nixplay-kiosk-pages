@@ -7,11 +7,11 @@
   --overlay-pad-y: 12px;
   --overlay-pad-x: 16px;
 
-  /* +80% vs first preview (42/22); glow blur scaled ~1.8× */
-  --clock-time-size: 76px;
-  --clock-date-size: 40px;
+  /* ~⅔ of the way from 42/22 to 76/40; glow blur scaled ~1.5× vs 12/24 */
+  --clock-time-size: 64px;
+  --clock-date-size: 34px;
   --clock-weight: 300;
-  --clock-glow: 0 0 22px rgba(0, 0, 0, 0.6), 0 0 43px rgba(0, 0, 0, 0.45);
+  --clock-glow: 0 0 18px rgba(0, 0, 0, 0.6), 0 0 37px rgba(0, 0, 0, 0.45);
   --clock-top: 14px;
   --clock-left: 16px;
   --clock-line-gap: 2px;

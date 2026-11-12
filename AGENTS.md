@@ -13,7 +13,7 @@ showing the **daily summary** (identical files also under `/daily-summary/`).
 |---|---|---|
 | daily-summary | `/` and `/daily-summary/` | `projects/daily-summary/` |
 | example | `/example/` | `projects/example/` |
-| photo-slideshow | `/photo-slideshow/` | `projects/photo-slideshow/` |
+| photo-slideshow | `/photo-slideshow/` | `projects/photo-slideshow/` — frame runbook: [`FRAME-DEPLOY.md`](projects/photo-slideshow/FRAME-DEPLOY.md) |
 
 ## Build
 
