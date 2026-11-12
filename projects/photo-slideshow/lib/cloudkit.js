@@ -261,12 +261,39 @@
     return next();
   }
 
-  /** Map post → asset ids via CPLAssetAndMasterInPost or assetBatchId. */
-  function listPostAssets(ctx, post) {
-    var batch =
+  /**
+   * CloudKit shared posts: asset.assetBatchId === post.recordName for members.
+   * CPLAssetAndMasterInPost requires BOTH postID and assetBatchId filters
+   * (without assetBatchId → HTTP 400 "Expected a parameter with name: assetBatchId").
+   * Posts themselves often have no assetBatchId field.
+   */
+  function postBatchId(post) {
+    var fromField =
+      post &&
       post.fields &&
       post.fields.assetBatchId &&
       post.fields.assetBatchId.value;
+    return fromField || (post && post.recordName) || null;
+  }
+
+  /** Map assets → post via assetBatchId === post batch id (pure; synthetic-testable). */
+  function assetIdsForPost(post, pairs) {
+    var batch = postBatchId(post);
+    var ids = [];
+    var i;
+    if (!batch || !pairs) return ids;
+    for (i = 0; i < pairs.length; i++) {
+      var asset = pairs[i] && pairs[i].asset;
+      var b = fieldVal(asset, "assetBatchId");
+      if (b === batch) ids.push(asset.recordName);
+    }
+    return ids;
+  }
+
+  /** Map post → asset ids via CPLAssetAndMasterInPost (+ required assetBatchId). */
+  function listPostAssets(ctx, post) {
+    var batch = postBatchId(post);
+    if (!batch) return Promise.resolve([]);
     var body = {
       query: {
         recordType: "CPLAssetAndMasterInPost",
@@ -278,6 +305,11 @@
               value: { recordName: post.recordName, action: "NONE", zoneID: ctx.zoneID },
               type: "REFERENCE",
             },
+          },
+          {
+            fieldName: "assetBatchId",
+            comparator: "EQUALS",
+            fieldValue: { value: batch, type: "STRING" },
           },
         ],
       },
@@ -292,12 +324,11 @@
         for (i = 0; i < recs.length; i++) {
           if (recs[i].recordType === "CPLAsset") ids.push(recs[i].recordName);
         }
-        if (ids.length || !batch) return ids;
-        // Fallback: scan already-listed assets by assetBatchId (caller may pass list)
+        // Always expose batch so callers can fall back to local pair scan.
         return { _batch: batch, ids: ids };
       })
       .catch(function () {
-        return batch ? { _batch: batch, ids: [] } : [];
+        return { _batch: batch, ids: [] };
       });
   }
 
@@ -363,6 +394,8 @@
     pairAssetAndMasterRecords: pairAssetAndMasterRecords,
     listAssets: listAssets,
     listPosts: listPosts,
+    postBatchId: postBatchId,
+    assetIdsForPost: assetIdsForPost,
     listPostAssets: listPostAssets,
     pickJpegMedUrl: pickJpegMedUrl,
     isVideo: isVideo,

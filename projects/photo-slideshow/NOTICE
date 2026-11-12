@@ -20,3 +20,10 @@ Sources consulted:
   https://osmfoundation.org/wiki/Licence/Attribution_Guidelines
   https://osmfoundation.org/wiki/Licence/Community_Guidelines/Geocoding_-_Guideline
   https://operations.osmfoundation.org/policies/nominatim/
+
+Clock font
+==========
+
+Self-hosted Manrope ExtraLight 200 (SIL Open Font License 1.1) under fonts/
+(latin + latin-ext) for the top-left clock + date. See fonts/README.txt and
+fonts/OFL-manrope.txt. Optional override: clockFont=system.

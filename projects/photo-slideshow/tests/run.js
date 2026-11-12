@@ -105,6 +105,40 @@ test("overlay neither → date only", function () {
   assert.strictEqual(L.right, null);
 });
 
+test("overlay slotHtml includes comment SVG icon before text", function () {
+  PS = loadLib("lib/overlay-label.js");
+  var html = PS.overlayLabel.slotHtml({ kind: "comment", text: "Demo komentár" });
+  assert.ok(html.indexOf('class="overlay-comment"') >= 0);
+  assert.ok(html.indexOf('class="overlay-icon"') >= 0);
+  assert.ok(html.indexOf("<svg") >= 0);
+  assert.ok(html.indexOf("</svg>") >= 0);
+  assert.ok(html.indexOf(PS.overlayLabel.ICON_COMMENT) >= 0);
+  assert.ok(html.indexOf("Demo komentár") >= 0);
+  // text is after the icon
+  assert.ok(html.indexOf("</svg>") < html.indexOf("Demo komentár"));
+});
+
+test("overlay slotHtml includes place SVG icon and place class", function () {
+  PS = loadLib("lib/overlay-label.js");
+  var html = PS.overlayLabel.slotHtml({ kind: "place", text: "Paríž, Francúzsko" });
+  assert.ok(html.indexOf('class="overlay-place"') >= 0);
+  assert.ok(html.indexOf('class="overlay-icon"') >= 0);
+  assert.ok(html.indexOf(PS.overlayLabel.ICON_PLACE) >= 0);
+  assert.ok(html.indexOf("Paríž, Francúzsko") >= 0);
+  assert.strictEqual(PS.overlayLabel.slotHtml(null), "");
+});
+
+test("overlay both slots each carry their own icon kind", function () {
+  PS = loadLib("lib/overlay-label.js");
+  var L = PS.overlayLabel.build("14. jún 2025", "Dovolenka", "Paríž, Francúzsko");
+  var mid = PS.overlayLabel.slotHtml(L.middle);
+  var right = PS.overlayLabel.slotHtml(L.right);
+  assert.ok(mid.indexOf(PS.overlayLabel.ICON_COMMENT) >= 0);
+  assert.ok(mid.indexOf(PS.overlayLabel.ICON_PLACE) < 0);
+  assert.ok(right.indexOf(PS.overlayLabel.ICON_PLACE) >= 0);
+  assert.ok(right.indexOf(PS.overlayLabel.ICON_COMMENT) < 0);
+});
+
 test("clock date Slovak genitive", function () {
   PS = loadLib("lib/datefmt.js");
   var d = new Date(2026, 10, 12, 15, 4, 0); // Thu 12 Nov 2026
@@ -268,6 +302,66 @@ test("shouldSyncOnVisible after stale lastCompletedAt", function () {
   assert.strictEqual(sp.shouldSyncOnVisible(fresh, false, now), false);
   assert.strictEqual(sp.shouldSyncOnVisible(stale, false, now), true);
   assert.strictEqual(sp.shouldSyncOnVisible(null, false, now), true);
+});
+
+test("assetIdsForPost maps via assetBatchId === post.recordName", function () {
+  var ck = loadCloudkit();
+  var post = { recordName: "POST-BATCH-1", fields: { caption: { value: "Trip" } } };
+  var pairs = [
+    {
+      asset: {
+        recordName: "A1",
+        recordType: "CPLAsset",
+        fields: { assetBatchId: { value: "POST-BATCH-1" } },
+      },
+      master: synthMaster("M1"),
+    },
+    {
+      asset: {
+        recordName: "A2",
+        recordType: "CPLAsset",
+        fields: { assetBatchId: { value: "OTHER" } },
+      },
+      master: synthMaster("M2"),
+    },
+    {
+      asset: {
+        recordName: "A3",
+        recordType: "CPLAsset",
+        fields: { assetBatchId: { value: "POST-BATCH-1" } },
+      },
+      master: synthMaster("M3"),
+    },
+  ];
+  var ids = ck.assetIdsForPost(post, pairs);
+  assert.strictEqual(ids.length, 2);
+  assert.strictEqual(ids[0], "A1");
+  assert.strictEqual(ids[1], "A3");
+  assert.strictEqual(ck.postBatchId(post), "POST-BATCH-1");
+});
+
+test("assetIdsForPost prefers explicit post.assetBatchId field when present", function () {
+  var ck = loadCloudkit();
+  var post = {
+    recordName: "POST-NAME",
+    fields: { assetBatchId: { value: "EXPLICIT-BATCH" }, caption: { value: "X" } },
+  };
+  var pairs = [
+    {
+      asset: {
+        recordName: "A1",
+        fields: { assetBatchId: { value: "EXPLICIT-BATCH" } },
+      },
+    },
+    {
+      asset: {
+        recordName: "A2",
+        fields: { assetBatchId: { value: "POST-NAME" } },
+      },
+    },
+  ];
+  var ids = ck.assetIdsForPost(post, pairs);
+  assert.strictEqual(ids.join(","), "A1");
 });
 
 console.log("\n" + passed + " passed, " + failed + " failed");

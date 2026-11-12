@@ -1,4 +1,23 @@
 /* Photo slideshow — Chromium 81, 1024×768. No flex gap / :has / aspect-ratio. */
+
+/* Clock face: Manrope ExtraLight 200 (OFL), latin + latin-ext for Slovak. */
+@font-face {
+  font-family: "PS Manrope";
+  font-style: normal;
+  font-weight: 200;
+  font-display: swap;
+  src: url("fonts/manrope-latin-ext-200.woff2") format("woff2");
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: "PS Manrope";
+  font-style: normal;
+  font-weight: 200;
+  font-display: swap;
+  src: url("fonts/manrope-latin-200.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
 :root {
   --overlay-bg: rgba(0, 0, 0, 0.38);
   --overlay-font-size: 23px;
@@ -10,11 +29,18 @@
   /* ~⅔ of the way from 42/22 to 76/40; glow blur scaled ~1.5× vs 12/24 */
   --clock-time-size: 64px;
   --clock-date-size: 34px;
-  --clock-weight: 300;
+  --clock-weight: 200;
+  --clock-font: "PS Manrope", "Roboto", "Noto Sans", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
   --clock-glow: 0 0 18px rgba(0, 0, 0, 0.6), 0 0 37px rgba(0, 0, 0, 0.45);
   --clock-top: 14px;
   --clock-left: 16px;
   --clock-line-gap: 2px;
+}
+
+/* Optional escape hatch back to the old system stack. */
+html[data-clock-font="system"] {
+  --clock-font: "Roboto", "Noto Sans", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  --clock-weight: 300;
 }
 
 html,
@@ -125,6 +151,7 @@ body {
   z-index: 6;
   display: none;
   color: #fff;
+  font-family: var(--clock-font);
   font-weight: var(--clock-weight);
   text-shadow: var(--clock-glow);
   pointer-events: none;

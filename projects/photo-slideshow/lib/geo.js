@@ -125,13 +125,14 @@
           if (paused) return null;
           return waitGap().then(function () {
             if (paused) return null;
+            // Photon supports de/en/fr only (not sk); Nominatim already asked for sk.
             var url =
               cfg.photonUrl +
               "?lat=" +
               encodeURIComponent(r.lat) +
               "&lon=" +
               encodeURIComponent(r.lon) +
-              "&lang=sk";
+              "&lang=en";
             return xhrGetJson(url).then(fromPhoton).catch(function () {
               return null;
             });
