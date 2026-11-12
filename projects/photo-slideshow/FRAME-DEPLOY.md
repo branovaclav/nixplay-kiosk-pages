@@ -83,12 +83,14 @@ Optional override: `SLIDESHOW_BASE_URL` if Pages path differs.
 | Right-corner lift | **Shift+Tab** | Previous photo + force-show overlay |
 
 - Ignore key `repeat`; debounce ~400 ms. No “next” key — timer advances photos.
-- `visibilitychange` **hidden** → pause timer, clock, sync/downloads/geocode; finish
-  the current download item then free decoded images / object URLs. **visible** →
-  restore images, catch up clock, resume timer; run a full album sync only if the
-  previous one was interrupted or the last completed sync is older than a few
-  hours (6 h timer still runs while visible). New album photos download only
-  while on screen.
+- Visibility is **state** (`syncVisibility` on `visibilitychange`, `resume`,
+  `pageshow`, `focus`, and a ~10 s poll). **hidden** → pause timer, clock,
+  sync/downloads/geocode; finish the current download item then free decoded
+  images / object URLs. **visible** → restore images (if restore fails or hangs
+  ~10 s, `advance()` so the screen is never left black), catch up clock, resume
+  timer; run a full album sync only if the previous one was interrupted or the
+  last completed sync is older than a few hours (6 h timer still runs while
+  visible). New album photos download only while on screen.
 - Cache is scoped to configured album ids: photos from removed albums or a prior
   `?demo=1` visit are deleted and never played. Demo mode uses a separate IndexedDB.
 

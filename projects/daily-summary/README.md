@@ -48,6 +48,7 @@ Project-only:
 ```bash
 python3 projects/daily-summary/tools/validate.py
 python3 projects/daily-summary/tools/build.py   # → projects/daily-summary/dist/
+node projects/daily-summary/tests/run.js          # visibility/resume regression
 ```
 
 Local dated previews: `designs/<date>.html` (not deployed). Archives under
@@ -58,9 +59,10 @@ Local dated previews: `designs/<date>.html` (not deployed). Archives under
 - Theme: `theme_schedule.mode` **sun** (NOAA) or **fixed**; `?theme=light|dark` override.
 - Views Rodina → people (Tab/Enter / Shift+Tab); idle → Rodina; reload at `refresh_at`.
 - Polls `version.json` (~5 min) after evening deploys.
-- `visibilitychange` hidden → stop clock, auto-scroll, idle, version poll and refresh
-  timers. Visible → catch up clock/teraz, show Rodina, version/stale check (reload if
-  needed), then resume.
+- Visibility is state (`syncVisibility` on `visibilitychange`, `resume`,
+  `pageshow`, `focus`, ~10 s poll). Hidden → stop clock, auto-scroll, idle,
+  version poll and refresh timers. Visible → catch up clock/teraz, show Rodina,
+  version/stale check (reload if needed), then resume.
 
 ## Header, fonts, auto-scroll
 

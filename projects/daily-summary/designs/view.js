@@ -7,17 +7,20 @@
    (no immediate reload loop). Test: ?asOf=YYYY-MM-DD mocks today without freeze.
    Header clock ticks once per second (one timeout aligned to the second).
    Sidebar .autoscroll areas slowly loop when their content overflows.
-   visibilitychange → hidden: stop clock, scroll, idle, version poll, refresh.
-   → visible: catch up clock/teraz, Rodina, version/stale check, then resume.
+   Visibility is state: syncVisibility() compares document.hidden to pageHidden.
+   Call from visibilitychange, resume, pageshow, focus, and a ~10 s poll — after
+   a freeze Chromium 81 may fire resume without visibilitychange.
 */
 (function () {
   var VIEWS = ["rodina", "branislav", "zuzka", "andrej", "tomas"];
   var IDLE_MS = 60000;
   var NOW_MS = 60 * 1000;
+  var VISIBILITY_POLL_MS = 10000;
   var body = document.body;
   var root = document.documentElement;
   var idleTimer = null;
   var pageHidden = false;
+  var visibilityPollTimer = null;
   var clockTimer = null;
   var nowInterval = null;
   var refreshTimer = null;
@@ -933,8 +936,14 @@
     });
   }
 
-  function onVisibility() {
-    if (document.hidden) pauseAllWork();
+  /**
+   * Idempotent: run hide or show only when document.hidden disagrees with
+   * pageHidden. Needed because freeze→resume can skip visibilitychange.
+   */
+  function syncVisibility() {
+    var wantHidden = !!document.hidden;
+    if (wantHidden === pageHidden) return;
+    if (wantHidden) pauseAllWork();
     else resumeAllWork();
   }
 
@@ -952,7 +961,12 @@
     paintClockOnce();
 
     document.addEventListener("keydown", onKey, true);
-    document.addEventListener("visibilitychange", onVisibility, false);
+    document.addEventListener("visibilitychange", syncVisibility, false);
+    document.addEventListener("resume", syncVisibility, false);
+    window.addEventListener("pageshow", syncVisibility, false);
+    window.addEventListener("focus", syncVisibility, false);
+    if (visibilityPollTimer) clearInterval(visibilityPollTimer);
+    visibilityPollTimer = setInterval(syncVisibility, VISIBILITY_POLL_MS);
     window.addEventListener("resize", function () {
       if (pageHidden) return;
       fitEventBlocks();

@@ -19,7 +19,7 @@ Status: decisions agreed with Braňo, 11 Nov 2026. Project `projects/photo-slide
 ## 2. Project layout
 `index.html`, `slideshow.js` (ES5), `slideshow.css`, `README.md` (this spec), `FRAME-DEPLOY.md`
 (steps for the Claude Code frame agent), `.env.example`, `tools/make-kiosk-url.sh`, `tests/`
-(bplist, date, label, shuffle-bag unit tests).
+(bplist, date, label, shuffle-bag, visibility/resume unit tests).
 
 ## 3. Config
 - Source: private `slideshow.env`, never committed (format in `.env.example`):
@@ -107,13 +107,16 @@ boot → config → IndexedDB → play from cache immediately
   order puts **photo-slideshow first**, then daily-summary. Short shake cycles
   projects (page gets no key). **Long shake = the frame restarts Chromium and
   reloads all projects**, with photo-slideshow in front.
-- On `visibilitychange` hidden: pause timer, clock, sync, downloads, resize and
-  geocoding (finish the current download item, then wait); free decoded images,
-  object URLs and canvas buffers. On visible: restore display, catch up clock,
-  resume timer; full album sync only if interrupted or last completed sync is
-  older than a few hours (6 h timer still applies while visible). No forced
-  reload on switch. Photos from albums not in `#cfg=` (including leftover
-  `?demo=1` cache) are deleted and never played; demo mode uses a separate DB.
+- Visibility is state (`syncVisibility` on `visibilitychange`, `resume`,
+  `pageshow`, `focus`, ~10 s poll — freeze→resume can skip visibilitychange).
+  Hidden: pause timer, clock, sync, downloads, resize and geocoding (finish the
+  current download item, then wait); free decoded images, object URLs and canvas
+  buffers. Visible: restore display (on reject/timeout ~10 s, `advance()` so the
+  screen is never left black), catch up clock, resume timer; full album sync only
+  if interrupted or last completed sync is older than a few hours (6 h timer
+  still applies while visible). No forced reload on switch. Photos from albums
+  not in `#cfg=` (including leftover `?demo=1` cache) are deleted and never
+  played; demo mode uses a separate DB.
 
 | Gesture | Key | Action |
 |---|---|---|
