@@ -59,6 +59,9 @@ if os.environ.get("SLIDESHOW_FADE"):
     cfg["fade"] = float(os.environ["SLIDESHOW_FADE"])
 if os.environ.get("SLIDESHOW_SHARPEN"):
     cfg["sharpen"] = float(os.environ["SLIDESHOW_SHARPEN"])
+_clock = (os.environ.get("SLIDESHOW_CLOCK_FONT") or "").strip().lower()
+if _clock in ("system", "manrope", "inter", "outfit", "figtree"):
+    cfg["clockFont"] = _clock
 if os.environ.get("SLIDESHOW_NOMINATIM_URL"):
     cfg["nominatimUrl"] = os.environ["SLIDESHOW_NOMINATIM_URL"]
 if os.environ.get("SLIDESHOW_PHOTON_URL"):

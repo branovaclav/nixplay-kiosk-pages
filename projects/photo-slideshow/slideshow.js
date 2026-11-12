@@ -63,6 +63,17 @@
     clockEl.className = on ? "clock is-on" : "clock";
   }
 
+  function applyClockFont(name) {
+    var font = name || (cfg && cfg.clockFont) || "system";
+    var fromQ = PS.config.clockFontFromQuery && PS.config.clockFontFromQuery();
+    if (fromQ) font = fromQ;
+    if (!PS.config.CLOCK_FONTS[font]) font = "system";
+    try {
+      if (font === "system") document.documentElement.removeAttribute("data-clock-font");
+      else document.documentElement.setAttribute("data-clock-font", font);
+    } catch (e) {}
+  }
+
   function tickClock() {
     var now = new Date();
     clockTimeEl.textContent = PS.datefmt.formatClockTime(now);
@@ -272,21 +283,36 @@
           return (p && p.comment) || "";
         })
       : Promise.resolve("");
+    // Prefer live lookup when lat/lon exist (lookup itself checks the geo cell cache).
+    // Previously we only did getGeo(geoCell) whenever geoCell was set — and sync always
+    // sets geoCell with GPS — so Nominatim/Photon never ran and places never appeared.
     var placeP = Promise.resolve(meta.place || null);
-    if (!meta.place && meta.geoCell) {
-      placeP = PS.idb.getGeo(meta.geoCell);
-    } else if (!meta.place && meta.lat != null && meta.lon != null && cfg) {
-      placeP = PS.geo.lookup(
-        meta.lat,
-        meta.lon,
-        cfg,
-        function (cell) {
-          return PS.idb.getGeo(cell);
-        },
-        function (cell, label) {
-          return PS.idb.putGeo(cell, label);
-        }
-      );
+    if (!meta.place && meta.lat != null && meta.lon != null && cfg) {
+      placeP = PS.geo
+        .lookup(
+          meta.lat,
+          meta.lon,
+          cfg,
+          function (cell) {
+            return PS.idb.getGeo(cell);
+          },
+          function (cell, label) {
+            return PS.idb.putGeo(cell, label);
+          }
+        )
+        .then(function (label) {
+          if (label && metasById[id] && !metasById[id].place) {
+            metasById[id].place = label;
+            return PS.idb.putMeta(metasById[id]).then(function () {
+              return label;
+            });
+          }
+          return label;
+        });
+    } else if (!meta.place && meta.geoCell) {
+      placeP = PS.idb.getGeo(meta.geoCell).then(function (hit) {
+        return hit || null;
+      });
     }
 
     return Promise.all([commentP, placeP]).then(function (pair) {
@@ -530,6 +556,63 @@
     return String(mod || "") + "|" + String(fp || "");
   }
 
+  function buildMetaFromAsset(asset, master, key, fp, postId, proc) {
+    var loc = PS.bplist.parseLocationEnc(PS.cloudkit.fieldVal(asset, "locationEnc"));
+    var taken = PS.cloudkit.fieldVal(asset, "assetDate");
+    var tz = PS.cloudkit.fieldVal(asset, "timeZoneOffset");
+    return {
+      id: asset.recordName,
+      album: key,
+      takenUtc: typeof taken === "number" ? taken : null,
+      tzOffset: typeof tz === "number" ? tz : null,
+      lat: loc ? loc.lat : null,
+      lon: loc ? loc.lon : null,
+      w: proc ? proc.w : null,
+      h: proc ? proc.h : null,
+      postId: postId || null,
+      geoCell: loc != null ? PS.geo.cellKey(loc.lat, loc.lon) : null,
+      fingerprint: fp,
+      place: null,
+    };
+  }
+
+  /** Refresh comment/GPS fields on an already-cached photo without re-download. */
+  function patchCachedMeta(old, asset, key, fp, postId) {
+    var loc = PS.bplist.parseLocationEnc(PS.cloudkit.fieldVal(asset, "locationEnc"));
+    var taken = PS.cloudkit.fieldVal(asset, "assetDate");
+    var tz = PS.cloudkit.fieldVal(asset, "timeZoneOffset");
+    var nextPost = postId || old.postId || null;
+    var nextLat = loc ? loc.lat : old.lat;
+    var nextLon = loc ? loc.lon : old.lon;
+    var nextCell =
+      nextLat != null && nextLon != null ? PS.geo.cellKey(nextLat, nextLon) : old.geoCell || null;
+    var changed =
+      old.postId !== nextPost ||
+      old.lat !== nextLat ||
+      old.lon !== nextLon ||
+      old.geoCell !== nextCell ||
+      (typeof taken === "number" && old.takenUtc !== taken) ||
+      (typeof tz === "number" && old.tzOffset !== tz);
+    if (!changed) return null;
+    var meta = {
+      id: old.id,
+      album: key,
+      takenUtc: typeof taken === "number" ? taken : old.takenUtc,
+      tzOffset: typeof tz === "number" ? tz : old.tzOffset,
+      lat: nextLat != null ? nextLat : null,
+      lon: nextLon != null ? nextLon : null,
+      w: old.w,
+      h: old.h,
+      postId: nextPost,
+      geoCell: nextCell,
+      fingerprint: fp,
+      place: old.place || null,
+    };
+    // Clear stale place if coordinates changed.
+    if (old.lat !== meta.lat || old.lon !== meta.lon) meta.place = null;
+    return meta;
+  }
+
   function syncAlbum(key) {
     return PS.cloudkit.resolveAlbum(key).then(function (resolved) {
       var ctx = PS.cloudkit.sharedBase(resolved, key);
@@ -544,30 +627,42 @@
                 PS.cloudkit.fieldVal(post, "caption") ||
                 PS.cloudkit.fieldVal(post, "Caption") ||
                 "";
+              // Primary map: asset.assetBatchId === post.recordName (no extra round-trip).
+              var localIds = PS.cloudkit.assetIdsForPost(post, pairs);
+              var k0;
+              for (k0 = 0; k0 < localIds.length; k0++) {
+                postByAsset[localIds[k0]] = post.recordName;
+              }
               chain = chain
                 .then(function () {
+                  if (!caption) return null;
+                  return PS.idb.putPost({
+                    postId: post.recordName,
+                    comment: String(caption),
+                  });
+                })
+                .then(function () {
+                  // Confirm / fill via CloudKit query (needs assetBatchId filter).
                   return PS.cloudkit.listPostAssets(ctx, post);
                 })
                 .then(function (idsOr) {
                   var ids = idsOr;
                   if (ids && ids._batch) {
-                    // Match assets by assetBatchId
                     var batch = ids._batch;
-                    ids = [];
-                    var j;
-                    for (j = 0; j < pairs.length; j++) {
-                      var b = PS.cloudkit.fieldVal(pairs[j].asset, "assetBatchId");
-                      if (b === batch) ids.push(pairs[j].asset.recordName);
-                    }
-                  }
-                  if (caption) {
-                    return PS.idb.putPost({ postId: post.recordName, comment: String(caption) }).then(
-                      function () {
-                        var k;
-                        for (k = 0; k < ids.length; k++) postByAsset[ids[k]] = post.recordName;
+                    var fromQuery = ids.ids || [];
+                    if (!fromQuery.length) {
+                      fromQuery = [];
+                      var j;
+                      for (j = 0; j < pairs.length; j++) {
+                        var b = PS.cloudkit.fieldVal(pairs[j].asset, "assetBatchId");
+                        if (b === batch) fromQuery.push(pairs[j].asset.recordName);
                       }
-                    );
+                    }
+                    ids = fromQuery;
                   }
+                  if (!ids || !ids.length) return null;
+                  var k;
+                  for (k = 0; k < ids.length; k++) postByAsset[ids[k]] = post.recordName;
                   return null;
                 });
             })(posts[pi]);
@@ -589,7 +684,12 @@
                   if (!allowBackgroundWork) return null;
                   return PS.idb.getMeta(id).then(function (old) {
                     if (!allowBackgroundWork) return null;
-                    if (old && old.fingerprint === fp) return null;
+                    if (old && old.fingerprint === fp) {
+                      // Keep blob; still refresh comment/GPS so overlay works after upgrades.
+                      var patched = patchCachedMeta(old, asset, key, fp, postByAsset[id] || null);
+                      if (!patched) return null;
+                      return PS.idb.putMeta(patched);
+                    }
                     var url = PS.cloudkit.pickJpegMedUrl(asset, master);
                     if (!url) return null;
                     // Once download starts, finish resize+store even if we go hidden.
@@ -600,26 +700,14 @@
                       })
                       .then(function (proc) {
                         if (!proc) return null;
-                        var loc = PS.bplist.parseLocationEnc(
-                          PS.cloudkit.fieldVal(asset, "locationEnc")
+                        var meta = buildMetaFromAsset(
+                          asset,
+                          master,
+                          key,
+                          fp,
+                          postByAsset[id] || null,
+                          proc
                         );
-                        var taken = PS.cloudkit.fieldVal(asset, "assetDate");
-                        var tz = PS.cloudkit.fieldVal(asset, "timeZoneOffset");
-                        var meta = {
-                          id: id,
-                          album: key,
-                          takenUtc: typeof taken === "number" ? taken : null,
-                          tzOffset: typeof tz === "number" ? tz : null,
-                          lat: loc ? loc.lat : null,
-                          lon: loc ? loc.lon : null,
-                          w: proc.w,
-                          h: proc.h,
-                          postId: postByAsset[id] || null,
-                          geoCell:
-                            loc != null ? PS.geo.cellKey(loc.lat, loc.lon) : null,
-                          fingerprint: fp,
-                          place: null,
-                        };
                         return PS.idb.putPhoto(id, proc.blob).then(function () {
                           return PS.idb.putMeta(meta);
                         });
@@ -799,6 +887,7 @@
       cfg = PS.config.merge({ albums: ["demo"] });
       intervalMs = (cfg.interval || 5) * 1000;
       fadeMs = (cfg.fade || 0.6) * 1000;
+      applyClockFont(cfg.clockFont);
       showStatus("Načítavam fotky…");
       ready = Promise.all([
         showOsmCreditSplash(),
@@ -814,6 +903,7 @@
       }
       intervalMs = (cfg.interval || 5) * 1000;
       fadeMs = (cfg.fade || 0.6) * 1000;
+      applyClockFont(cfg.clockFont);
       showStatus("Načítavam fotky…");
       ready = Promise.all([
         showOsmCreditSplash(),

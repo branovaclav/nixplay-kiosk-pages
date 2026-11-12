@@ -56,6 +56,7 @@ SLIDESHOW_INTERVAL=5
 SLIDESHOW_FADE=0.6
 SLIDESHOW_SHARPEN=0.3
 # optional:
+# SLIDESHOW_CLOCK_FONT=system   # or manrope | inter | outfit | figtree
 # SLIDESHOW_NOMINATIM_URL=https://nominatim.openstreetmap.org/reverse
 # SLIDESHOW_PHOTON_URL=https://photon.komoot.io/reverse
 ```

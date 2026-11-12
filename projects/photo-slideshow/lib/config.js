@@ -4,11 +4,20 @@
 
   var LS_KEY = "ps.cfg";
 
+  var CLOCK_FONTS = {
+    system: true,
+    manrope: true,
+    inter: true,
+    outfit: true,
+    figtree: true,
+  };
+
   var DEFAULTS = {
     albums: [],
     interval: 5,
     fade: 0.6,
     sharpen: 0.3,
+    clockFont: "system",
     nominatimUrl: "https://nominatim.openstreetmap.org/reverse",
     photonUrl: "https://photon.komoot.io/reverse",
   };
@@ -81,9 +90,23 @@
     if (raw.interval != null && isFinite(raw.interval)) out.interval = Number(raw.interval);
     if (raw.fade != null && isFinite(raw.fade)) out.fade = Number(raw.fade);
     if (raw.sharpen != null && isFinite(raw.sharpen)) out.sharpen = Number(raw.sharpen);
+    if (raw.clockFont && CLOCK_FONTS[String(raw.clockFont)]) {
+      out.clockFont = String(raw.clockFont);
+    }
     if (raw.nominatimUrl) out.nominatimUrl = String(raw.nominatimUrl);
     if (raw.photonUrl) out.photonUrl = String(raw.photonUrl);
     return out;
+  }
+
+  /** Optional ?clockFont=manrope|inter|outfit|figtree|system for A/B without rewriting #cfg=. */
+  function clockFontFromQuery() {
+    try {
+      var m = /[?&]clockFont=([A-Za-z0-9_-]+)/.exec(
+        global.location && global.location.search ? global.location.search : ""
+      );
+      if (m && CLOCK_FONTS[m[1]]) return m[1];
+    } catch (e) {}
+    return null;
   }
 
   /** Load config: fragment wins → mirror to LS; else LS; else null (unset). */
@@ -101,11 +124,13 @@
   global.PS = global.PS || {};
   global.PS.config = {
     DEFAULTS: DEFAULTS,
+    CLOCK_FONTS: CLOCK_FONTS,
     LS_KEY: LS_KEY,
     load: load,
     merge: merge,
     validate: validate,
     parseHashCfg: parseHashCfg,
     b64urlDecode: b64urlDecode,
+    clockFontFromQuery: clockFontFromQuery,
   };
 })(typeof window !== "undefined" ? window : global);

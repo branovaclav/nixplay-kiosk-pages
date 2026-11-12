@@ -20,3 +20,10 @@ Sources consulted:
   https://osmfoundation.org/wiki/Licence/Attribution_Guidelines
   https://osmfoundation.org/wiki/Licence/Community_Guidelines/Geocoding_-_Guideline
   https://operations.osmfoundation.org/policies/nominatim/
+
+Optional clock fonts
+====================
+
+Self-hosted Manrope, Inter, Outfit, and Figtree (SIL Open Font License 1.1)
+live under fonts/ (latin + latin-ext). See fonts/README.txt and fonts/OFL-*.txt.
+Default clock face remains the system stack until configured.

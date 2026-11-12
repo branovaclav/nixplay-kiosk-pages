@@ -41,7 +41,11 @@ owner e-mail and GPS values are redacted here: `<KEY>`, `<TOKEN>`. Raw captures 
   - `JPEGThumb` 480×360, `JPEGMed` 2048×1536 (≈0.5–0.9 MB), `JPEGFull` 4032×3024 (only on some), `Original` HEIC 4032×3024,
   - Live Photo video: `OriginalVidCompl` 1744×1308 MOV, `VidMed` 872×654, `VidSmall` 581×436; `SidecarOther`.
 - CPLAsset fields: addedDate, assetDate, orientation, duration, masterRef, isFavorite/isHidden, people, keywordsEnc, timeZoneNameEnc,
-  **locationEnc (base64 plain bplist: lat, lon, alt, speed, course, accuracy, timestamp)**. "Enc" fields are NOT encrypted for public albums.
+  **locationEnc (base64 plain bplist: lat, lon, alt, speed, course, accuracy, timestamp)**, **assetBatchId**.
+  "Enc" fields are NOT encrypted for public albums.
+- **Posts → assets:** `CPLPost` often has only `caption` + `postTimestamp` (no `assetBatchId` field). Member assets are those with
+  `asset.assetBatchId === post.recordName`. Query `CPLAssetAndMasterInPost` requires **both** `postID` and `assetBatchId`
+  filters; omitting `assetBatchId` returns HTTP 400 `Expected a parameter with name: assetBatchId`.
 - JPEG derivatives are pre-rotated (no EXIF Orientation tag; portrait comes as 1536×2048) but still **contain EXIF GPS**.
 - This album: 4 photos, 3 Live Photos, 0 videos (video would be itemType com.apple.quicktime-movie / duration>0).
 

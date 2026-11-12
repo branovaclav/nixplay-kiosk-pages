@@ -270,5 +270,65 @@ test("shouldSyncOnVisible after stale lastCompletedAt", function () {
   assert.strictEqual(sp.shouldSyncOnVisible(null, false, now), true);
 });
 
+test("assetIdsForPost maps via assetBatchId === post.recordName", function () {
+  var ck = loadCloudkit();
+  var post = { recordName: "POST-BATCH-1", fields: { caption: { value: "Trip" } } };
+  var pairs = [
+    {
+      asset: {
+        recordName: "A1",
+        recordType: "CPLAsset",
+        fields: { assetBatchId: { value: "POST-BATCH-1" } },
+      },
+      master: synthMaster("M1"),
+    },
+    {
+      asset: {
+        recordName: "A2",
+        recordType: "CPLAsset",
+        fields: { assetBatchId: { value: "OTHER" } },
+      },
+      master: synthMaster("M2"),
+    },
+    {
+      asset: {
+        recordName: "A3",
+        recordType: "CPLAsset",
+        fields: { assetBatchId: { value: "POST-BATCH-1" } },
+      },
+      master: synthMaster("M3"),
+    },
+  ];
+  var ids = ck.assetIdsForPost(post, pairs);
+  assert.strictEqual(ids.length, 2);
+  assert.strictEqual(ids[0], "A1");
+  assert.strictEqual(ids[1], "A3");
+  assert.strictEqual(ck.postBatchId(post), "POST-BATCH-1");
+});
+
+test("assetIdsForPost prefers explicit post.assetBatchId field when present", function () {
+  var ck = loadCloudkit();
+  var post = {
+    recordName: "POST-NAME",
+    fields: { assetBatchId: { value: "EXPLICIT-BATCH" }, caption: { value: "X" } },
+  };
+  var pairs = [
+    {
+      asset: {
+        recordName: "A1",
+        fields: { assetBatchId: { value: "EXPLICIT-BATCH" } },
+      },
+    },
+    {
+      asset: {
+        recordName: "A2",
+        fields: { assetBatchId: { value: "POST-NAME" } },
+      },
+    },
+  ];
+  var ids = ck.assetIdsForPost(post, pairs);
+  assert.strictEqual(ids.join(","), "A1");
+});
+
 console.log("\n" + passed + " passed, " + failed + " failed");
 process.exit(failed ? 1 : 0);
