@@ -17,7 +17,7 @@
 */
 :root {
   --fs-base: 20px;
-  --fs-kicker: 20px;
+  --fs-kicker: 18px;          /* all-caps headings: kicker, section labels, ZAJTRA — same ~10% step */
   --fs-date: 33px;
   --fs-clock: 51px;
   --fs-clock-sec: 26px;
@@ -36,10 +36,10 @@
   --fs-ev-title-short: 16px;
   --fs-ev-flags: 14px;
   --fs-side-title: 27px;
-  --fs-side-section: 20px;
+  --fs-side-section: 18px;
   --fs-side-item: 21px;
   --fs-tag: 17px;
-  --fs-outlook-title: 21px;
+  --fs-outlook-title: 19px;
   --fs-empty: 23px;
   --fs-flags: 15px;
 
