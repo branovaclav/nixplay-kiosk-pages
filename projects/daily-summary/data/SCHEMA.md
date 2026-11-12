@@ -39,7 +39,7 @@ Dva vizuálne režimy z toho istého JSON: **dark** (Večerná) a **light** (tá
 ```
 
 Štyria ľudia v pevnom poradí stĺpcov: Braňo, Zuzka, Andrej, Tomáš.
-`family` je meta pre pohľad Rodina (avatar/farba) — **nie** stĺpec kalendára.
+`family` je meta pre pohľad Rodina (avatar/farba) — **nie** stĺpec kalendára. Stránka ho momentálne nezobrazuje (hlavička nemá odznak osoby), validátor ho však stále vyžaduje.
 
 ### `theme_schedule`
 

@@ -1,0 +1,22 @@
+OpenStreetMap attribution
+=========================
+
+This project reverse-geocodes photo GPS coordinates into place-name text
+(city/town + country) via Nominatim and, as a fallback, Photon. Both use
+OpenStreetMap data. No map tiles are shown.
+
+Place names are insubstantial extracts under the OpenStreetMap Foundation
+Geocoding Guideline; ODbL share-alike is not triggered. The application still
+credits OpenStreetMap (ODbL §4.3 / Attribution Guidelines).
+
+Credit shown to the viewer: a brief splash on the slideshow loading screen.
+Durable notice: this file and README.md.
+
+  © OpenStreetMap contributors
+  Licence: Open Database Licence (ODbL) 1.0
+  https://www.openstreetmap.org/copyright
+
+Sources consulted:
+  https://osmfoundation.org/wiki/Licence/Attribution_Guidelines
+  https://osmfoundation.org/wiki/Licence/Community_Guidelines/Geocoding_-_Guideline
+  https://operations.osmfoundation.org/policies/nominatim/

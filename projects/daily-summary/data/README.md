@@ -18,7 +18,7 @@ Write day files here (repo-relative):
 ## Dva behy denne (Europe/Prague)
 
 **Jeden súbor na deň** slúži večer pred dňom aj počas dňa — bez regenerácie kvôli popiskom.
-Relatívne texty (kicker **Zajtra** / **Rodinný prehľad**, nadpis výhľadu) počíta klient podľa Prague času.
+Relatívne texty (kicker **Zajtra** / **Rodinný prehľad** / **Osobný prehľad**, nadpis výhľadu) počíta klient podľa Prague času.
 
 | Beh | Približne | Súbor | Úloha |
 |---|---|---|---|

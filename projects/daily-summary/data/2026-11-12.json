@@ -1,0 +1,106 @@
+{
+  "date": "2026-11-12",
+  "locale": "sk-SK",
+  "timezone": "Europe/Prague",
+  "now": "09:21",
+  "refresh_at": "06:30",
+  "weather": {
+    "sample": false,
+    "summary": "Dážď",
+    "icon": "rain",
+    "temp_high_c": 14,
+    "temp_low_c": 6
+  },
+  "timeline": {
+    "start": "07:00",
+    "end": "21:00"
+  },
+  "events": [
+    {
+      "id": "andrej-priprava-v-skole",
+      "members": [
+        "andrej"
+      ],
+      "title": "Príprava v škole",
+      "start": "13:30",
+      "end": "15:45",
+      "all_day": false,
+      "location": null,
+      "status": "confirmed",
+      "flags": [],
+      "conflict_with": [],
+      "notes": [],
+      "reminders": []
+    }
+  ],
+  "sections": [
+    {
+      "id": "rodina",
+      "title": "Rodina",
+      "items": [
+        {
+          "text": "Oslava narodenín Tea a Sary 15:00–18:00.",
+          "detail": "V rodinnom kalendári oslava narodenín Tea a Sary 15:00–18:00; kto ide, nie je uvedené."
+        }
+      ]
+    },
+    {
+      "id": "zobrat",
+      "title": "Zobrať / vybaviť",
+      "items": [
+        {
+          "member": "andrej",
+          "text": "Záloha na hory 3 000 Kč do 30. 11.",
+          "detail": "Škola žiada zálohu 3 000 Kč na hory 2027 do 30. 11. 2026 ako záväznú prihlášku. Údaje na platbu sú v školskom e-maile."
+        },
+        {
+          "member": "andrej",
+          "text": "Pondelok 16. 11. — batoh, pláštenka a MHD preukaz.",
+          "detail": "Ročník 2022 (Andrej): v pondelok 16. 11. je dopoludnia obmedzená prevádzka školy, výuka v Hrdličkovom múzeu človeka. Zobrať batoh so desiatou a pitím, pláštenku alebo dáždnik a MHD preukaz. Družina bez zmeny."
+        }
+      ]
+    },
+    {
+      "id": "pripomienky",
+      "title": "Pripomienky",
+      "items": [
+        {
+          "member": "andrej",
+          "family": false,
+          "text": "Deň otvorených dverí na Trojskom gymnáziu 8. 12.",
+          "detail": "Škola písala ročníku 2022 (Andrej): deň otvorených dverí na Trojskom gymnáziu je 8. 12. 2026."
+        },
+        {
+          "member": "tomas",
+          "family": false,
+          "text": "Albatros — knižný darček do 24. 11.",
+          "detail": "Trieda 2025A zbiera nápady na vianočné darčeky (Albatros kniha; objednávka do 24. 11.). Označiť knižku hviezdičkou k objednávke."
+        }
+      ]
+    },
+    {
+      "id": "vyhlad",
+      "title": "Piatok",
+      "outlook": {
+        "from": "2026-11-13",
+        "to": "2026-11-13"
+      },
+      "items": [
+        {
+          "member": "tomas",
+          "text": "Krátky test z prvouky.",
+          "detail": "Piatok 13. 11. — v 2025A (Tomáš) krátky opakovací test z prvouky: druhy vtákov a stromov, smerová ružica a mesiace v roku."
+        },
+        {
+          "member": "andrej",
+          "text": "Baseball Českolipská 17:00–19:00.",
+          "detail": "Piatok 13. 11. — Andrej: baseball 17:00–19:00, Českolipská."
+        },
+        {
+          "text": "Vyzdvihnúť mikinu Šabat 18:00–19:00.",
+          "detail": "Piatok 13. 11. — v rodinnom kalendári vyzdvihnúť mikinu Šabat 18:00–19:00; kto ide, nie je uvedené."
+        }
+      ]
+    }
+  ]
+}

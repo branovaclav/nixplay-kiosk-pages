@@ -16,6 +16,14 @@ Base: [branovaclav.github.io/nixplay-kiosk-pages](https://branovaclav.github.io/
 | `/` | **daily-summary** (frame home — served directly, no redirect) |
 | `/daily-summary/` | daily-summary (same page) |
 | `/example/` | minimal example project |
+| `/photo-slideshow/` | photo slideshow (`#cfg=` / `?demo=1`) — [project](projects/photo-slideshow/), **[frame deploy](projects/photo-slideshow/FRAME-DEPLOY.md)** |
+
+## Frame agent — photo slideshow
+
+To put shared albums on the kiosk (second Chromium tab), follow
+[`projects/photo-slideshow/FRAME-DEPLOY.md`](projects/photo-slideshow/FRAME-DEPLOY.md)
+end-to-end (keys from iCloud links → private `slideshow.env` → `#cfg=` URL → tabs +
+shake remap → verify). Demo without keys: `/photo-slideshow/?demo=1`.
 
 ## Layout
 
@@ -25,6 +33,7 @@ README.md / AGENTS.md    Repo entry points
 projects/                One folder per content type
   daily-summary/         Denný rodinný prehľad (+ its data, themes, build)
   example/               Trivial Chromium 81 demo
+  photo-slideshow/       Shared-album slideshow (+ FRAME-DEPLOY.md)
 tools/                   Shared validate + build orchestrator → site/
 .github/workflows/       One Pages deploy for every project
 ```

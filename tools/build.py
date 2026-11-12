@@ -66,14 +66,27 @@ def build_daily_summary():
     return primary
 
 
-def build_example():
-    src = os.path.join(PROJECTS, "example")
-    out = os.path.join(SITE, "example")
+def _copy_static_project(project_id, skip_names=None):
+    """Copy a static project folder into site/<id>/ (skips docs/tests/tools/env)."""
+    skip = set(skip_names or [])
+    skip.update(
+        {
+            "README.md",
+            "FRAME-DEPLOY.md",
+            ".env.example",
+            "slideshow.env",
+            "tests",
+            "tools",
+            "notes",
+        }
+    )
+    src = os.path.join(PROJECTS, project_id)
+    out = os.path.join(SITE, project_id)
     if os.path.isdir(out):
         shutil.rmtree(out)
     os.makedirs(out, exist_ok=True)
     for name in os.listdir(src):
-        if name.startswith(".") or name == "README.md":
+        if name.startswith(".") or name in skip:
             continue
         s = os.path.join(src, name)
         d = os.path.join(out, name)
@@ -81,12 +94,19 @@ def build_example():
             shutil.copytree(s, d)
         elif name.endswith((".html", ".css", ".js", ".svg", ".png", ".woff2", ".txt")):
             shutil.copy2(s, d)
-    # Always publish the project's index.html
     index_src = os.path.join(src, "index.html")
     if not os.path.isfile(index_src):
-        raise SystemExit("projects/example/index.html missing")
+        raise SystemExit(f"projects/{project_id}/index.html missing")
     shutil.copy2(index_src, os.path.join(out, "index.html"))
-    print("built site/example/index.html")
+    print(f"built site/{project_id}/index.html")
+
+
+def build_example():
+    _copy_static_project("example")
+
+
+def build_photo_slideshow():
+    _copy_static_project("photo-slideshow")
 
 
 def build():
@@ -96,6 +116,7 @@ def build():
 
     build_daily_summary()
     build_example()
+    build_photo_slideshow()
     ensure_nojekyll(SITE)
     print(f"site ready → {SITE}")
 

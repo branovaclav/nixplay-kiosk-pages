@@ -1,0 +1,246 @@
+/* Photo slideshow — Chromium 81, 1024×768. No flex gap / :has / aspect-ratio. */
+:root {
+  --overlay-bg: rgba(0, 0, 0, 0.38);
+  --overlay-font-size: 23px;
+  --overlay-icon-size: 20px;
+  --overlay-place-opacity: 0.6;
+  --overlay-pad-y: 12px;
+  --overlay-pad-x: 16px;
+
+  /* ~⅔ of the way from 42/22 to 76/40; glow blur scaled ~1.5× vs 12/24 */
+  --clock-time-size: 64px;
+  --clock-date-size: 34px;
+  --clock-weight: 300;
+  --clock-glow: 0 0 18px rgba(0, 0, 0, 0.6), 0 0 37px rgba(0, 0, 0, 0.45);
+  --clock-top: 14px;
+  --clock-left: 16px;
+  --clock-line-gap: 2px;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  width: 1024px;
+  height: 768px;
+  overflow: hidden;
+  background: #000;
+  color: #fff;
+  font-family: "Roboto", "Noto Sans", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+}
+
+.stage {
+  position: relative;
+  width: 1024px;
+  height: 768px;
+  background: #000;
+}
+
+.layer {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 1024px;
+  height: 768px;
+  object-fit: contain;
+  object-position: center center;
+  opacity: 0;
+  will-change: opacity;
+  pointer-events: none;
+}
+
+.layer.is-visible {
+  opacity: 1;
+}
+
+.status {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 40%;
+  text-align: center;
+  font-size: 28px;
+  opacity: 0.85;
+  z-index: 5;
+  pointer-events: none;
+}
+
+.status.is-hidden {
+  display: none;
+}
+
+/* OSM credit: brief splash on load (Nominatim / ODbL attribution). */
+.osm-credit {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 52%;
+  text-align: center;
+  font-size: 16px;
+  line-height: 1.4;
+  opacity: 0;
+  z-index: 9;
+  pointer-events: none;
+  color: rgba(255, 255, 255, 0.75);
+  -webkit-transition: opacity 0.35s linear;
+  transition: opacity 0.35s linear;
+}
+
+.osm-credit.is-on {
+  opacity: 1;
+}
+
+.osm-credit a {
+  color: inherit;
+  text-decoration: underline;
+}
+
+.shuffle-toast {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  -webkit-transform: translate(-50%, -50%);
+  transform: translate(-50%, -50%);
+  padding: 14px 22px;
+  background: rgba(0, 0, 0, 0.55);
+  border-radius: 10px;
+  font-size: 28px;
+  letter-spacing: 0.02em;
+  z-index: 8;
+  opacity: 0;
+  -webkit-transition: opacity 0.2s linear;
+  transition: opacity 0.2s linear;
+  pointer-events: none;
+}
+
+.shuffle-toast.is-on {
+  opacity: 1;
+}
+
+/* Top-left clock — visible with the overlay; no background box. */
+.clock {
+  position: absolute;
+  left: var(--clock-left);
+  top: var(--clock-top);
+  z-index: 6;
+  display: none;
+  color: #fff;
+  font-weight: var(--clock-weight);
+  text-shadow: var(--clock-glow);
+  pointer-events: none;
+  line-height: 1.15;
+}
+
+.clock.is-on {
+  display: block;
+}
+
+.clock-time {
+  font-size: var(--clock-time-size);
+  letter-spacing: 0.02em;
+}
+
+.clock-date {
+  margin-top: var(--clock-line-gap);
+  font-size: var(--clock-date-size);
+  opacity: 0.95;
+}
+
+.overlay {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 6;
+  display: none;
+  -webkit-box-sizing: border-box;
+  box-sizing: border-box;
+  padding: var(--overlay-pad-y) var(--overlay-pad-x);
+  background: var(--overlay-bg);
+  color: #fff;
+  font-size: var(--overlay-font-size);
+  line-height: 1.25;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.overlay.is-on {
+  display: block;
+}
+
+/* Three columns; leftover space splits evenly (equal gaps). */
+.overlay-row {
+  display: -webkit-box;
+  display: flex;
+  -webkit-box-pack: justify;
+  justify-content: space-between;
+  -webkit-box-align: center;
+  align-items: center;
+  width: 100%;
+  min-width: 0;
+}
+
+.overlay-col {
+  -webkit-box-flex: 0;
+  flex: 0 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.overlay-date {
+  -webkit-box-flex: 0;
+  flex: 0 0 auto;
+  max-width: 22%;
+}
+
+.overlay-middle {
+  text-align: center;
+  max-width: 52%;
+}
+
+.overlay-right {
+  text-align: right;
+  max-width: 28%;
+}
+
+.overlay-icon {
+  display: inline-block;
+  width: var(--overlay-icon-size);
+  height: var(--overlay-icon-size);
+  margin-right: 6px;
+  vertical-align: -3px;
+}
+
+.overlay-icon svg {
+  display: block;
+  width: var(--overlay-icon-size);
+  height: var(--overlay-icon-size);
+  fill: currentColor;
+}
+
+/* Place is always dimmed (even when alone on the right). */
+.overlay-place {
+  opacity: var(--overlay-place-opacity);
+}
+
+.overlay-comment {
+  opacity: 1;
+}
+
+.sync-dot {
+  position: absolute;
+  right: 10px;
+  top: 10px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #e11d48;
+  opacity: 0;
+  z-index: 7;
+  pointer-events: none;
+}
+
+.sync-dot.is-on {
+  opacity: 0.7;
+}

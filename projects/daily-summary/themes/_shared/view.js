@@ -5,6 +5,8 @@
    Idle 60s → rodina. Now-marker every minute. Daily reload at refresh_at.
    Stale past day: keep showing + header note; version.json poll / 5‑min retry
    (no immediate reload loop). Test: ?asOf=YYYY-MM-DD mocks today without freeze.
+   Header clock ticks once per second (one timeout aligned to the second).
+   Sidebar .autoscroll areas slowly loop when their content overflows.
 */
 (function () {
   var VIEWS = ["rodina", "branislav", "zuzka", "andrej", "tomas"];
@@ -209,6 +211,7 @@
     setTimeout(function () {
       refreshSectionVisibility();
       fitEventBlocks();
+      setupAutoscroll();
     }, 0);
     try {
       if (history.replaceState) {
@@ -381,8 +384,10 @@
     if (!mode) {
       mode = isDarkNow() ? "dark" : "light";
     }
+    var changed = !root.classList.contains("theme-" + mode);
     root.classList.remove("theme-dark", "theme-light");
     root.classList.add("theme-" + mode);
+    if (changed && scrollGen > 0) scheduleAutoscroll(50);
     root.setAttribute("data-theme", mode);
     try {
       var p = pragueParts();
@@ -448,9 +453,11 @@
       tomorrow ? "tomorrow" : todayPage ? "today" : stale ? "stale" : "other"
     );
 
-    var rodinaEyebrow = document.querySelector(".eyebrow-rodina");
-    if (rodinaEyebrow) {
-      rodinaEyebrow.textContent = tomorrow ? "Zajtra" : "Rodinný prehľad";
+    // Kicker: family + personal both read „Zajtra“ on tomorrow's page
+    var kickers = document.querySelectorAll(".eyebrow[data-kicker]");
+    for (var k = 0; k < kickers.length; k++) {
+      var label = tomorrow ? "Zajtra" : kickers[k].getAttribute("data-kicker");
+      if (kickers[k].textContent !== label) kickers[k].textContent = label;
     }
 
     syncStaleNote();
@@ -589,6 +596,168 @@
     setInterval(check, VERSION_MS);
   }
 
+  /* ---------- Header clock (HH:MM + small :SS) ---------- */
+  var clockFmt = null;
+  var clockHmEl = null;
+  var clockSEl = null;
+  var clockLastHm = "";
+
+  function clockNow() {
+    try {
+      if (!clockFmt) {
+        clockFmt = new Intl.DateTimeFormat("en-GB", {
+          timeZone: tz,
+          hour: "2-digit",
+          minute: "2-digit",
+          second: "2-digit",
+          hour12: false,
+        });
+      }
+      var parts = clockFmt.formatToParts(new Date());
+      var o = { hour: "00", minute: "00", second: "00" };
+      for (var i = 0; i < parts.length; i++) {
+        if (o.hasOwnProperty(parts[i].type)) o[parts[i].type] = parts[i].value;
+      }
+      if (o.hour === "24") o.hour = "00";
+      return o;
+    } catch (e) {
+      var d = new Date();
+      var p2 = function (n) { return (n < 10 ? "0" : "") + n; };
+      return { hour: p2(d.getHours()), minute: p2(d.getMinutes()), second: p2(d.getSeconds()) };
+    }
+  }
+
+  /** ?now=HH:MM (or data-lock-now) freezes the clock at HH:MM:00 for screenshots. */
+  function clockMock() {
+    var m = (location.search || "").match(/[?&]now=(\d{1,2}:\d{2})/);
+    if (m) return m[1].length === 4 ? "0" + m[1] : m[1];
+    if (body.getAttribute("data-lock-now") === "1" && fallbackNow) return fallbackNow;
+    return "";
+  }
+
+  function tickClock() {
+    var t = clockNow();
+    var hm = t.hour + ":" + t.minute;
+    if (hm !== clockLastHm) {
+      var first = clockLastHm === "";
+      clockLastHm = hm;
+      clockHmEl.textContent = hm;
+      // keep the „teraz“ marker / theme in step with the clock's minute
+      if (!first) updateNow();
+    }
+    clockSEl.textContent = ":" + t.second;
+    // next tick just after the next whole second (one timer, no interval drift)
+    setTimeout(tickClock, 1000 - (Date.now() % 1000) + 15);
+  }
+
+  function startClock() {
+    clockHmEl = document.querySelector(".topbar-clock .clock-hm");
+    clockSEl = document.querySelector(".topbar-clock .clock-s");
+    if (!clockHmEl || !clockSEl) return false;
+    var mock = clockMock();
+    if (mock) {
+      clockHmEl.textContent = mock;
+      clockSEl.textContent = ":00";
+      return false;
+    }
+    tickClock();
+    return true;
+  }
+
+  /* ---------- Sidebar auto-scroll ----------
+     Each .autoscroll viewport: if .autoscroll-inner is taller, loop
+     pause(top) → translateY linear at --autoscroll-speed px/s → pause(bottom)
+     → fade out, jump to top, fade in. Transform + opacity only (composited).
+     Debug: ?scrollpos=0..1 freezes every overflowing area at that fraction. */
+  var scrollGen = 0;
+  var FADE_MS = 500;
+
+  function cssNum(name, dflt) {
+    try {
+      var v = parseFloat(getComputedStyle(root).getPropertyValue(name));
+      return isNaN(v) ? dflt : v;
+    } catch (e) {
+      return dflt;
+    }
+  }
+
+  function setupAutoscroll() {
+    scrollGen++;
+    var gen = scrollGen;
+    var speed = cssNum("--autoscroll-speed", 16);
+    var pause = cssNum("--autoscroll-pause", 4000);
+    var dbg = (location.search || "").match(/[?&]scrollpos=([0-9.]+)/);
+    var areas = document.querySelectorAll(".autoscroll");
+    var report = [];
+    for (var i = 0; i < areas.length; i++) {
+      var vp = areas[i];
+      var inner = vp.firstElementChild;
+      if (!inner) continue;
+      inner.style.transition = "none";
+      inner.style.transform = "translateY(0)";
+      inner.style.opacity = "";
+      vp.classList.remove("is-overflowing");
+      vp.removeAttribute("data-pos");
+      if (vp.offsetParent === null) continue; // hidden view
+      var over = Math.ceil(inner.offsetHeight - vp.clientHeight);
+      report.push(vp.clientHeight + "/" + inner.offsetHeight);
+      if (over <= 2) continue;
+      vp.classList.add("is-overflowing");
+      if (dbg) {
+        var f = Math.max(0, Math.min(1, parseFloat(dbg[1])));
+        inner.style.transform = "translateY(" + -Math.round(over * f) + "px)";
+        vp.setAttribute("data-pos", f <= 0 ? "top" : f >= 1 ? "bottom" : "moving");
+        continue;
+      }
+      runLoop(vp, inner, over, speed, pause, gen);
+    }
+    body.setAttribute("data-scroll-debug", report.join(" "));
+  }
+
+  function runLoop(vp, inner, over, speed, pause, gen) {
+    var dur = Math.max(1000, Math.round((over / speed) * 1000));
+    function alive() { return gen === scrollGen; }
+    function atTop() {
+      if (!alive()) return;
+      vp.setAttribute("data-pos", "top");
+      setTimeout(down, pause);
+    }
+    function down() {
+      if (!alive()) return;
+      vp.setAttribute("data-pos", "moving");
+      inner.style.transition = "transform " + dur + "ms linear";
+      inner.style.transform = "translateY(" + -over + "px)";
+      setTimeout(atBottom, dur);
+    }
+    function atBottom() {
+      if (!alive()) return;
+      vp.setAttribute("data-pos", "bottom");
+      setTimeout(fadeOut, pause);
+    }
+    function fadeOut() {
+      if (!alive()) return;
+      inner.style.transition = "opacity " + FADE_MS + "ms ease";
+      inner.style.opacity = "0";
+      setTimeout(function () {
+        if (!alive()) return;
+        inner.style.transition = "none";
+        inner.style.transform = "translateY(0)";
+        vp.setAttribute("data-pos", "top");
+        void inner.offsetHeight; // commit jump before fading in
+        inner.style.transition = "opacity " + FADE_MS + "ms ease";
+        inner.style.opacity = "1";
+        setTimeout(atTop, FADE_MS);
+      }, FADE_MS);
+    }
+    atTop();
+  }
+
+  var resizeT = null;
+  function scheduleAutoscroll(delay) {
+    if (resizeT) clearTimeout(resizeT);
+    resizeT = setTimeout(setupAutoscroll, delay || 0);
+  }
+
   function onKey(e) {
     var key = e.key || "";
     var code = e.keyCode || e.which;
@@ -626,11 +795,22 @@
     setView(initial);
     armIdle();
     updateNow();
-    setInterval(updateNow, NOW_MS);
+    // Live clock drives updateNow on each minute change; fall back to the
+    // old 60 s interval when the clock is frozen (?now=) or missing.
+    if (!startClock()) setInterval(updateNow, NOW_MS);
     armDailyRefresh();
     armVersionPoll();
     document.addEventListener("keydown", onKey, true);
-    window.addEventListener("resize", fitEventBlocks);
+    window.addEventListener("resize", function () {
+      fitEventBlocks();
+      scheduleAutoscroll(200);
+    });
+    // Webfonts change text metrics — re-measure once they are in
+    try {
+      if (document.fonts && document.fonts.ready) {
+        document.fonts.ready.then(function () { scheduleAutoscroll(0); });
+      }
+    } catch (e) {}
   }
 
   if (document.readyState === "loading") {
