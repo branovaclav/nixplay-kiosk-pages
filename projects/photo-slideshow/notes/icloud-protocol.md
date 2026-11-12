@@ -22,8 +22,11 @@ owner e-mail and GPS values are redacted here: `<KEY>`, `<TOKEN>`. Raw captures 
       → `records[0].fields.itemCount.value` (= 4).
    b. `records/lookup` `{"records":[{"recordName":"<keyAssetIdentifier>"}],"zoneID":…}` → CPLAsset, then same for its masterRef → CPLMaster (cover image only).
    c. `records/query` list: `{"query":{"recordType":"CPLAssetAndMasterByAddedDate","filterBy":[{"fieldName":"direction","comparator":"EQUALS","fieldValue":{"value":"ASCENDING","type":"STRING"}},{"fieldName":"startRank","comparator":"EQUALS","fieldValue":{"value":0,"type":"INT64"}}]},"zoneID":…,"resultsLimit":8}`
-      → `records[]` = CPLMaster + CPLAsset pairs. **Pagination = startRank** (asset index); `resultsLimit` counts records (2 per photo);
-      no continuationMarker. Verified with resultsLimit 2 / startRank 0..3.
+      → `records[]` = CPLMaster + CPLAsset for the page. **Order is not interleaved:** within each page CloudKit
+      returns **all CPLMaster records first, then all CPLAsset records** (verified with resultsLimit 2…50). Pair each
+      asset to its master via `fields.masterRef.value.recordName` — sequential “next master + next asset” pairing
+      collapses an N-photo page to **one** pair. **Pagination = startRank** (asset index); `resultsLimit` counts
+      records (2 per photo); no continuationMarker. Verified with resultsLimit 2 / startRank 0..3.
    d. `changes/zone` `{"zones":[{"syncToken":"<from previous response>","zoneID":…}]}` → `moreComing`, `records[]` — usable for cheap change polling.
    - Responses carry `access-control-expose-headers: X-CloudKit-PublicAccess-AuthToken,…` (token can be refreshed via header).
 3. Images: `GET https://cvws-h2.icloud-content.com/B/<id>/<name>?o=…&v=1&x=3&a=…&e=<unix>&fl=&r=…&k=…&ckc=com.apple.photos.cloud&ckz=<zone>&y=1&p=124&s=<sig>`

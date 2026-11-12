@@ -24,7 +24,7 @@ Status: decisions agreed with Braňo, 11 Nov 2026. Project `projects/photo-slide
 ## 3. Config
 - Source: private `slideshow.env`, never committed (format in `.env.example`):
   ```
-  SLIDESHOW_ALBUMS=<key1>,<key2>      # 1–5 shared-album keys, in "album after album" order
+  SLIDESHOW_ALBUMS=<id1>,<id2>       # 1–5 photos.icloud.com/shared/album/<id> keys (or full URLs)
   SLIDESHOW_INTERVAL=5                # seconds per photo
   SLIDESHOW_FADE=0.6                  # dissolve seconds
   SLIDESHOW_SHARPEN=0.3               # unsharp-mask amount, 0 = off
@@ -47,6 +47,7 @@ boot → config → IndexedDB → play from cache immediately
        resolve (retry TRY_AGAIN_LATER up to 6×, 1.5 s backoff) → count → list assets + posts (startRank paging)
        → diff stable asset IDs → for each NEW id: download JPEGMed → resize+sharpen → store blob + meta
        → map post comments → geocode queue; IDs gone from the album are deleted from the cache
+       → drop any cached photos whose album is not in config (shared github.io origin; demo uses ps.demo.v1)
 ```
 - Protocol: see [`notes/icloud-protocol.md`](notes/icloud-protocol.md). XHR with `Content-Type: text/plain` (no preflight); CORS `*` verified in Chromium 81 **[M]**.
 - Download URLs expire after ~16 min and the token after 20 min, so download each listed page right away;
@@ -103,13 +104,15 @@ boot → config → IndexedDB → play from cache immediately
 ## 9. Projects, keys, lifecycle
 - Each project is its own fullscreen Chromium window (no tabs / iframes). The frame
   order puts **photo-slideshow first**, then daily-summary. Short shake cycles
-  projects (page gets no key). **Long shake = the frame reloads the first project**
-  (this slideshow) and shows it.
+  projects (page gets no key). **Long shake = the frame restarts Chromium and
+  reloads all projects**, with photo-slideshow in front.
 - On `visibilitychange` hidden: pause timer, clock, sync, downloads, resize and
   geocoding (finish the current download item, then wait); free decoded images,
   object URLs and canvas buffers. On visible: restore display, catch up clock,
-  resume timer and sync (new album photos download only while on screen). No
-  forced reload on switch.
+  resume timer; full album sync only if interrupted or last completed sync is
+  older than a few hours (6 h timer still applies while visible). No forced
+  reload on switch. Photos from albums not in `#cfg=` (including leftover
+  `?demo=1` cache) are deleted and never played; demo mode uses a separate DB.
 
 | Gesture | Key | Action |
 |---|---|---|
@@ -117,7 +120,7 @@ boot → config → IndexedDB → play from cache immediately
 | Left-corner lift | Tab | Toggle shuffle (always, overlay shown or hidden); show a brief shuffle-state icon in the centre (~1.5 s, not part of the overlay) |
 | Right-corner lift | Shift+Tab | Previous photo + auto-show overlay |
 | Short shake | (frame) | Next project — not delivered to the page |
-| Long shake | (frame) | Reload first project (photo-slideshow) and show it |
+| Long shake | (frame) | Restart Chromium; reload all projects; photo-slideshow in front |
 
 - `preventDefault()` on every handled key (capture phase on `document`). Ignore `e.repeat`; debounce 400 ms.
 - There is no "next" gesture: photos advance only on the timer.
@@ -163,6 +166,6 @@ boot → config → IndexedDB → play from cache immediately
 
 ## 13. Resolved / later
 1. Post comments confirmed on the live album (11 Nov): `records/query` `CPLPostByPostTimestamp` (descending, startRank 0) returns `CPLPost.caption` (STRING) with the public anonymous token; post members via `CPLAssetAndMasterInPost` / matching `assetBatchId`. Note: a full `changes/zone` sync can die on a sentinel `INTERNAL_ERROR`; posts must be fetched via the query, not only via changes/zone.
-2. Long shake = the frame reloads the first project; saved settings, position, seen state and cache are kept (consistent with resume).
+2. Long shake = the frame restarts Chromium and reloads all projects (slideshow in front); saved settings, position, seen state and cache are kept (consistent with resume).
 3. Deployment (frame agent, documented in FRAME-DEPLOY.md): multi-window projects, env → `#cfg=` URL, visibility pause.
 4. Overlay visual polish after a first on-frame look.

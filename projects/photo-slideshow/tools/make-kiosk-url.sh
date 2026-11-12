@@ -30,10 +30,25 @@ if [[ -z "${SLIDESHOW_ALBUMS:-}" ]]; then
 fi
 
 python3 - "$BASE_URL" <<'PY'
-import json, os, sys, base64
+import json, os, sys, base64, re
 
 base = sys.argv[1]
-albums = [a.strip() for a in os.environ.get("SLIDESHOW_ALBUMS", "").split(",") if a.strip()]
+raw_albums = [a.strip() for a in os.environ.get("SLIDESHOW_ALBUMS", "").split(",") if a.strip()]
+
+def album_id(value):
+    """Accept bare CloudKit share ids or full photos.icloud.com shared-album URLs."""
+    v = value.strip()
+    m = re.search(
+        r"(?:photos\.icloud\.com/shared/album/|icloud\.com/sharedalbum/#)([A-Za-z0-9_-]+)",
+        v,
+    )
+    if m:
+        return m.group(1)
+    if re.fullmatch(r"[A-Za-z0-9_-]{8,}", v):
+        return v
+    sys.exit("unrecognized album entry (want bare id or photos.icloud.com/shared/album/<id>): " + v[:48])
+
+albums = [album_id(a) for a in raw_albums]
 if not albums or len(albums) > 5:
     sys.exit("need 1–5 album keys in SLIDESHOW_ALBUMS")
 

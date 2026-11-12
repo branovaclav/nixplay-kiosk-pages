@@ -40,6 +40,9 @@
   var syncInterval = null;
   var hideReleaseTimer = null;
   var syncGeneration = 0;
+  var syncInFlight = false;
+  var syncInterrupted = false;
+  var lastSyncCompletedAt = null;
 
   var ICON_COMMENT =
     '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h16a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H9l-5 4v-4H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"/></svg>';
@@ -208,16 +211,22 @@
     });
   }
 
+  function configuredAlbums() {
+    return demoMode ? ["demo"] : (cfg && cfg.albums ? cfg.albums.slice() : []);
+  }
+
   function rebuildOrder(metas) {
     metasById = {};
     var byAlbum = {};
-    var albums = demoMode ? ["demo"] : cfg.albums.slice();
+    var albums = configuredAlbums();
+    // Never play leftover cache from removed albums or a prior ?demo=1 visit.
+    var playable = PS.syncPolicy.filterMetasForAlbums(metas || [], albums);
     var i;
-    for (i = 0; i < metas.length; i++) {
-      metasById[metas[i].id] = metas[i];
-      var a = metas[i].album || "";
+    for (i = 0; i < playable.length; i++) {
+      metasById[playable[i].id] = playable[i];
+      var a = playable[i].album || "";
       if (!byAlbum[a]) byAlbum[a] = [];
-      byAlbum[a].push(metas[i]);
+      byAlbum[a].push(playable[i]);
     }
     idOrder = [];
     for (i = 0; i < albums.length; i++) {
@@ -228,12 +237,31 @@
       var j;
       for (j = 0; j < list.length; j++) idOrder.push(list[j].id);
     }
-    // orphans
-    for (i = 0; i < metas.length; i++) {
-      if (idOrder.indexOf(metas[i].id) < 0) idOrder.push(metas[i].id);
-    }
     if (!shuffleBag) shuffleBag = new PS.ShuffleBag(idOrder);
     else shuffleBag.setIds(idOrder);
+    if (currentId && !metasById[currentId]) currentId = null;
+  }
+
+  /** Drop photos whose album is not in the current config (shared origin cache). */
+  function purgeForeignAlbums() {
+    var albums = configuredAlbums();
+    return PS.idb.allMeta().then(function (all) {
+      var drop = PS.syncPolicy.foreignMetaIds(all, albums);
+      var chain = Promise.resolve();
+      var i;
+      for (i = 0; i < drop.length; i++) {
+        (function (mid) {
+          chain = chain.then(function () {
+            return PS.idb.del("photos", mid).then(function () {
+              return PS.idb.del("meta", mid);
+            });
+          });
+        })(drop[i]);
+      }
+      return chain.then(function () {
+        return drop.length;
+      });
+    });
   }
 
   function renderOverlay(id) {
@@ -456,6 +484,10 @@
       timer = null;
       stopClock();
       if (PS.geo && PS.geo.setPaused) PS.geo.setPaused(true);
+      if (syncInFlight) {
+        syncInterrupted = true;
+        persistSyncState();
+      }
       // Finish the in-flight sync/download item, then free decoded images.
       if (hideReleaseTimer) clearTimeout(hideReleaseTimer);
       hideReleaseTimer = setTimeout(function () {
@@ -478,8 +510,8 @@
       restoreDisplay().then(function () {
         if (pageHidden) return;
         armTimer();
-        // Catch up album sync only while visible (new photos download on-screen).
-        backgroundSync();
+        // Sync on visible only if interrupted or last full sync is stale (few hours).
+        maybeSyncOnVisible();
       });
     }
   }
@@ -625,10 +657,28 @@
     });
   }
 
+  function persistSyncState() {
+    return PS.idb.putState("sync", {
+      lastCompletedAt: lastSyncCompletedAt,
+      interrupted: syncInterrupted,
+    });
+  }
+
+  function loadSyncState() {
+    return PS.idb.getState("sync").then(function (s) {
+      if (!s) return;
+      if (typeof s.lastCompletedAt === "number") lastSyncCompletedAt = s.lastCompletedAt;
+      if (s.interrupted) syncInterrupted = true;
+    });
+  }
+
   function backgroundSync() {
     if (demoMode || !cfg || !cfg.albums.length) return Promise.resolve();
     if (!allowBackgroundWork || pageHidden) return Promise.resolve();
     var gen = ++syncGeneration;
+    syncInFlight = true;
+    syncInterrupted = false;
+    persistSyncState();
     var chain = Promise.resolve();
     var i;
     for (i = 0; i < cfg.albums.length; i++) {
@@ -643,12 +693,46 @@
         });
       })(cfg.albums[i]);
     }
-    return chain.then(function () {
-      if (!allowBackgroundWork || pageHidden || gen !== syncGeneration) {
-        return null;
-      }
-      return refreshFromCache(false);
-    });
+    return chain
+      .then(function () {
+        if (gen !== syncGeneration) return null;
+        if (!allowBackgroundWork || pageHidden) {
+          // Hidden mid-sync: finish current download item already, resume later.
+          syncInterrupted = true;
+          syncInFlight = false;
+          return persistSyncState();
+        }
+        lastSyncCompletedAt = Date.now();
+        syncInterrupted = false;
+        syncInFlight = false;
+        return persistSyncState().then(function () {
+          return refreshFromCache(false);
+        });
+      })
+      .catch(function () {
+        if (gen === syncGeneration) {
+          syncInterrupted = true;
+          syncInFlight = false;
+          persistSyncState();
+        }
+      });
+  }
+
+  function maybeSyncOnVisible() {
+    if (demoMode || !cfg || !cfg.albums.length) return Promise.resolve();
+    if (!allowBackgroundWork || pageHidden) return Promise.resolve();
+    if (syncInFlight) return Promise.resolve();
+    if (
+      !PS.syncPolicy.shouldSyncOnVisible(
+        lastSyncCompletedAt,
+        syncInterrupted,
+        Date.now(),
+        PS.syncPolicy.VISIBLE_SYNC_MIN_INTERVAL_MS
+      )
+    ) {
+      return Promise.resolve();
+    }
+    return backgroundSync();
   }
 
   function refreshFromCache(startPlayback) {
@@ -703,6 +787,8 @@
     setPausedAttr(pageHidden);
     if (PS.geo && PS.geo.setPaused) PS.geo.setPaused(pageHidden);
 
+    // Isolate demo writes from the live cache (shared github.io origin).
+    PS.idb.configure({ demo: demoMode });
     PS.idb.tryPersist();
     if (!pageHidden) armClock();
     else tickClock();
@@ -729,7 +815,12 @@
       intervalMs = (cfg.interval || 5) * 1000;
       fadeMs = (cfg.fade || 0.6) * 1000;
       showStatus("Načítavam fotky…");
-      ready = Promise.all([showOsmCreditSplash(), loadUiState()]);
+      ready = Promise.all([
+        showOsmCreditSplash(),
+        loadUiState(),
+        loadSyncState(),
+        purgeForeignAlbums(),
+      ]);
     }
 
     ready
@@ -761,12 +852,13 @@
           if (sm && sm[1] && !pageHidden) return window.__psShow(sm[1]);
           return null;
         }
+        // Boot always syncs (or resumes an interrupted sync). Visible later is gated.
         if (!pageHidden) backgroundSync();
         if (syncInterval) clearInterval(syncInterval);
         syncInterval = setInterval(function () {
           if (pageHidden || !allowBackgroundWork) return;
           backgroundSync();
-        }, 6 * 60 * 60 * 1000);
+        }, PS.syncPolicy.PERIODIC_SYNC_INTERVAL_MS);
         return null;
       })
       .catch(function () {
