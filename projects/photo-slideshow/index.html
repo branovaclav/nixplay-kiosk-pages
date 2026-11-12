@@ -13,12 +13,21 @@
     <img class="layer is-visible" id="layerA" alt="">
     <img class="layer" id="layerB" alt="">
     <div class="status" id="status">Načítavam fotky…</div>
+    <div class="osm-credit" id="osmCredit" aria-hidden="true">
+      Miesta: © OpenStreetMap · ODbL<br>
+      openstreetmap.org/copyright
+    </div>
+    <div class="clock is-on" id="clock" aria-hidden="true">
+      <div class="clock-time" id="clockTime"></div>
+      <div class="clock-date" id="clockDate"></div>
+    </div>
     <div class="shuffle-toast" id="shuffleToast" aria-hidden="true"></div>
     <div class="sync-dot" id="syncDot" aria-hidden="true"></div>
     <div class="overlay is-on" id="overlay">
-      <div class="overlay-inner">
-        <div class="overlay-main"></div>
-        <div class="overlay-osm">© OpenStreetMap</div>
+      <div class="overlay-row">
+        <div class="overlay-col overlay-date" id="overlayDate"></div>
+        <div class="overlay-col overlay-middle" id="overlayMiddle"></div>
+        <div class="overlay-col overlay-right" id="overlayRight"></div>
       </div>
     </div>
   </div>

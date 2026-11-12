@@ -73,34 +73,43 @@ test("formatCaptureDate Slovak short months", function () {
 // ---- overlay label ----
 PS = loadLib("lib/overlay-label.js");
 
-test("overlay both → comment primary, place dimmed", function () {
+test("overlay both → comment middle, place right dimmed", function () {
   var L = PS.overlayLabel.build("14. jún 2025", "Dovolenka", "Paríž, Francúzsko");
-  assert.strictEqual(L.primary, "Dovolenka");
-  assert.strictEqual(L.primaryKind, "comment");
-  assert.strictEqual(L.secondary, "Paríž, Francúzsko");
-  assert.strictEqual(L.secondaryDim, true);
-  assert.strictEqual(L.showOsm, true);
+  assert.strictEqual(L.middle.kind, "comment");
+  assert.strictEqual(L.middle.text, "Dovolenka");
+  assert.strictEqual(L.right.kind, "place");
+  assert.strictEqual(L.right.text, "Paríž, Francúzsko");
+  assert.strictEqual(L.rightDim, true);
 });
 
-test("overlay comment only", function () {
+test("overlay comment only → right, middle empty", function () {
   var L = PS.overlayLabel.build("1. jan 2024", "Vianoce", "");
-  assert.strictEqual(L.primary, "Vianoce");
-  assert.strictEqual(L.secondary, null);
-  assert.strictEqual(L.showOsm, false);
+  assert.strictEqual(L.middle, null);
+  assert.strictEqual(L.right.kind, "comment");
+  assert.strictEqual(L.right.text, "Vianoce");
+  assert.strictEqual(L.rightDim, false);
 });
 
-test("overlay place only", function () {
+test("overlay place only → right dimmed, middle empty", function () {
   var L = PS.overlayLabel.build("2. aug 2025", "", "Brno, Česko");
-  assert.strictEqual(L.primary, "Brno, Česko");
-  assert.strictEqual(L.primaryKind, "place");
-  assert.strictEqual(L.showOsm, true);
+  assert.strictEqual(L.middle, null);
+  assert.strictEqual(L.right.kind, "place");
+  assert.strictEqual(L.right.text, "Brno, Česko");
+  assert.strictEqual(L.rightDim, true);
 });
 
 test("overlay neither → date only", function () {
   var L = PS.overlayLabel.build("8. mar 2023", null, null);
   assert.strictEqual(L.date, "8. mar 2023");
-  assert.strictEqual(L.primary, null);
-  assert.strictEqual(L.showOsm, false);
+  assert.strictEqual(L.middle, null);
+  assert.strictEqual(L.right, null);
+});
+
+test("clock date Slovak genitive", function () {
+  PS = loadLib("lib/datefmt.js");
+  var d = new Date(2026, 10, 12, 15, 4, 0); // Thu 12 Nov 2026
+  assert.strictEqual(PS.datefmt.formatClockTime(d), "15:04");
+  assert.strictEqual(PS.datefmt.formatClockDate(d), "štvrtok 12. novembra");
 });
 
 // ---- shuffle bag ----

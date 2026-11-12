@@ -10,10 +10,10 @@
       tzOffset: 7200,
       lat: 48.86,
       lon: 2.35,
-      comment: "Dovolenka v Paríži",
+      comment: "Jesenné prázdniny v Paríži, Francúzsko",
       place: "Paríž, Francúzsko",
-      bg: "#3a5f8a",
-      label: "1 · landscape",
+      bg: "#ffffff",
+      label: "",
       w: 1024,
       h: 768,
     },
@@ -26,8 +26,8 @@
       lon: null,
       comment: "Vianoce u babičky",
       place: null,
-      bg: "#6b3a4a",
-      label: "2 · comment only",
+      bg: "#ffffff",
+      label: "",
       w: 1024,
       h: 768,
     },
@@ -40,9 +40,9 @@
       lon: 16.6,
       comment: null,
       place: "Brno, Česko",
-      bg: "#2f6b4f",
-      label: "3 · place only",
-      w: 576,
+      bg: "#ffffff",
+      label: "",
+      w: 1024,
       h: 768,
     },
     {
@@ -50,16 +50,51 @@
       album: "demo",
       takenUtc: Date.UTC(2023, 2, 8, 12, 0, 0),
       tzOffset: 3600,
-      lat: null,
-      lon: null,
-      comment: null,
-      place: null,
-      bg: "#4a4a55",
-      label: "4 · date only",
+      lat: 48.14,
+      lon: 17.11,
+      comment: "Jarná prechádzka",
+      place: "Bratislava, Slovensko",
+      bg: "sky",
+      label: "",
       w: 1024,
       h: 768,
     },
   ];
+
+  function makeSkyBlob(image) {
+    // Bright overexposed-sky look via canvas gradient (still synthetic).
+    var canvas = document.createElement("canvas");
+    canvas.width = 1024;
+    canvas.height = 768;
+    var ctx = canvas.getContext("2d");
+    var g = ctx.createLinearGradient(0, 0, 0, 768);
+    g.addColorStop(0, "#c8e8ff");
+    g.addColorStop(0.45, "#eef7ff");
+    g.addColorStop(0.7, "#f7fbf4");
+    g.addColorStop(1, "#d8e0c8");
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, 1024, 768);
+    // soft sun glare
+    var rg = ctx.createRadialGradient(780, 120, 10, 780, 120, 280);
+    rg.addColorStop(0, "rgba(255,255,255,0.95)");
+    rg.addColorStop(1, "rgba(255,255,255,0)");
+    ctx.fillStyle = rg;
+    ctx.fillRect(0, 0, 1024, 768);
+    return new Promise(function (resolve, reject) {
+      if (canvas.toBlob) {
+        canvas.toBlob(
+          function (b) {
+            if (b) resolve(b);
+            else reject(new Error("toBlob"));
+          },
+          "image/jpeg",
+          0.92
+        );
+      } else {
+        image.makePlaceholderBlob(1024, 768, "#e8f4ff", "").then(resolve, reject);
+      }
+    });
+  }
 
   function seed(idb, image) {
     var chain = Promise.resolve();
@@ -68,6 +103,7 @@
       (function (item) {
         chain = chain
           .then(function () {
+            if (item.bg === "sky") return makeSkyBlob(image);
             return image.makePlaceholderBlob(item.w, item.h, item.bg, item.label);
           })
           .then(function (blob) {
@@ -106,7 +142,9 @@
   }
 
   function isDemo() {
-    return /[?&]demo=1(?:&|$)/.test(global.location && global.location.search ? global.location.search : "");
+    return /[?&]demo=1(?:&|$)/.test(
+      global.location && global.location.search ? global.location.search : ""
+    );
   }
 
   global.PS = global.PS || {};

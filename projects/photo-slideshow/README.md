@@ -125,6 +125,9 @@ boot → config → IndexedDB → play from cache immediately
     - neither present → date only.
   - `© OpenStreetMap` in a small font at the far right, only when a place is shown.
 - The album name and playback settings are not shown.
+- OpenStreetMap attribution is **not** in the overlay. See `NOTICE` and §7: place
+  names only. Credit is a brief splash on the loading screen plus this README / NOTICE
+  (ODbL §4.3 / Geocoding Guideline; Nominatim usage policy).
 
 ## 11. Playback
 - Auto-start on load from cache. With an empty cache, show `Načítavam fotky…` until the first photo is ready.

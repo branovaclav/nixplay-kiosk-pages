@@ -22,10 +22,18 @@
   var frontIsA = true;
   var statusEl;
   var overlayEl;
+  var overlayDateEl;
+  var overlayMiddleEl;
+  var overlayRightEl;
+  var clockEl;
+  var clockTimeEl;
+  var clockDateEl;
+  var osmCreditEl;
   var toastEl;
   var syncDot;
   var lastKeyAt = 0;
   var objectUrls = {};
+  var clockTimer = null;
 
   var ICON_COMMENT =
     '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h16a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H9l-5 4v-4H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"/></svg>';
@@ -39,6 +47,40 @@
   function showStatus(msg) {
     statusEl.textContent = msg || "";
     statusEl.className = msg ? "status" : "status is-hidden";
+  }
+
+  function setChromeVisible(on) {
+    overlayEl.className = on ? "overlay is-on" : "overlay";
+    clockEl.className = on ? "clock is-on" : "clock";
+  }
+
+  function tickClock() {
+    var now = new Date();
+    clockTimeEl.textContent = PS.datefmt.formatClockTime(now);
+    clockDateEl.textContent = PS.datefmt.formatClockDate(now);
+  }
+
+  function armClock() {
+    tickClock();
+    clearInterval(clockTimer);
+    clockTimer = setInterval(tickClock, 30000);
+    // Align to next minute boundary
+    var ms = (60 - new Date().getSeconds()) * 1000 - new Date().getMilliseconds();
+    setTimeout(function () {
+      tickClock();
+      clearInterval(clockTimer);
+      clockTimer = setInterval(tickClock, 60000);
+    }, Math.max(0, ms));
+  }
+
+  function showOsmCreditSplash() {
+    return new Promise(function (resolve) {
+      osmCreditEl.className = "osm-credit is-on";
+      setTimeout(function () {
+        osmCreditEl.className = "osm-credit";
+        resolve();
+      }, 3000);
+    });
   }
 
   function setSyncWarn(on) {
@@ -147,32 +189,29 @@
 
     return Promise.all([commentP, placeP]).then(function (pair) {
       var label = PS.overlayLabel.build(dateStr, pair[0], pair[1]);
-      var html = "";
-      if (label.date) html += '<span class="overlay-date">' + escapeHtml(label.date) + "</span>";
-      if (label.primary) {
-        html +=
-          '<span class="overlay-slot overlay-primary">' +
-          iconHtml(label.primaryKind) +
-          escapeHtml(label.primary) +
-          "</span>";
-      }
-      if (label.secondary) {
-        html +=
-          '<span class="overlay-slot overlay-secondary">' +
-          iconHtml(label.secondaryKind) +
-          escapeHtml(label.secondary) +
-          "</span>";
-      }
-      overlayEl.querySelector(".overlay-main").innerHTML = html;
-      var osm = overlayEl.querySelector(".overlay-osm");
-      osm.style.display = label.showOsm ? "" : "none";
-      overlayEl.className = overlayOn ? "overlay is-on" : "overlay";
+      overlayDateEl.textContent = label.date || "";
+      overlayMiddleEl.innerHTML = slotHtml(label.middle);
+      overlayRightEl.innerHTML = slotHtml(label.right);
+      setChromeVisible(overlayOn);
     });
+  }
+
+  function slotHtml(slot) {
+    if (!slot) return "";
+    var cls = slot.kind === "place" ? "overlay-place" : "overlay-comment";
+    return (
+      '<span class="' +
+      cls +
+      '">' +
+      iconHtml(slot.kind) +
+      escapeHtml(slot.text) +
+      "</span>"
+    );
   }
 
   function iconHtml(kind) {
     var svg = kind === "place" ? ICON_PLACE : ICON_COMMENT;
-    return '<span class="overlay-icon">' + svg + "</span>";
+    return '<span class="overlay-icon">' + svg + '</span>';
   }
 
   function escapeHtml(s) {
@@ -312,7 +351,7 @@
     lastKeyAt = now;
     if (isEnter) {
       overlayOn = !overlayOn;
-      overlayEl.className = overlayOn ? "overlay is-on" : "overlay";
+      setChromeVisible(overlayOn);
       persistUiState();
       return;
     }
@@ -520,6 +559,13 @@
     layerB = $("#layerB");
     statusEl = $("#status");
     overlayEl = $("#overlay");
+    overlayDateEl = $("#overlayDate");
+    overlayMiddleEl = $("#overlayMiddle");
+    overlayRightEl = $("#overlayRight");
+    clockEl = $("#clock");
+    clockTimeEl = $("#clockTime");
+    clockDateEl = $("#clockDate");
+    osmCreditEl = $("#osmCredit");
     toastEl = $("#shuffleToast");
     syncDot = $("#syncDot");
 
@@ -530,6 +576,8 @@
     document.addEventListener("visibilitychange", onVisibility, false);
 
     PS.idb.tryPersist();
+    armClock();
+    setChromeVisible(overlayOn);
 
     var ready;
     if (demoMode) {
@@ -537,9 +585,12 @@
       intervalMs = (cfg.interval || 5) * 1000;
       fadeMs = (cfg.fade || 0.6) * 1000;
       showStatus("Načítavam fotky…");
-      ready = PS.demo.seed(PS.idb, PS.image).then(function () {
-        return loadUiState();
-      });
+      ready = Promise.all([
+        showOsmCreditSplash(),
+        PS.demo.seed(PS.idb, PS.image).then(function () {
+          return loadUiState();
+        }),
+      ]);
     } else {
       cfg = PS.config.load();
       if (!cfg || !cfg.albums.length) {
@@ -549,20 +600,37 @@
       intervalMs = (cfg.interval || 5) * 1000;
       fadeMs = (cfg.fade || 0.6) * 1000;
       showStatus("Načítavam fotky…");
-      ready = loadUiState();
+      ready = Promise.all([showOsmCreditSplash(), loadUiState()]);
     }
 
     ready
       .then(function () {
+        setChromeVisible(overlayOn);
         return refreshFromCache(true);
       })
       .then(function () {
-        if (!demoMode) {
-          backgroundSync();
-          setInterval(function () {
-            backgroundSync();
-          }, 6 * 60 * 60 * 1000);
+        if (demoMode) {
+          // Preview helper: ?demo=1&slide=demo-1 (also window.__psShow)
+          window.__psShow = function (id) {
+            paused = true;
+            clearTimeout(timer);
+            overlayOn = true;
+            return prepareId(id).then(function (prep) {
+              if (!prep) return null;
+              return showPrepared(prep, true);
+            });
+          };
+          var sm = /[?&]slide=([A-Za-z0-9_-]+)/.exec(
+            location.search || ""
+          );
+          if (sm && sm[1]) return window.__psShow(sm[1]);
+          return null;
         }
+        backgroundSync();
+        setInterval(function () {
+          backgroundSync();
+        }, 6 * 60 * 60 * 1000);
+        return null;
       })
       .catch(function () {
         setSyncWarn(true);

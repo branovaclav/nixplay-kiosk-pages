@@ -1,4 +1,22 @@
 /* Photo slideshow — Chromium 81, 1024×768. No flex gap / :has / aspect-ratio. */
+:root {
+  --overlay-bg: rgba(0, 0, 0, 0.38);
+  --overlay-font-size: 23px;
+  --overlay-icon-size: 20px;
+  --overlay-place-opacity: 0.6;
+  --overlay-pad-y: 12px;
+  --overlay-pad-x: 16px;
+
+  /* +80% vs first preview (42/22); glow blur scaled ~1.8× */
+  --clock-time-size: 76px;
+  --clock-date-size: 40px;
+  --clock-weight: 300;
+  --clock-glow: 0 0 22px rgba(0, 0, 0, 0.6), 0 0 43px rgba(0, 0, 0, 0.45);
+  --clock-top: 14px;
+  --clock-left: 16px;
+  --clock-line-gap: 2px;
+}
+
 html,
 body {
   margin: 0;
@@ -8,7 +26,7 @@ body {
   overflow: hidden;
   background: #000;
   color: #fff;
-  font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  font-family: "Roboto", "Noto Sans", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
 }
 
 .stage {
@@ -51,6 +69,32 @@ body {
   display: none;
 }
 
+/* OSM credit: brief splash on load (Nominatim / ODbL attribution). */
+.osm-credit {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 52%;
+  text-align: center;
+  font-size: 16px;
+  line-height: 1.4;
+  opacity: 0;
+  z-index: 9;
+  pointer-events: none;
+  color: rgba(255, 255, 255, 0.75);
+  -webkit-transition: opacity 0.35s linear;
+  transition: opacity 0.35s linear;
+}
+
+.osm-credit.is-on {
+  opacity: 1;
+}
+
+.osm-credit a {
+  color: inherit;
+  text-decoration: underline;
+}
+
 .shuffle-toast {
   position: absolute;
   left: 50%;
@@ -73,6 +117,35 @@ body {
   opacity: 1;
 }
 
+/* Top-left clock — visible with the overlay; no background box. */
+.clock {
+  position: absolute;
+  left: var(--clock-left);
+  top: var(--clock-top);
+  z-index: 6;
+  display: none;
+  color: #fff;
+  font-weight: var(--clock-weight);
+  text-shadow: var(--clock-glow);
+  pointer-events: none;
+  line-height: 1.15;
+}
+
+.clock.is-on {
+  display: block;
+}
+
+.clock-time {
+  font-size: var(--clock-time-size);
+  letter-spacing: 0.02em;
+}
+
+.clock-date {
+  margin-top: var(--clock-line-gap);
+  font-size: var(--clock-date-size);
+  opacity: 0.95;
+}
+
 .overlay {
   position: absolute;
   left: 0;
@@ -82,10 +155,10 @@ body {
   display: none;
   -webkit-box-sizing: border-box;
   box-sizing: border-box;
-  padding: 10px 16px;
-  background: rgba(0, 0, 0, 0.5);
+  padding: var(--overlay-pad-y) var(--overlay-pad-x);
+  background: var(--overlay-bg);
   color: #fff;
-  font-size: 18px;
+  font-size: var(--overlay-font-size);
   line-height: 1.25;
   white-space: nowrap;
   overflow: hidden;
@@ -95,60 +168,64 @@ body {
   display: block;
 }
 
-.overlay-inner {
+/* Three columns; leftover space splits evenly (equal gaps). */
+.overlay-row {
   display: -webkit-box;
   display: flex;
+  -webkit-box-pack: justify;
+  justify-content: space-between;
   -webkit-box-align: center;
   align-items: center;
   width: 100%;
   min-width: 0;
 }
 
-.overlay-main {
-  -webkit-box-flex: 1;
-  flex: 1 1 auto;
+.overlay-col {
+  -webkit-box-flex: 0;
+  flex: 0 1 auto;
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
 .overlay-date {
-  margin-right: 14px;
+  -webkit-box-flex: 0;
+  flex: 0 0 auto;
+  max-width: 22%;
 }
 
-.overlay-slot {
-  display: inline;
+.overlay-middle {
+  text-align: center;
+  max-width: 52%;
+}
+
+.overlay-right {
+  text-align: right;
+  max-width: 28%;
 }
 
 .overlay-icon {
   display: inline-block;
-  width: 16px;
-  height: 16px;
-  margin-right: 5px;
-  vertical-align: -2px;
+  width: var(--overlay-icon-size);
+  height: var(--overlay-icon-size);
+  margin-right: 6px;
+  vertical-align: -3px;
 }
 
 .overlay-icon svg {
   display: block;
-  width: 16px;
-  height: 16px;
+  width: var(--overlay-icon-size);
+  height: var(--overlay-icon-size);
   fill: currentColor;
 }
 
-.overlay-primary {
-  margin-right: 12px;
+/* Place is always dimmed (even when alone on the right). */
+.overlay-place {
+  opacity: var(--overlay-place-opacity);
 }
 
-.overlay-secondary {
-  opacity: 0.6;
-}
-
-.overlay-osm {
-  -webkit-box-flex: 0;
-  flex: 0 0 auto;
-  margin-left: 12px;
-  font-size: 12px;
-  opacity: 0.7;
+.overlay-comment {
+  opacity: 1;
 }
 
 .sync-dot {
