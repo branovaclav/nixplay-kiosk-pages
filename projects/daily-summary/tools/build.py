@@ -153,15 +153,6 @@ def people_list(pack):
     return [by[i] for i in PEOPLE_ORDER if i in by]
 
 
-def family_meta(pack):
-    return pack.get("family") or {
-        "id": "rodina",
-        "display_name": "Rodina",
-        "color": "#6B4C9A",
-        "avatar": "rodina.svg",
-    }
-
-
 def timeline_bounds(day):
     start = parse_hhmm(day["timeline"]["start"])
     end = parse_hhmm(day["timeline"]["end"])
@@ -609,68 +600,50 @@ def sidebar_html(day, people_map):
         outlook_html += (
             f'<aside class="outlook-box" data-section="{esc(sec["id"])}"{attrs}>'
             f'<h3 data-outlook-title="1">{esc(sec["title"])}</h3>'
-            f"{items_html(sec['items'])}</aside>"
+            f'<div class="autoscroll"><div class="autoscroll-inner">'
+            f"{items_html(sec['items'])}</div></div></aside>"
         )
 
     return f"""
 <aside class="panel sidebar-panel">
   <div class="sidebar-main">
     <h2 class="sidebar-title">Dôležité</h2>
+    <div class="autoscroll"><div class="autoscroll-inner">
     {main}
+    </div></div>
   </div>
   {outlook_html}
 </aside>
 """
 
 
-ROLE_EYEBROW = {
-    "otec": "Otec",
-    "mama": "Mama",
-    "dieta": "Syn",
-    "rodina": "Rodinný prehľad",
-}
+def eyebrow_html(people=None, day_iso=None):
+    """Kicker above the date — family vs. personal view.
 
-
-def who_header(people, family):
-    parts = [
-        f'<div class="who who-rodina" data-who="rodina" style="--m:{esc(family.get("color", "#6B4C9A"))}">'
-        f'<img class="avatar" src="avatars/{esc(family["avatar"])}" alt="" width="52" height="52">'
-        f'<span class="who-name">{esc(family["display_name"])}</span></div>'
-    ]
-    for p in people:
-        parts.append(
-            f'<div class="who who-{esc(p["id"])}" data-who="{esc(p["id"])}" style="--m:{esc(p["color"])}">'
-            f'<img class="avatar" src="avatars/{esc(p["avatar"])}" alt="" width="52" height="52">'
-            f'<span class="who-name">{esc(p["display_name"])}</span></div>'
-        )
-    return f'<div class="view-who">{"".join(parts)}</div>'
-
-
-def eyebrow_html(people, day_iso=None):
-    """Kicker above the date — changes with the active view.
-
-    Rodina label starts as 'Rodinný prehľad'; view.js rewrites to 'Zajtra'
-    when the page date is tomorrow relative to Prague now.
+    Family: 'Rodinný prehľad'; any member view: 'Osobný prehľad' (who is shown
+    is clear from the focused calendar column). view.js rewrites both to
+    'Zajtra' when the page date is tomorrow relative to Prague now.
     """
-    bits = [
-        '<p class="eyebrow eyebrow-rodina" data-who="rodina">Rodinný prehľad</p>'
-    ]
-    for p in people:
-        label = ROLE_EYEBROW.get(p.get("role"), p["display_name"])
-        # Prefer school grade for kids when present
-        meta = p.get("meta") or {}
-        if p.get("role") == "dieta" and meta.get("grade"):
-            label = meta["grade"]
-        bits.append(
-            f'<p class="eyebrow eyebrow-{esc(p["id"])}" data-who="{esc(p["id"])}">{esc(label)}</p>'
-        )
-    return f'<div class="eyebrow-swap">{"".join(bits)}</div>'
+    return (
+        '<div class="eyebrow-swap">'
+        '<p class="eyebrow eyebrow-rodina" data-kicker="Rodinný prehľad">Rodinný prehľad</p>'
+        '<p class="eyebrow eyebrow-osobny" data-kicker="Osobný prehľad">Osobný prehľad</p>'
+        "</div>"
+    )
+
+
+def clock_html():
+    """Live Prague clock (HH:MM + small faded :SS); view.js ticks it."""
+    return (
+        '<div class="topbar-clock" aria-hidden="true">'
+        '<span class="clock-hm">--:--</span><span class="clock-s">:--</span>'
+        "</div>"
+    )
 
 
 def render_day_page(day, pack):
     people = people_list(pack)
     people_map = members_by_id(pack)
-    family = family_meta(pack)
     start, end = timeline_bounds(day)
     d = day["date"]
     sched = theme_schedule(pack, day)
@@ -682,11 +655,11 @@ def render_day_page(day, pack):
     body = f"""
 <div class="frame page-day">
   <header class="topbar">
+    {clock_html()}
     <div class="topbar-date">
       {eyebrow_html(people, d)}
       <h1>{esc(fmt_date_sk(d))}</h1>
     </div>
-    {who_header(people, family)}
     <div class="topbar-spacer"></div>
     <div class="weather" data-icon="{esc(w.get("icon", ""))}">
       <span class="wx-icon">{weather_icon_svg(w.get("icon", "cloudy"))}</span>

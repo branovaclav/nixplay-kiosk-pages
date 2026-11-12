@@ -30,15 +30,14 @@ html.theme-light {
 html.theme-light body {
   color: var(--ink);
   background: var(--page-bg);
-  font-family: "Atkinson Hyperlegible", "Segoe UI", sans-serif;
+  font-family: var(--font-body);
 }
 
 html.theme-light h1,
 html.theme-light h2,
-html.theme-light .who-name,
 html.theme-light .sidebar-title {
-  font-family: "Fraunces", Georgia, serif;
-  font-weight: 600;
+  font-family: var(--font-head);
+  font-weight: var(--fw-head);
   color: var(--ink);
 }
 
@@ -128,3 +127,6 @@ html.theme-light .ev-status {
 
 html.theme-light .lane-head-others { opacity: 0.55; border-bottom-color: var(--line); }
 html.theme-light .empty-inline { color: var(--muted); }
+
+html.theme-light .topbar-date h1 { font-weight: var(--fw-date); }
+html.theme-light .topbar-clock { color: var(--ink); }

@@ -21,7 +21,7 @@ The pages in this repo are shown on a self-managed Nixplay Seed 8" photo frame. 
   - Default **`mode: "sun"`**: NOAA sunrise/sunset for `lat`/`lon` in `theme_schedule` (Prague 50.08, 14.42), no network. Light from sunrise→sunset (optional minute offsets); dark otherwise. CET/CEST via `Intl` + Europe/Prague.
   - Fallback **`mode: "fixed"`** (or if sun math fails): `dark_from` / `dark_until` (default 19:00–06:30).
   - Screenshots/tests: `?theme=light` or `?theme=dark`.
-- **Relative labels (client, Prague, every minute):** if `data-date` is tomorrow → Rodina kicker **Zajtra**; if today → **Rodinný prehľad**. „teraz“ only when the page is today. Outlook box title from `data-outlook-from` / `data-outlook-to` (Víkend / Zajtra / weekday). Mock: `?today=YYYY-MM-DD` + `?now=HH:MM`.
+- **Relative labels (client, Prague, every minute):** kicker above the date is **Rodinný prehľad** in the family view and **Osobný prehľad** in every person view; if `data-date` is tomorrow, both read **Zajtra**. „teraz“ only when the page is today. Outlook box title from `data-outlook-from` / `data-outlook-to` (Víkend / Zajtra / weekday). Mock: `?today=YYYY-MM-DD` + `?now=HH:MM`.
 
 ## Input: gestures arrive as `keydown` events
 | Gesture on the frame | Event | Browser default |

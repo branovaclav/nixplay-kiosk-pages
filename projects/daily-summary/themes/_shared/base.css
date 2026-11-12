@@ -4,7 +4,12 @@
 
 /*
   Frame type scale (shared dark/light) — bump here for the 8" kiosk.
-  --fs-kicker / --fs-date / --fs-who / --fs-wx-*   top bar
+  --fs-clock / --fs-clock-sec / --fs-kicker / --fs-date / --fs-wx-*   top bar
+  --font-head / --fw-*  headline font (date, clock, Dôležité, °C range)
+  --font-label / --fw-label / --fw-kicker  grey all-caps labels + kicker
+  --font-body / --fw-body / --fw-bold      everything else
+  --hdr-line-gap        extra gap between the two lines of header blocks
+  --autoscroll-*        sidebar overflow auto-scroll (read by view.js)
   --fs-lane / --fs-lane-other / --fs-chip*         lane heads + untimed chips
   --fs-hour / --fs-now / --fs-ev*                  timeline + event cards
   --fs-side-* / --fs-tag / --fs-outlook-* / --fs-empty / --fs-flags
@@ -12,10 +17,12 @@
 */
 :root {
   --fs-base: 20px;
-  --fs-kicker: 20px;
-  --fs-date: 36px;
-  --fs-who: 30px;
-  --fs-wx-temp: 34px;
+  --fs-kicker: 18px;          /* all-caps headings: kicker, section labels, ZAJTRA — same ~10% step */
+  --fs-date: 33px;
+  --fs-clock: 51px;
+  --fs-clock-sec: 26px;
+  --clock-sec-opacity: 0.55;
+  --fs-wx-temp: 31px;
   --fs-wx-text: 20px;
   --fs-lane: 20px;
   --fs-lane-other: 18px;
@@ -28,13 +35,44 @@
   --fs-ev-title: 18px;
   --fs-ev-title-short: 16px;
   --fs-ev-flags: 14px;
-  --fs-side-title: 29px;
-  --fs-side-section: 20px;
+  --fs-side-title: 27px;
+  --fs-side-section: 18px;
   --fs-side-item: 21px;
   --fs-tag: 17px;
-  --fs-outlook-title: 21px;
+  --fs-outlook-title: 19px;
   --fs-empty: 23px;
   --fs-flags: 15px;
+
+  /* Headline font — Manrope for date, clock, sidebar title and °C range.
+     fonts.css holds the @font-face rules. */
+  --font-head: "Manrope", Roboto, "Segoe UI", sans-serif;
+  --fw-head: 700;      /* Dôležité */
+  --fw-date: 700;      /* štvrtok 12. november 2026 */
+  --fw-clock: 600;
+  --fw-temp: 700;
+  --ls-date: -0.015em;
+  --ls-clock: -0.02em;
+  --clock-shift: -2px; /* optical centring of the digits on kicker-top→date-baseline */
+
+  /* Grey all-caps labels (RODINA, ZAJTRA, OSTATNÍ…) and the kicker */
+  --font-label: "Manrope", Roboto, "Segoe UI", sans-serif;
+  --fw-label: 700;
+  --fw-kicker: 500;
+
+  /* Body font — every other text (sidebar items, calendar, tabs, times) */
+  --font-body: "Inter", Roboto, "Segoe UI", sans-serif;
+  --fw-body: 400;
+  --fw-bold: 600;
+
+  /* Two-line header blocks (kicker+date, °C+condition): extra line gap.
+     Blocks stay vertically centred, so each line moves half of this. */
+  --hdr-line-gap: 2px;
+
+  /* Sidebar auto-scroll (view.js reads these) */
+  --autoscroll-speed: 16;      /* px per second */
+  --autoscroll-pause: 4000;    /* ms at top and at bottom */
+  --autoscroll-fade: 18px;     /* edge fade while content is clipped */
+  --outlook-max-h: 300px;      /* outlook box never takes more than this */
 }
 
 *, *::before, *::after { box-sizing: border-box; }
@@ -50,6 +88,7 @@ html, body {
 
 body {
   font-size: var(--fs-base);
+  font-weight: var(--fw-body);
   line-height: 1.35;
 }
 
@@ -71,6 +110,8 @@ img.avatar {
 
 .eyebrow {
   margin: 0;
+  font-family: var(--font-label);
+  font-weight: var(--fw-kicker);
   font-size: var(--fs-kicker);
   line-height: 1;
   letter-spacing: 0.06em;
@@ -85,15 +126,12 @@ img.avatar {
 }
 
 body[data-view="rodina"] .eyebrow-rodina,
-body[data-view="branislav"] .eyebrow-branislav,
-body[data-view="zuzka"] .eyebrow-zuzka,
-body[data-view="andrej"] .eyebrow-andrej,
-body[data-view="tomas"] .eyebrow-tomas {
+body:not([data-view="rodina"]) .eyebrow-osobny {
   display: block;
 }
 
 /* ---- Top bar ----
-   date(+kicker)   avatar+name  ......  weather
+   clock | kicker+date  ......  weather
 */
 .topbar {
   display: -webkit-box;
@@ -105,12 +143,41 @@ body[data-view="tomas"] .eyebrow-tomas {
   height: 80px;
 }
 
+.topbar-clock {
+  -webkit-box-flex: 0;
+  flex: 0 0 auto;
+  /* Spans kicker + date: digits' cap height ≈ kicker top → date baseline */
+  font-family: var(--font-head);
+  font-size: var(--fs-clock);
+  font-weight: var(--fw-clock);
+  letter-spacing: var(--ls-clock);
+  line-height: 1;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+  -webkit-font-feature-settings: "tnum" 1;
+  font-feature-settings: "tnum" 1;
+  margin-right: 16px;
+  padding-right: 16px;
+  border-right: 1px solid var(--line);
+  position: relative;
+  top: var(--clock-shift);
+  /* tick only repaints this box */
+  contain: layout paint;
+}
+
+.topbar-clock .clock-s {
+  font-size: var(--fs-clock-sec);
+  opacity: var(--clock-sec-opacity);
+  margin-left: 1px;
+  /* inline → shares the HH:MM baseline */
+  vertical-align: baseline;
+}
+
 .topbar-date {
   -webkit-box-flex: 0;
   flex: 0 0 auto;
   min-width: 0;
-  /* Gap to view-who (replaces old divider + home icon) */
-  margin-right: 36px;
+  margin-right: 24px;
   display: -webkit-box;
   display: flex;
   -webkit-box-orient: vertical;
@@ -125,68 +192,13 @@ body[data-view="tomas"] .eyebrow-tomas {
 }
 
 .topbar-date h1 {
-  margin: 0;
+  margin: var(--hdr-line-gap) 0 0;
   padding: 0;
+  font-weight: var(--fw-date);
+  letter-spacing: var(--ls-date);
   font-size: var(--fs-date);
   line-height: 1;
   white-space: nowrap;
-}
-
-.view-who {
-  position: relative;
-  -webkit-box-flex: 0;
-  flex: 0 0 180px;
-  width: 180px;
-  margin-right: 12px;
-  overflow: visible;
-  -webkit-align-self: stretch;
-  align-self: stretch;
-  height: auto;
-}
-
-.view-who .who {
-  position: absolute;
-  left: 0;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  display: none;
-  -webkit-box-align: center;
-  align-items: center;
-  overflow: visible;
-}
-
-.view-who .who .avatar {
-  width: 48px;
-  height: 48px;
-  border: 3px solid var(--m, transparent);
-  -webkit-flex-shrink: 0;
-  flex-shrink: 0;
-}
-
-.view-who .who-name {
-  margin-left: 10px;
-  font-size: var(--fs-who);
-  font-weight: 700;
-  /* Line-box tall enough for Fraunces descenders inside overflow clip */
-  line-height: 44px;
-  height: 44px;
-  padding: 0;
-  min-width: 0;
-  -webkit-box-flex: 1;
-  flex: 1 1 auto;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-body[data-view="rodina"] .who-rodina,
-body[data-view="branislav"] .who-branislav,
-body[data-view="zuzka"] .who-zuzka,
-body[data-view="andrej"] .who-andrej,
-body[data-view="tomas"] .who-tomas {
-  display: -webkit-box;
-  display: flex;
 }
 
 .topbar-spacer {
@@ -245,8 +257,9 @@ body[data-view="tomas"] .who-tomas {
 
 .wx-temps {
   display: block;
+  font-family: var(--font-head);
   font-size: var(--fs-wx-temp);
-  font-weight: 700;
+  font-weight: var(--fw-temp);
   line-height: 1;
 }
 
@@ -254,7 +267,7 @@ body[data-view="tomas"] .who-tomas {
   display: block;
   font-size: var(--fs-wx-text);
   opacity: 0.85;
-  margin-top: 0;
+  margin-top: var(--hdr-line-gap);
   line-height: 1.05;
 }
 
@@ -349,12 +362,55 @@ body[data-view="tomas"] .sidebar-panel {
   flex: 1 1 auto;
   overflow: hidden;
   min-height: 0;
+  /* Own bounded area above the outlook box (never overlaps it) */
+  display: -webkit-box;
+  display: flex;
+  -webkit-box-orient: vertical;
+  -webkit-box-direction: normal;
+  flex-direction: column;
+}
+
+.sidebar-main .sidebar-title {
+  -webkit-flex-shrink: 0;
+  flex-shrink: 0;
+}
+
+/* ---- Auto-scroll viewport (view.js: .is-overflowing → slow loop) ---- */
+.autoscroll {
+  position: relative;
+  -webkit-box-flex: 1;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.autoscroll-inner {
+  /* transform-only animation (composited); no scrollTop */
+  -webkit-transform: translateY(0);
+  transform: translateY(0);
+}
+
+.autoscroll.is-overflowing .autoscroll-inner {
+  will-change: transform, opacity;
+}
+
+/* Edge fades only while content is clipped */
+.autoscroll.is-overflowing[data-pos="top"] {
+  -webkit-mask-image: linear-gradient(to bottom, #000 0, #000 calc(100% - var(--autoscroll-fade)), transparent 100%);
+}
+.autoscroll.is-overflowing[data-pos="moving"] {
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 var(--autoscroll-fade), #000 calc(100% - var(--autoscroll-fade)), transparent 100%);
+}
+.autoscroll.is-overflowing[data-pos="bottom"] {
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 var(--autoscroll-fade), #000 100%);
 }
 
 .hl-block { margin-bottom: 10px; }
 
 .hl-block h3 {
   margin: 0 0 4px;
+  font-family: var(--font-label);
+  font-weight: var(--fw-label);
   font-size: var(--fs-side-section);
   letter-spacing: 0.04em;
   text-transform: uppercase;
@@ -383,7 +439,7 @@ body[data-view="tomas"] .sidebar-panel {
   margin-right: 4px;
   border-radius: 999px;
   font-size: var(--fs-tag);
-  font-weight: 700;
+  font-weight: var(--fw-bold);
   color: #fff;
   background: var(--m);
   vertical-align: baseline;
@@ -426,10 +482,18 @@ body[data-view="tomas"] li[data-member]:not([data-member=""]):not([data-member="
   font-size: var(--fs-empty);
 }
 
-/* Outlook = distinct box */
+/* Outlook = distinct box, own reserved area at the bottom (max --outlook-max-h;
+   longer content auto-scrolls inside it) */
 .outlook-box {
   -webkit-box-flex: 0;
   flex: 0 0 auto;
+  max-height: var(--outlook-max-h);
+  display: -webkit-box;
+  display: flex;
+  -webkit-box-orient: vertical;
+  -webkit-box-direction: normal;
+  flex-direction: column;
+  overflow: hidden;
   margin-top: 10px;
   padding: 10px 12px;
   border-radius: 12px;
@@ -437,6 +501,10 @@ body[data-view="tomas"] li[data-member]:not([data-member=""]):not([data-member="
 }
 
 .outlook-box h3 {
+  font-family: var(--font-label);
+  font-weight: var(--fw-label);
+  -webkit-flex-shrink: 0;
+  flex-shrink: 0;
   margin: 0 0 6px;
   font-size: var(--fs-outlook-title);
   letter-spacing: 0.03em;
@@ -555,7 +623,7 @@ body[data-view="tomas"] .calendar-member[data-focus="tomas"] {
 .lane-name {
   margin-left: 8px;
   font-size: var(--fs-lane);
-  font-weight: 700;
+  font-weight: var(--fw-bold);
   line-height: 1.1;
   min-width: 0;
   overflow: hidden;
@@ -570,6 +638,8 @@ body[data-view="tomas"] .calendar-member[data-focus="tomas"] {
 
 .lane-head-others .lane-name {
   margin-left: 0;
+  font-family: var(--font-label);
+  font-weight: var(--fw-label);
   font-size: var(--fs-lane-other);
   text-transform: uppercase;
   letter-spacing: 0.04em;
@@ -637,11 +707,11 @@ body[data-view="tomas"] .calendar-member[data-focus="tomas"] {
   top: -16px;
   line-height: 1;
   font-size: var(--fs-hour);
-  font-weight: 400;
+  font-weight: var(--fw-body);
   opacity: 0.55;
   padding: 0 2px;
   background: var(--tl-bg, transparent);
-  font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  font-family: var(--font-body);
   font-variant-numeric: tabular-nums;
   -webkit-font-feature-settings: "zero" 0;
   font-feature-settings: "zero" 0;
@@ -700,17 +770,16 @@ body[data-view="tomas"] .calendar-member[data-focus="tomas"] {
 
 .event-block .ev-time {
   font-size: var(--fs-ev-time);
-  font-weight: 400;
+  font-weight: var(--fw-body);
   opacity: 0.9;
-  /* Atkinson’s default zero is slashed — reads as a strikethrough on times */
-  font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  font-family: var(--font-body);
   font-variant-numeric: tabular-nums;
   -webkit-font-feature-settings: "zero" 0;
   font-feature-settings: "zero" 0;
 }
 
 .event-block .ev-title {
-  font-weight: 700;
+  font-weight: var(--fw-bold);
   font-size: var(--fs-ev-title);
 }
 
@@ -786,8 +855,8 @@ body.is-future-day .tl-now {
   background: #e11d48;
   color: #fff;
   font-size: var(--fs-now);
-  font-weight: 700;
-  font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  font-weight: var(--fw-bold);
+  font-family: var(--font-body);
   font-variant-numeric: tabular-nums;
   -webkit-font-feature-settings: "zero" 0;
   font-feature-settings: "zero" 0;
@@ -801,6 +870,6 @@ body.is-future-day .tl-now {
   padding: 1px 6px;
   border-radius: 5px;
   font-size: var(--fs-flags);
-  font-weight: 700;
+  font-weight: var(--fw-bold);
   vertical-align: middle;
 }
