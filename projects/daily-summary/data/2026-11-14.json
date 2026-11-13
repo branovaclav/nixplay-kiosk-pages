@@ -1,0 +1,79 @@
+{
+  "date": "2026-11-14",
+  "locale": "sk-SK",
+  "timezone": "Europe/Prague",
+  "now": "18:49",
+  "refresh_at": "06:30",
+  "weather": {
+    "sample": false,
+    "summary": "Polojasno",
+    "icon": "partly-cloudy",
+    "temp_high_c": 8,
+    "temp_low_c": 2
+  },
+  "timeline": {
+    "start": "07:00",
+    "end": "21:00"
+  },
+  "events": [],
+  "sections": [
+    {
+      "id": "zobrat",
+      "title": "Zobrať / vybaviť",
+      "items": [
+        {
+          "member": "andrej",
+          "text": "Pondelok 16. 11. — batoh, pláštenka a MHD preukaz.",
+          "detail": "Ročník 2022 (Andrej): zobrať batoh so desiatou a pitím, pláštenku alebo dáždnik a MHD preukaz. V predpovedi dážď; družina bez zmeny."
+        },
+        {
+          "member": "andrej",
+          "text": "Záloha na hory 3 000 Kč do 30. 11.",
+          "detail": "Škola žiada zálohu 3 000 Kč na hory 2027 do 30. 11. 2026 ako záväznú prihlášku. Údaje na platbu sú v školskom e-maile."
+        }
+      ]
+    },
+    {
+      "id": "pripomienky",
+      "title": "Pripomienky",
+      "items": [
+        {
+          "member": "andrej",
+          "family": false,
+          "text": "Deň otvorených dverí na Trojskom gymnáziu 8. 12.",
+          "detail": "Škola písala ročníku 2022 (Andrej): deň otvorených dverí na Trojskom gymnáziu je 8. 12. 2026."
+        },
+        {
+          "member": "tomas",
+          "family": false,
+          "text": "Albatros — knižný darček do 24. 11.",
+          "detail": "Trieda 2025A zbiera nápady na vianočné darčeky (Albatros kniha; objednávka do 24. 11.). Označiť knižku hviezdičkou k objednávke."
+        }
+      ]
+    },
+    {
+      "id": "vyhlad",
+      "title": "Pondelok",
+      "outlook": {
+        "from": "2026-11-16",
+        "to": "2026-11-16"
+      },
+      "items": [
+        {
+          "member": "andrej",
+          "text": "Dopoludnia výuka v Hrdličkovom múzeu.",
+          "detail": "Pondelok 16. 11.: dopoludnia obmedzená prevádzka školy, výuka v Hrdličkovom múzeu človeka. Družina bez zmeny."
+        },
+        {
+          "text": "Prezuť Teslu 10:30–11:00, Advantage Cars (Freyova).",
+          "detail": "V rodinnom kalendári prezuť Teslu 10:30–11:00 v Advantage Cars na Freyovej; kto ide, nie je uvedené."
+        },
+        {
+          "member": "tomas",
+          "text": "Veselá veda 15:30–16:30.",
+          "detail": "Pondelok 16. 11.: Tomáš má Veselú vedu 15:30–16:30."
+        }
+      ]
+    }
+  ]
+}
