@@ -1,0 +1,127 @@
+{
+  "date": "2026-11-17",
+  "locale": "sk-SK",
+  "timezone": "Europe/Prague",
+  "now": "18:52",
+  "refresh_at": "06:30",
+  "weather": {
+    "sample": false,
+    "summary": "Dážď",
+    "icon": "rain",
+    "temp_high_c": 13,
+    "temp_low_c": 7
+  },
+  "timeline": {
+    "start": "07:00",
+    "end": "21:00"
+  },
+  "events": [
+    {
+      "id": "andrej-priprava-mat",
+      "members": [
+        "andrej"
+      ],
+      "title": "Príprava MAT",
+      "start": "15:15",
+      "end": "16:45",
+      "all_day": false,
+      "location": "Gymnázium Českolipská",
+      "status": "confirmed",
+      "flags": [
+        "conflict"
+      ],
+      "conflict_with": [
+        "andrej-baseball-sabat"
+      ],
+      "notes": [],
+      "reminders": []
+    },
+    {
+      "id": "andrej-baseball-sabat",
+      "members": [
+        "andrej"
+      ],
+      "title": "Baseball Sabat",
+      "start": "16:00",
+      "end": "18:00",
+      "all_day": false,
+      "location": "U Vltavy",
+      "status": "confirmed",
+      "flags": [
+        "conflict"
+      ],
+      "conflict_with": [
+        "andrej-priprava-mat"
+      ],
+      "notes": [],
+      "reminders": []
+    }
+  ],
+  "sections": [
+    {
+      "id": "rodina",
+      "title": "Rodina",
+      "items": [
+        {
+          "text": "Vybrať kôš 20:00–21:00.",
+          "detail": "V rodinnom kalendári je vybrať kôš 20:00–21:00; kto ide, nie je uvedené."
+        }
+      ]
+    },
+    {
+      "id": "zobrat",
+      "title": "Zobrať / vybaviť",
+      "items": [
+        {
+          "text": "Bubny na štvrtok 19. 11. (Bubnovačka).",
+          "detail": "Vo štvrtok 19. 11. dopoludnia je na školskom ihrisku Bubnovačka (celá škola). Zobrať malý bubon alebo čokoľvek s hlbším tónom. V stredu večer je v kalendári zabaliť bubny deťom."
+        },
+        {
+          "member": "andrej",
+          "text": "Podpísať súhlas Invenio do 20. 11.",
+          "detail": "Škola ponúka ďalšie Invenio hry v informatike (zadarmo, cca 30 min). Podpísaný súhlas do 20. 11. Ak nie je tlačiareň, formuláre dostanú deti v stredu. Podrobnosti sú v školskom e-maile."
+        },
+        {
+          "member": "andrej",
+          "text": "Záloha na hory 3 000 Kč do 30. 11.",
+          "detail": "Škola žiada zálohu 3 000 Kč na hory 2027 do 30. 11. 2026 ako záväznú prihlášku. Údaje na platbu sú v školskom e-maile.",
+          "family": false
+        }
+      ]
+    },
+    {
+      "id": "pripomienky",
+      "title": "Pripomienky",
+      "items": [
+        {
+          "text": "Laskavá kavárna štvrtok 19. 11. 15–18, altánok Trojánek.",
+          "detail": "Pozvánka od 2.B: štvrtok 19. 11. od 15 do 18 pri altánku Trojánek. Preferujú hotovosť (je aj QR); výťažok ide centru LOCIKA. Teplé oblečenie."
+        }
+      ]
+    },
+    {
+      "id": "vyhlad",
+      "title": "Streda",
+      "outlook": {
+        "from": "2026-11-18",
+        "to": "2026-11-18"
+      },
+      "items": [
+        {
+          "member": "tomas",
+          "text": "Angličtina 13:10–13:55.",
+          "detail": "V stredu 18. 11. má Tomáš angličtinu 13:10–13:55. V škole je aj projektový deň Klid do lavic."
+        },
+        {
+          "member": "andrej",
+          "text": "ČJ 15:15–16:45 Českolipská, baseball LOB 17:00–19:00 Bohnice.",
+          "detail": "V stredu 18. 11.: Andrej má prípravu ČJ 15:15–16:45 na gymnáziu Českolipská a baseball LOB 17:00–19:00 v Bohniciach. Medzi miestami je len 15 minút."
+        },
+        {
+          "text": "Premiéra Tři oříšky 17:30–19:00 (nevie sa kto), Zuzka v kine 18–20, zabaliť bubny.",
+          "detail": "Premiéra pre deti Tři oříšky pro Popelku 17:30–19:00 (kto ide, nie je uvedené; prekrýva sa s baseballom). Zuzka v kine 18:00–20:00. Od 19:00 zabaliť bubny na štvrtok."
+        }
+      ]
+    }
+  ]
+}
