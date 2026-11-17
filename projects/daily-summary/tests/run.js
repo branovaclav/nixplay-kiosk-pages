@@ -228,7 +228,7 @@ test("hour labels centered with 07:00–22:00; date smaller; teraz badge centere
     "utf8"
   );
   assert.ok(base.indexOf("--fs-date: 30px") !== -1);
-  assert.ok(/\.tl-track\s*\{[^}]*top:\s*8px[^}]*bottom:\s*8px/m.test(base));
+  assert.ok(/\.tl-track\s*\{[^}]*top:\s*10px[^}]*bottom:\s*10px/m.test(base));
   assert.ok(/\.tl-hour-label\s*\{[^}]*translateY\(-50%\)/m.test(base));
   assert.ok(/\.tl-now-label\s*\{[^}]*translateY\(-50%\)/m.test(base));
   var cp = require("child_process");
