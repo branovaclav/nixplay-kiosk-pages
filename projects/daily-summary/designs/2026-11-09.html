@@ -117,7 +117,7 @@
   --clock-sec-opacity: 0.55;
   --fs-wx-temp: 31px;
   --fs-wx-text: 20px;
-  --fs-lane: 19px;
+  --fs-lane: 20px;
   --fs-lane-other: 18px;
   --fs-chip: 18px;
   --fs-chip-meta: 15px;
@@ -249,8 +249,9 @@ body:not([data-view="rodina"]) .eyebrow-osobny {
   font-variant-numeric: tabular-nums;
   -webkit-font-feature-settings: "tnum" 1;
   font-feature-settings: "tnum" 1;
-  margin-right: 20px;
-  padding-right: 0;
+  margin-right: 16px;
+  padding-right: 16px;
+  border-right: 1px solid var(--line);
   position: relative;
   top: var(--clock-shift);
   /* tick only repaints this box */
@@ -346,7 +347,6 @@ body.is-stale-day .stale-note {
   line-height: 0;
   -webkit-flex-shrink: 0;
   flex-shrink: 0;
-  color: var(--wx);
 }
 
 .wx-icon svg {
@@ -460,7 +460,7 @@ body[data-view="tomas"] .sidebar-panel {
 }
 
 .panel {
-  border-radius: 20px;
+  border-radius: 12px;
 }
 
 .sidebar-title {
@@ -519,49 +519,30 @@ body[data-view="tomas"] .sidebar-panel {
 
 .hl-block { margin-bottom: 10px; }
 
-.hl-block h3,
-.outlook-box h3 {
-  font-weight: var(--fw-kicker);
-  font-size: var(--fs-kicker);
-  letter-spacing: 0.06em;
-  opacity: 1;
-}
 .hl-block h3 {
   margin: 0 0 4px;
   font-family: var(--font-label);
-  color: var(--section-label);
+  font-weight: var(--fw-label);
+  font-size: var(--fs-side-section);
+  letter-spacing: 0.04em;
   text-transform: uppercase;
+  opacity: 0.7;
   line-height: 1.15;
 }
 
 .hl-block ul,
 .outlook-box ul {
   margin: 0;
-  padding: 0;
-  list-style: none;
+  padding: 0 0 0 1.05em;
 }
 
 .hl-block li,
 .outlook-box li {
-  position: relative;
-  padding-left: 22px;
   margin: 0 0 6px;
   font-size: var(--fs-side-item);
   line-height: 1.3;
   overflow-wrap: break-word;
   word-wrap: break-word;
-}
-
-.hl-block li::before,
-.outlook-box li::before {
-  content: "";
-  position: absolute;
-  left: 4px;
-  top: 10px;
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: var(--bullet);
 }
 
 .hl-who {
@@ -627,17 +608,18 @@ body[data-view="tomas"] li[data-member]:not([data-member=""]):not([data-member="
   overflow: hidden;
   margin-top: 10px;
   padding: 10px 12px;
-  border-radius: 16px;
-  border: 0;
-  background: var(--outlook-bg);
+  border-radius: 12px;
+  border: 2px dashed rgba(0, 0, 0, 0.2);
 }
 
 .outlook-box h3 {
   font-family: var(--font-label);
+  font-weight: var(--fw-label);
   -webkit-flex-shrink: 0;
   flex-shrink: 0;
   margin: 0 0 6px;
-  color: var(--outlook-ink);
+  font-size: var(--fs-outlook-title);
+  letter-spacing: 0.03em;
   text-transform: uppercase;
   line-height: 1.15;
 }
@@ -732,11 +714,12 @@ body[data-view="tomas"] .calendar-member[data-focus="tomas"] {
   display: flex;
   -webkit-box-align: center;
   align-items: center;
-  -webkit-box-pack: start;
-  justify-content: flex-start;
-  padding: 4px 10px 4px 6px;
+  -webkit-box-pack: center;
+  justify-content: center;
+  padding: 4px;
   margin-right: 6px;
-  border-radius: 999px;
+  border-radius: 10px;
+  border-bottom: 4px solid var(--m, transparent);
   min-height: 52px;
   min-width: 0;
   overflow: hidden;
@@ -749,19 +732,8 @@ body[data-view="tomas"] .calendar-member[data-focus="tomas"] {
   flex-shrink: 0;
 }
 
-.calendar-family .lane-head .avatar {
-  width: 40px;
-  height: 40px;
-  margin-left: 2px;
-}
-
-.lane-head-focus .avatar {
-  width: 48px;
-  height: 48px;
-}
-
 .lane-name {
-  margin-left: 10px;
+  margin-left: 8px;
   font-size: var(--fs-lane);
   font-weight: var(--fw-bold);
   line-height: 1.1;
@@ -772,6 +744,7 @@ body[data-view="tomas"] .calendar-member[data-focus="tomas"] {
 }
 
 .lane-head-others {
+  border-bottom-color: rgba(0, 0, 0, 0.2);
   opacity: 0.55;
 }
 
@@ -801,7 +774,7 @@ body[data-view="tomas"] .calendar-member[data-focus="tomas"] {
   flex: 1 1 auto;
   height: auto;
   min-height: 0;
-  border-radius: 0;
+  border-radius: 10px;
   overflow: hidden;
 }
 
@@ -833,25 +806,23 @@ body[data-view="tomas"] .calendar-member[data-focus="tomas"] {
 
 .tl-hour {
   position: absolute;
-  left: 52px;
+  left: 0;
   right: 0;
-  border-top: 1px solid var(--tl-hour);
+  border-top: 1px solid rgba(0, 0, 0, 0.12);
   height: 0;
 }
 
 .tl-hour-label {
   position: absolute;
-  left: auto;
-  right: calc(100% + 8px);
-  /* digit baseline sits on the rule (Inter 15px, line-height 1) */
-  top: -12px;
+  left: 4px;
+  /* sit fully above the hour rule (was -10px → line struck through digits) */
+  top: -16px;
   line-height: 1;
   font-size: var(--fs-hour);
   font-weight: var(--fw-body);
-  opacity: 1;
-  padding: 0;
-  background: none;
-  color: var(--hour-label);
+  opacity: 0.55;
+  padding: 0 2px;
+  background: var(--tl-bg, transparent);
   font-family: var(--font-body);
   font-variant-numeric: tabular-nums;
   -webkit-font-feature-settings: "zero" 0;
@@ -882,7 +853,7 @@ body[data-view="tomas"] .calendar-member[data-focus="tomas"] {
 
 .event-block {
   position: absolute;
-  padding: 3px 7px;
+  padding: 2px 5px;
   overflow: hidden; /* never clip mid-glyph — JS hides lines that don't fit */
   border-radius: 8px;
   border: 2px solid var(--m);
@@ -900,24 +871,10 @@ body[data-view="tomas"] .calendar-member[data-focus="tomas"] {
 
 .event-block .ev-time,
 .event-block .ev-title,
-.event-block .ev-loc {
-  display: block;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
+.event-block .ev-loc,
 .event-block .ev-status,
 .event-block .ev-flags {
-  display: inline-block;
-  max-width: 100%;
-  margin: 3px 0 0;
-  padding: 1px 8px;
-  border-radius: 999px;
-  font-size: 13px;
-  font-weight: var(--fw-bold);
-  opacity: 1;
-  vertical-align: top;
+  display: block;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -938,7 +895,9 @@ body[data-view="tomas"] .calendar-member[data-focus="tomas"] {
   font-size: var(--fs-ev-title);
 }
 
-.event-block .ev-loc {
+.event-block .ev-loc,
+.event-block .ev-status,
+.event-block .ev-flags {
   font-size: var(--fs-ev-flags);
   opacity: 0.9;
 }
@@ -989,7 +948,7 @@ body[data-view="tomas"] .calendar-member[data-focus="tomas"] {
   left: 36px;
   right: 0;
   height: 0;
-  border-top: 2px solid var(--now);
+  border-top: 3px solid #e11d48;
   z-index: 6;
   pointer-events: none;
 }
@@ -1002,12 +961,11 @@ body.is-future-day .tl-now {
 .tl-now-label {
   position: absolute;
   right: 6px;
-  top: -23px;
-  padding: 2px 9px;
-  border-radius: 999px;
-  background: var(--now);
-  color: var(--now-ink);
-  box-shadow: 0 2px 6px rgba(var(--now-rgb), 0.28);
+  top: -22px;
+  padding: 1px 7px;
+  border-radius: 6px;
+  background: #e11d48;
+  color: #fff;
   font-size: var(--fs-now);
   font-weight: var(--fw-bold);
   font-family: var(--font-body);
@@ -1028,10 +986,10 @@ body.is-future-day .tl-now {
   vertical-align: middle;
 }
 
-/* Dark mode — Clean dark redesign (html.theme-dark). */
+/* Dark mode — Večerná palette (html.theme-dark) */
 html.theme-dark {
   --bg: #0b1220;
-  --panel: #192233;
+  --panel: #141c2c;
   --panel2: #1a2438;
   --ink: #e8eef7;
   --muted: #9aa8bc;
@@ -1039,19 +997,16 @@ html.theme-dark {
   --line: rgba(231, 181, 106, 0.22);
   --focus: #f5d78e;
   --tl-bg: #0f1726;
-  --tl-hour: rgba(154, 168, 188, 0.14);
+  --tl-hour: rgba(154, 168, 188, 0.18);
   --chip-bg: #1a2438;
-  --now: #3AA8E6;
-  --now-ink: #08121E;
-  --now-rgb: 58, 168, 230;
-  --head-bg: #212C40;
-  --page-bg: linear-gradient(180deg, #111A2A 0%, #0A101B 100%);
-  --hour-label: var(--muted);
-  --section-label: var(--accent);
-  --bullet: #56657A;
-  --outlook-bg: rgba(120, 170, 220, 0.10);
-  --outlook-ink: #82B6E6;
-  --wx: #82B6E6;
+  --now: #e7b56a;
+  --now-ink: #1a1208;
+  /* barely above panel (#141c2c) — subtle lift only */
+  --head-bg: #1a2438;
+  --page-bg:
+    radial-gradient(ellipse at 20% 0%, rgba(231, 181, 106, 0.14), transparent 42%),
+    radial-gradient(ellipse at 100% 80%, rgba(60, 90, 140, 0.25), transparent 45%),
+    linear-gradient(180deg, #0e1626 0%, #0b1220 40%, #080d16 100%);
 }
 
 html.theme-dark body {
@@ -1071,92 +1026,87 @@ html.theme-dark .sidebar-title {
 html.theme-dark .eyebrow { color: var(--accent); opacity: 1; }
 
 html.theme-dark .panel {
-  background: var(--panel);
-  border: 0;
-  border-radius: 20px;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 10px 30px rgba(0, 0, 0, 0.35);
+  background: rgba(20, 28, 44, 0.92);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
 }
 
-html.theme-dark .wx-icon { color: var(--wx); }
+html.theme-dark .wx-icon { color: var(--accent); }
 html.theme-dark .wx-temps { color: var(--ink); }
 html.theme-dark .wx-summary { color: var(--muted); }
 
 html.theme-dark .lane-head {
   background: var(--head-bg);
   color: var(--ink);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
 }
 
-html.theme-dark .tl-body { background: none; border: 0; }
-html.theme-dark .tl-hour { border-top-color: var(--tl-hour); }
-html.theme-dark .tl-hour-label { color: var(--hour-label); opacity: 1; }
+html.theme-dark .tl-body {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.02), transparent 30%), var(--tl-bg);
+  border: 1px solid var(--line);
+}
 
-/* Events: tint of the brighter dark shade + 3px bar */
+html.theme-dark .tl-hour { border-top-color: var(--tl-hour); }
+html.theme-dark .tl-hour-label { color: var(--muted); opacity: 1; }
+
 html.theme-dark .event-block {
-  background: rgba(var(--md-rgb, 58, 168, 230), 0.20);
-  color: var(--ink);
-  border: 0;
-  border-left: 3px solid rgb(var(--md-rgb, 58, 168, 230));
-  border-radius: 8px;
-  box-shadow: none;
+  border-width: 0;
+  border-left: 4px solid rgba(255, 255, 255, 0.35);
+  border-radius: 10px;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.35);
+  background: var(--m);
+  color: #fff;
 }
 
 html.theme-dark .event-block.is-unconfirmed {
-  background: rgba(255, 255, 255, 0.02);
-  border: 1.5px dashed rgb(var(--md-rgb, 58, 168, 230));
-  box-shadow: none;
+  /* Uniform dashed — no thick left stripe */
+  border: 2px dashed rgba(255, 255, 255, 0.75);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.35);
 }
 
 html.theme-dark .event-block.is-conflict {
-  background-color: var(--panel);
-  background-image: repeating-linear-gradient(-45deg,
-    rgba(var(--md-rgb), 0.24), rgba(var(--md-rgb), 0.24) 6px,
-    rgba(var(--md-rgb), 0.08) 6px, rgba(var(--md-rgb), 0.08) 12px);
-  box-shadow: none;
+  box-shadow: 0 0 0 2px var(--accent), 0 6px 16px rgba(0, 0, 0, 0.35);
 }
 
-html.theme-dark .event-block .ev-time { color: var(--muted); }
-html.theme-dark .ev-status { background: rgba(255, 255, 255, 0.08); color: #B8C4D4; }
-html.theme-dark .ev-flags  { background: rgba(255, 255, 255, 0.08); color: var(--ink); }
-
 html.theme-dark .allday-chip {
-  background: rgba(var(--md-rgb, 58, 168, 230), 0.16);
-  border: 0;
-  border-left: 3px solid rgb(var(--md-rgb, 58, 168, 230));
+  background: var(--chip-bg);
+  border: 1px solid var(--line);
   color: var(--ink);
 }
 
 html.theme-dark .allday-chip.is-unconfirmed {
-  background: rgba(255, 255, 255, 0.02);
-  border: 1.5px dashed rgb(var(--md-rgb, 58, 168, 230));
-}
-
-html.theme-dark .allday-chip.is-conflict {
-  background-color: var(--panel);
-  background-image: repeating-linear-gradient(-45deg,
-    rgba(var(--md-rgb), 0.24), rgba(var(--md-rgb), 0.24) 6px,
-    rgba(var(--md-rgb), 0.08) 6px, rgba(var(--md-rgb), 0.08) 12px);
-  box-shadow: none;
+  border-style: dashed;
+  border-left-width: 1px;
 }
 
 html.theme-dark .tl-now { border-top-color: var(--now); }
 html.theme-dark .tl-now-label { background: var(--now); color: var(--now-ink); }
 
-html.theme-dark .outlook-box { background: var(--outlook-bg); border: 0; }
-html.theme-dark .outlook-box h3 { color: var(--outlook-ink); opacity: 1; }
-html.theme-dark .hl-block h3 { color: var(--section-label); opacity: 1; }
+html.theme-dark .outlook-box {
+  background: rgba(231, 181, 106, 0.08);
+  border-color: rgba(231, 181, 106, 0.45);
+  border-style: solid;
+}
 
-html.theme-dark .lane-head-others { opacity: 0.5; border: 1px solid rgba(255, 255, 255, 0.06); }
+html.theme-dark .outlook-box h3,
+html.theme-dark .hl-block h3 { color: var(--accent); opacity: 1; }
+
+html.theme-dark .ev-status {
+  background: rgba(231, 181, 106, 0.16);
+  color: var(--accent);
+}
+
+html.theme-dark .lane-head-others { opacity: 0.5; border-bottom-color: var(--line); }
 html.theme-dark .empty-inline { color: var(--muted); opacity: 1; }
 
 html.theme-dark .topbar-date h1 { font-weight: var(--fw-date); }
 html.theme-dark .topbar-clock { color: #f4efe6; }
 
-/* Light mode — Clean white redesign (html.theme-light). */
+/* Light mode — Večerná structure + Papier palette (html.theme-light).
+   Calendar/timeline bg slightly brighter than original Papier (#eef2f5 → #f6f9fb). */
 html.theme-light {
-  --bg: #F5F7FA;
-  --panel: #FFFFFF;
+  --bg: #d9e3ea;
+  --panel: #f3f6f8;
   --panel2: #ffffff;
   --ink: #1a2832;
   --muted: #4d5e6a;
@@ -1164,19 +1114,21 @@ html.theme-light {
   --line: #b7c5cf;
   --focus: #c45c00;
   --tl-bg: #f6f9fb;
-  --tl-hour: rgba(16, 24, 40, 0.07);
+  --tl-hour: rgba(44, 95, 122, 0.14);
   --chip-bg: #ffffff;
-  --now: #0A7CC4;
-  --now-ink: #FFFFFF;
-  --now-rgb: 10, 124, 196;
-  --head-bg: #FFFFFF;
-  --page-bg: linear-gradient(180deg, #F9FBFC 0%, #F1F4F7 100%);
-  --hour-label: #64727E;
-  --section-label: #5F6E7A;
-  --bullet: #A7B6C2;
-  --outlook-bg: #F0F5F9;
-  --outlook-ink: var(--accent);
-  --wx: var(--accent);
+  --now: #9f1239;
+  --now-ink: #fff;
+  --head-bg: #fcfdfe;
+  --page-bg:
+    radial-gradient(ellipse at 12% 0%, rgba(44, 95, 122, 0.10), transparent 42%),
+    repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 23px,
+      rgba(44, 95, 122, 0.035) 23px,
+      rgba(44, 95, 122, 0.035) 24px
+    ),
+    #d9e3ea;
 }
 
 html.theme-light body {
@@ -1197,82 +1149,87 @@ html.theme-light .eyebrow { color: var(--accent); opacity: 0.9; }
 
 html.theme-light .panel {
   background: var(--panel);
-  border: 0;
-  border-radius: 20px;
-  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.04), 0 8px 24px rgba(16, 24, 40, 0.06);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.7) inset, 0 8px 18px rgba(26, 40, 50, 0.06);
 }
 
+html.theme-light .wx-icon { color: var(--accent); }
 html.theme-light .wx-temps { color: var(--ink); }
 html.theme-light .wx-summary { color: var(--muted); }
 
 html.theme-light .lane-head {
   background: var(--head-bg);
   color: var(--ink);
-  border: 1px solid rgba(16, 24, 40, 0.07);
-  box-shadow: 0 2px 8px rgba(30, 50, 80, 0.07);
+  border: none;
+  border-bottom: 4px solid var(--m, transparent);
 }
 
-html.theme-light .tl-body { background: none; border: 0; }
-html.theme-light .tl-hour { border-top-color: var(--tl-hour); }
-html.theme-light .tl-hour-label { color: var(--hour-label); opacity: 1; }
+html.theme-light .tl-body {
+  background: linear-gradient(90deg, rgba(44, 95, 122, 0.035) 0, transparent 52px), var(--tl-bg);
+  border: 1px solid var(--line);
+}
 
-/* Events: tinted fill + 3px bar in the person colour */
+html.theme-light .tl-hour { border-top-color: var(--tl-hour); }
+html.theme-light .tl-hour-label { color: var(--muted); opacity: 0.85; }
+
+/* Filled member color would be loud on light — paper card + strong left edge */
 html.theme-light .event-block {
-  background: rgba(var(--m-rgb, 10, 124, 196), 0.12);
+  background: #fff;
   color: var(--ink);
-  border: 0;
-  border-left: 3px solid rgb(var(--m-rgb, 10, 124, 196));
+  border: 1px solid var(--line);
+  border-left: 6px solid var(--m);
   border-radius: 8px;
   box-shadow: none;
 }
 
 html.theme-light .event-block.is-unconfirmed {
+  /* Uniform dashed — no thick left stripe */
+  border: 2px dashed var(--m);
   background: #fff;
-  border: 1.5px dashed rgb(var(--m-rgb, 10, 124, 196));
-}
-
-/* Clash: member-colour stripes, no amber ring */
-html.theme-light .event-block.is-conflict {
-  background-color: #fff;
-  background-image: repeating-linear-gradient(-45deg,
-    rgba(var(--m-rgb), 0.16), rgba(var(--m-rgb), 0.16) 6px,
-    rgba(var(--m-rgb), 0.06) 6px, rgba(var(--m-rgb), 0.06) 12px);
-  box-shadow: none;
 }
 
 html.theme-light .event-block .ev-time { color: var(--muted); }
-html.theme-light .ev-status { background: rgba(16, 24, 40, 0.06); color: var(--muted); }
-html.theme-light .ev-flags  { background: rgba(16, 24, 40, 0.06); color: var(--ink); }
 
-/* All-day chips: tint + 3px bar in the person colour */
+html.theme-light .event-block.is-conflict {
+  box-shadow: inset 0 0 0 2px #b45309;
+  background-image: repeating-linear-gradient(
+    -45deg, #fff7ed, #fff7ed 5px, #ffedd5 5px, #ffedd5 10px
+  );
+}
+
+html.theme-light .event-block.is-conflict .ev-flags { color: #9a3412; }
+
 html.theme-light .allday-chip {
-  background: rgba(var(--m-rgb, 10, 124, 196), 0.10);
-  border: 0;
-  border-left: 3px solid rgb(var(--m-rgb, 10, 124, 196));
+  background: var(--chip-bg);
+  border: 1px solid var(--line);
+  border-left-width: 6px;
   color: var(--ink);
 }
 
 html.theme-light .allday-chip.is-unconfirmed {
-  background: #fff;
-  border: 1.5px dashed rgb(var(--m-rgb, 10, 124, 196));
-}
-
-html.theme-light .allday-chip.is-conflict {
-  background-color: #fff;
-  background-image: repeating-linear-gradient(-45deg,
-    rgba(var(--m-rgb), 0.16), rgba(var(--m-rgb), 0.16) 6px,
-    rgba(var(--m-rgb), 0.06) 6px, rgba(var(--m-rgb), 0.06) 12px);
-  box-shadow: none;
+  border-style: dashed;
+  border-left-width: 1px;
 }
 
 html.theme-light .tl-now { border-top-color: var(--now); }
 html.theme-light .tl-now-label { background: var(--now); color: var(--now-ink); }
 
-html.theme-light .outlook-box { background: var(--outlook-bg); border: 0; }
-html.theme-light .outlook-box h3 { color: var(--outlook-ink); }
-html.theme-light .hl-block h3 { color: var(--section-label); }
+html.theme-light .outlook-box {
+  background: #eef3f6;
+  border-color: var(--accent);
+  border-style: solid;
+}
 
-html.theme-light .lane-head-others { opacity: 0.55; border: 1px solid rgba(16, 24, 40, 0.07); }
+html.theme-light .outlook-box h3 { color: var(--accent); }
+html.theme-light .hl-block h3 { color: var(--muted); }
+
+html.theme-light .ev-status {
+  background: #e8eef2;
+  color: var(--accent);
+}
+
+html.theme-light .lane-head-others { opacity: 0.55; border-bottom-color: var(--line); }
 html.theme-light .empty-inline { color: var(--muted); }
 
 html.theme-light .topbar-date h1 { font-weight: var(--fw-date); }
@@ -1322,57 +1279,57 @@ html.theme-light .topbar-clock { color: var(--ink); }
       <div class="calendars">
         
 <div class="calendar calendar-family" data-mode="family">
-  <div class="lane-heads lane-heads-4"><div class="lane-head" style="--m:#8E5B2E;--m-rgb:142, 91, 46;--md-rgb:194, 138, 82" data-person="branislav"><img class="avatar" src="avatars/branislav.webp" alt="" width="40" height="40"><span class="lane-name">Braňo</span></div><div class="lane-head" style="--m:#E8B400;--m-rgb:232, 180, 0;--md-rgb:242, 196, 51" data-person="zuzka"><img class="avatar" src="avatars/zuzka.webp" alt="" width="40" height="40"><span class="lane-name">Zuzka</span></div><div class="lane-head" style="--m:#D52B2B;--m-rgb:213, 43, 43;--md-rgb:240, 82, 82" data-person="andrej"><img class="avatar" src="avatars/andrej.webp" alt="" width="40" height="40"><span class="lane-name">Andrej</span></div><div class="lane-head" style="--m:#218538;--m-rgb:33, 133, 56;--md-rgb:60, 181, 94" data-person="tomas"><img class="avatar" src="avatars/tomas.webp" alt="" width="40" height="40"><span class="lane-name">Tomáš</span></div></div>
+  <div class="lane-heads lane-heads-4"><div class="lane-head" style="--m:#1F6AA5" data-person="branislav"><img class="avatar" src="avatars/branislav.svg" alt="" width="44" height="44"><span class="lane-name">Braňo</span></div><div class="lane-head" style="--m:#C45C4A" data-person="zuzka"><img class="avatar" src="avatars/zuzka.svg" alt="" width="44" height="44"><span class="lane-name">Zuzka</span></div><div class="lane-head" style="--m:#2F7D4A" data-person="andrej"><img class="avatar" src="avatars/andrej.svg" alt="" width="44" height="44"><span class="lane-name">Andrej</span></div><div class="lane-head" style="--m:#D97706" data-person="tomas"><img class="avatar" src="avatars/tomas.svg" alt="" width="44" height="44"><span class="lane-name">Tomáš</span></div></div>
   <div class="tl-body">
     <div class="tl-hours"><div class="tl-hour" style="top:0.000%"><span class="tl-hour-label">07:00</span></div><div class="tl-hour" style="top:7.143%"><span class="tl-hour-label">08:00</span></div><div class="tl-hour" style="top:14.286%"><span class="tl-hour-label">09:00</span></div><div class="tl-hour" style="top:21.429%"><span class="tl-hour-label">10:00</span></div><div class="tl-hour" style="top:28.571%"><span class="tl-hour-label">11:00</span></div><div class="tl-hour" style="top:35.714%"><span class="tl-hour-label">12:00</span></div><div class="tl-hour" style="top:42.857%"><span class="tl-hour-label">13:00</span></div><div class="tl-hour" style="top:50.000%"><span class="tl-hour-label">14:00</span></div><div class="tl-hour" style="top:57.143%"><span class="tl-hour-label">15:00</span></div><div class="tl-hour" style="top:64.286%"><span class="tl-hour-label">16:00</span></div><div class="tl-hour" style="top:71.429%"><span class="tl-hour-label">17:00</span></div><div class="tl-hour" style="top:78.571%"><span class="tl-hour-label">18:00</span></div><div class="tl-hour" style="top:85.714%"><span class="tl-hour-label">19:00</span></div><div class="tl-hour" style="top:92.857%"><span class="tl-hour-label">20:00</span></div><div class="tl-hour" style="top:100.000%"><span class="tl-hour-label">21:00</span></div></div>
-    <div class="tl-lanes tl-lanes-4"><div class="lane-col" data-person="branislav" style="--m:#8E5B2E;--m-rgb:142, 91, 46;--md-rgb:194, 138, 82"></div><div class="lane-col" data-person="zuzka" style="--m:#E8B400;--m-rgb:232, 180, 0;--md-rgb:242, 196, 51"></div><div class="lane-col" data-person="andrej" style="--m:#D52B2B;--m-rgb:213, 43, 43;--md-rgb:240, 82, 82"></div><div class="lane-col" data-person="tomas" style="--m:#218538;--m-rgb:33, 133, 56;--md-rgb:60, 181, 94"><div class="event-block" style="top:60.714%;height:8.500%;left:0.000%;width:100.000%;--m:#218538;--m-rgb:33, 133, 56;--md-rgb:60, 181, 94" data-members="tomas" data-end-min="990"><span class="ev-time">15:30–16:30</span><span class="ev-title">Veselá věda</span></div></div></div>
+    <div class="tl-lanes tl-lanes-4"><div class="lane-col" data-person="branislav" style="--m:#1F6AA5"></div><div class="lane-col" data-person="zuzka" style="--m:#C45C4A"></div><div class="lane-col" data-person="andrej" style="--m:#2F7D4A"></div><div class="lane-col" data-person="tomas" style="--m:#D97706"><div class="event-block" style="top:60.714%;height:8.500%;left:0.000%;width:100.000%;--m:#D97706" data-members="tomas" data-end-min="990"><span class="ev-time">15:30–16:30</span><span class="ev-title">Veselá věda</span></div></div></div>
     <div class="tl-span-layer"></div>
     <div class="tl-now" style="top:0"><span class="tl-now-label">teraz</span></div>
   </div>
 </div>
 
 <div class="calendar calendar-member" data-mode="member" data-focus="branislav">
-  <div class="lane-heads lane-heads-2"><div class="lane-head lane-head-focus" style="--m:#8E5B2E;--m-rgb:142, 91, 46;--md-rgb:194, 138, 82"><img class="avatar" src="avatars/branislav.webp" alt="" width="48" height="48"><span class="lane-name">Braňo</span></div><div class="lane-head lane-head-others"><span class="lane-name">ostatní</span></div></div>
+  <div class="lane-heads lane-heads-2"><div class="lane-head lane-head-focus" style="--m:#1F6AA5"><img class="avatar" src="avatars/branislav.svg" alt="" width="48" height="48"><span class="lane-name">Braňo</span></div><div class="lane-head lane-head-others"><span class="lane-name">ostatní</span></div></div>
   <div class="tl-body">
     <div class="tl-hours"><div class="tl-hour" style="top:0.000%"><span class="tl-hour-label">07:00</span></div><div class="tl-hour" style="top:7.143%"><span class="tl-hour-label">08:00</span></div><div class="tl-hour" style="top:14.286%"><span class="tl-hour-label">09:00</span></div><div class="tl-hour" style="top:21.429%"><span class="tl-hour-label">10:00</span></div><div class="tl-hour" style="top:28.571%"><span class="tl-hour-label">11:00</span></div><div class="tl-hour" style="top:35.714%"><span class="tl-hour-label">12:00</span></div><div class="tl-hour" style="top:42.857%"><span class="tl-hour-label">13:00</span></div><div class="tl-hour" style="top:50.000%"><span class="tl-hour-label">14:00</span></div><div class="tl-hour" style="top:57.143%"><span class="tl-hour-label">15:00</span></div><div class="tl-hour" style="top:64.286%"><span class="tl-hour-label">16:00</span></div><div class="tl-hour" style="top:71.429%"><span class="tl-hour-label">17:00</span></div><div class="tl-hour" style="top:78.571%"><span class="tl-hour-label">18:00</span></div><div class="tl-hour" style="top:85.714%"><span class="tl-hour-label">19:00</span></div><div class="tl-hour" style="top:92.857%"><span class="tl-hour-label">20:00</span></div><div class="tl-hour" style="top:100.000%"><span class="tl-hour-label">21:00</span></div></div>
     <div class="tl-lanes tl-lanes-2">
-      <div class="lane-col lane-col-focus" style="--m:#8E5B2E;--m-rgb:142, 91, 46;--md-rgb:194, 138, 82"></div>
-      <div class="lane-col lane-col-others"><div class="event-block" style="top:60.714%;height:8.500%;left:0.000%;width:100.000%;--m:#218538;--m-rgb:33, 133, 56;--md-rgb:60, 181, 94" data-members="tomas" data-end-min="990"><span class="ev-time">15:30–16:30</span><span class="ev-title">Veselá věda</span></div></div>
+      <div class="lane-col lane-col-focus" style="--m:#1F6AA5"></div>
+      <div class="lane-col lane-col-others"><div class="event-block" style="top:60.714%;height:8.500%;left:0.000%;width:100.000%;--m:#D97706" data-members="tomas" data-end-min="990"><span class="ev-time">15:30–16:30</span><span class="ev-title">Veselá věda</span></div></div>
     </div>
     <div class="tl-now" style="top:0"><span class="tl-now-label">teraz</span></div>
   </div>
 </div>
 
 <div class="calendar calendar-member" data-mode="member" data-focus="zuzka">
-  <div class="lane-heads lane-heads-2"><div class="lane-head lane-head-focus" style="--m:#E8B400;--m-rgb:232, 180, 0;--md-rgb:242, 196, 51"><img class="avatar" src="avatars/zuzka.webp" alt="" width="48" height="48"><span class="lane-name">Zuzka</span></div><div class="lane-head lane-head-others"><span class="lane-name">ostatní</span></div></div>
+  <div class="lane-heads lane-heads-2"><div class="lane-head lane-head-focus" style="--m:#C45C4A"><img class="avatar" src="avatars/zuzka.svg" alt="" width="48" height="48"><span class="lane-name">Zuzka</span></div><div class="lane-head lane-head-others"><span class="lane-name">ostatní</span></div></div>
   <div class="tl-body">
     <div class="tl-hours"><div class="tl-hour" style="top:0.000%"><span class="tl-hour-label">07:00</span></div><div class="tl-hour" style="top:7.143%"><span class="tl-hour-label">08:00</span></div><div class="tl-hour" style="top:14.286%"><span class="tl-hour-label">09:00</span></div><div class="tl-hour" style="top:21.429%"><span class="tl-hour-label">10:00</span></div><div class="tl-hour" style="top:28.571%"><span class="tl-hour-label">11:00</span></div><div class="tl-hour" style="top:35.714%"><span class="tl-hour-label">12:00</span></div><div class="tl-hour" style="top:42.857%"><span class="tl-hour-label">13:00</span></div><div class="tl-hour" style="top:50.000%"><span class="tl-hour-label">14:00</span></div><div class="tl-hour" style="top:57.143%"><span class="tl-hour-label">15:00</span></div><div class="tl-hour" style="top:64.286%"><span class="tl-hour-label">16:00</span></div><div class="tl-hour" style="top:71.429%"><span class="tl-hour-label">17:00</span></div><div class="tl-hour" style="top:78.571%"><span class="tl-hour-label">18:00</span></div><div class="tl-hour" style="top:85.714%"><span class="tl-hour-label">19:00</span></div><div class="tl-hour" style="top:92.857%"><span class="tl-hour-label">20:00</span></div><div class="tl-hour" style="top:100.000%"><span class="tl-hour-label">21:00</span></div></div>
     <div class="tl-lanes tl-lanes-2">
-      <div class="lane-col lane-col-focus" style="--m:#E8B400;--m-rgb:232, 180, 0;--md-rgb:242, 196, 51"></div>
-      <div class="lane-col lane-col-others"><div class="event-block" style="top:60.714%;height:8.500%;left:0.000%;width:100.000%;--m:#218538;--m-rgb:33, 133, 56;--md-rgb:60, 181, 94" data-members="tomas" data-end-min="990"><span class="ev-time">15:30–16:30</span><span class="ev-title">Veselá věda</span></div></div>
+      <div class="lane-col lane-col-focus" style="--m:#C45C4A"></div>
+      <div class="lane-col lane-col-others"><div class="event-block" style="top:60.714%;height:8.500%;left:0.000%;width:100.000%;--m:#D97706" data-members="tomas" data-end-min="990"><span class="ev-time">15:30–16:30</span><span class="ev-title">Veselá věda</span></div></div>
     </div>
     <div class="tl-now" style="top:0"><span class="tl-now-label">teraz</span></div>
   </div>
 </div>
 
 <div class="calendar calendar-member" data-mode="member" data-focus="andrej">
-  <div class="lane-heads lane-heads-2"><div class="lane-head lane-head-focus" style="--m:#D52B2B;--m-rgb:213, 43, 43;--md-rgb:240, 82, 82"><img class="avatar" src="avatars/andrej.webp" alt="" width="48" height="48"><span class="lane-name">Andrej</span></div><div class="lane-head lane-head-others"><span class="lane-name">ostatní</span></div></div>
+  <div class="lane-heads lane-heads-2"><div class="lane-head lane-head-focus" style="--m:#2F7D4A"><img class="avatar" src="avatars/andrej.svg" alt="" width="48" height="48"><span class="lane-name">Andrej</span></div><div class="lane-head lane-head-others"><span class="lane-name">ostatní</span></div></div>
   <div class="tl-body">
     <div class="tl-hours"><div class="tl-hour" style="top:0.000%"><span class="tl-hour-label">07:00</span></div><div class="tl-hour" style="top:7.143%"><span class="tl-hour-label">08:00</span></div><div class="tl-hour" style="top:14.286%"><span class="tl-hour-label">09:00</span></div><div class="tl-hour" style="top:21.429%"><span class="tl-hour-label">10:00</span></div><div class="tl-hour" style="top:28.571%"><span class="tl-hour-label">11:00</span></div><div class="tl-hour" style="top:35.714%"><span class="tl-hour-label">12:00</span></div><div class="tl-hour" style="top:42.857%"><span class="tl-hour-label">13:00</span></div><div class="tl-hour" style="top:50.000%"><span class="tl-hour-label">14:00</span></div><div class="tl-hour" style="top:57.143%"><span class="tl-hour-label">15:00</span></div><div class="tl-hour" style="top:64.286%"><span class="tl-hour-label">16:00</span></div><div class="tl-hour" style="top:71.429%"><span class="tl-hour-label">17:00</span></div><div class="tl-hour" style="top:78.571%"><span class="tl-hour-label">18:00</span></div><div class="tl-hour" style="top:85.714%"><span class="tl-hour-label">19:00</span></div><div class="tl-hour" style="top:92.857%"><span class="tl-hour-label">20:00</span></div><div class="tl-hour" style="top:100.000%"><span class="tl-hour-label">21:00</span></div></div>
     <div class="tl-lanes tl-lanes-2">
-      <div class="lane-col lane-col-focus" style="--m:#D52B2B;--m-rgb:213, 43, 43;--md-rgb:240, 82, 82"></div>
-      <div class="lane-col lane-col-others"><div class="event-block" style="top:60.714%;height:8.500%;left:0.000%;width:100.000%;--m:#218538;--m-rgb:33, 133, 56;--md-rgb:60, 181, 94" data-members="tomas" data-end-min="990"><span class="ev-time">15:30–16:30</span><span class="ev-title">Veselá věda</span></div></div>
+      <div class="lane-col lane-col-focus" style="--m:#2F7D4A"></div>
+      <div class="lane-col lane-col-others"><div class="event-block" style="top:60.714%;height:8.500%;left:0.000%;width:100.000%;--m:#D97706" data-members="tomas" data-end-min="990"><span class="ev-time">15:30–16:30</span><span class="ev-title">Veselá věda</span></div></div>
     </div>
     <div class="tl-now" style="top:0"><span class="tl-now-label">teraz</span></div>
   </div>
 </div>
 
 <div class="calendar calendar-member" data-mode="member" data-focus="tomas">
-  <div class="lane-heads lane-heads-2"><div class="lane-head lane-head-focus" style="--m:#218538;--m-rgb:33, 133, 56;--md-rgb:60, 181, 94"><img class="avatar" src="avatars/tomas.webp" alt="" width="48" height="48"><span class="lane-name">Tomáš</span></div><div class="lane-head lane-head-others"><span class="lane-name">ostatní</span></div></div>
+  <div class="lane-heads lane-heads-2"><div class="lane-head lane-head-focus" style="--m:#D97706"><img class="avatar" src="avatars/tomas.svg" alt="" width="48" height="48"><span class="lane-name">Tomáš</span></div><div class="lane-head lane-head-others"><span class="lane-name">ostatní</span></div></div>
   <div class="tl-body">
     <div class="tl-hours"><div class="tl-hour" style="top:0.000%"><span class="tl-hour-label">07:00</span></div><div class="tl-hour" style="top:7.143%"><span class="tl-hour-label">08:00</span></div><div class="tl-hour" style="top:14.286%"><span class="tl-hour-label">09:00</span></div><div class="tl-hour" style="top:21.429%"><span class="tl-hour-label">10:00</span></div><div class="tl-hour" style="top:28.571%"><span class="tl-hour-label">11:00</span></div><div class="tl-hour" style="top:35.714%"><span class="tl-hour-label">12:00</span></div><div class="tl-hour" style="top:42.857%"><span class="tl-hour-label">13:00</span></div><div class="tl-hour" style="top:50.000%"><span class="tl-hour-label">14:00</span></div><div class="tl-hour" style="top:57.143%"><span class="tl-hour-label">15:00</span></div><div class="tl-hour" style="top:64.286%"><span class="tl-hour-label">16:00</span></div><div class="tl-hour" style="top:71.429%"><span class="tl-hour-label">17:00</span></div><div class="tl-hour" style="top:78.571%"><span class="tl-hour-label">18:00</span></div><div class="tl-hour" style="top:85.714%"><span class="tl-hour-label">19:00</span></div><div class="tl-hour" style="top:92.857%"><span class="tl-hour-label">20:00</span></div><div class="tl-hour" style="top:100.000%"><span class="tl-hour-label">21:00</span></div></div>
     <div class="tl-lanes tl-lanes-2">
-      <div class="lane-col lane-col-focus" style="--m:#218538;--m-rgb:33, 133, 56;--md-rgb:60, 181, 94"><div class="event-block" style="top:60.714%;height:8.500%;left:0.000%;width:100.000%;--m:#218538;--m-rgb:33, 133, 56;--md-rgb:60, 181, 94" data-members="tomas" data-end-min="990"><span class="ev-time">15:30–16:30</span><span class="ev-title">Veselá věda</span></div></div>
+      <div class="lane-col lane-col-focus" style="--m:#D97706"><div class="event-block" style="top:60.714%;height:8.500%;left:0.000%;width:100.000%;--m:#D97706" data-members="tomas" data-end-min="990"><span class="ev-time">15:30–16:30</span><span class="ev-title">Veselá věda</span></div></div>
       <div class="lane-col lane-col-others"></div>
     </div>
     <div class="tl-now" style="top:0"><span class="tl-now-label">teraz</span></div>
@@ -1389,14 +1346,14 @@ html.theme-light .topbar-clock { color: var(--ink); }
     <section class="hl-block" data-section="rodina"><h3>Rodina</h3><ul>
 <li data-member="" data-family="1"><span class="item-text">Skontrolovať kontá na obedoch — škola hlásila nezrovnalosti.</span><span class="item-detail">Škola prosí rodičov skontrolovať kontá na obedoch. Overiť zostatok pre Andreja aj Tomáša; stav splnenia neznámy.</span></li>
 </ul></section><section class="hl-block" data-section="pripomienky"><h3>Pripomienky</h3><ul>
-<li data-member="andrej" data-family="1"><span class="hl-who" style="--m:#D52B2B;--m-rgb:213, 43, 43;--md-rgb:240, 82, 82">Andrej</span> <span class="item-text">Diplom Finančnej gramotnosti do portfólia.</span><span class="item-detail">Diplom z Finančnej gramotnosti odložiť do portfólia na gymnázium — nestratiť medzi školskými papiermi.</span></li>
-<li data-member="tomas" data-family="0"><span class="hl-who" style="--m:#218538;--m-rgb:33, 133, 56;--md-rgb:60, 181, 94">Tomáš</span> <span class="item-text">Albatros — knižný darček do 24. 11.</span><span class="item-detail">Trieda 2025A zbiera nápady na vianočné darčeky (Albatros kniha; objednávka do 24. 11.). Označiť knižku hviezdičkou k objednávke.</span></li>
+<li data-member="andrej" data-family="1"><span class="hl-who" style="--m:#2F7D4A">Andrej</span> <span class="item-text">Diplom Finančnej gramotnosti do portfólia.</span><span class="item-detail">Diplom z Finančnej gramotnosti odložiť do portfólia na gymnázium — nestratiť medzi školskými papiermi.</span></li>
+<li data-member="tomas" data-family="0"><span class="hl-who" style="--m:#D97706">Tomáš</span> <span class="item-text">Albatros — knižný darček do 24. 11.</span><span class="item-detail">Trieda 2025A zbiera nápady na vianočné darčeky (Albatros kniha; objednávka do 24. 11.). Označiť knižku hviezdičkou k objednávke.</span></li>
 </ul></section>
     </div></div>
   </div>
   <aside class="outlook-box" data-section="vyhlad" data-outlook-from="2026-11-10" data-outlook-to="2026-11-10"><h3 data-outlook-title="1">Zajtra</h3><div class="autoscroll"><div class="autoscroll-inner"><ul>
 <li data-member="" data-family="1"><span class="item-text">Zuzka premiéra v práci od 15:00 do polnoci.</span><span class="item-detail">Utorok 10. 11. — Zuzka: premiéra v práci 15:00–24:00.</span></li>
-<li data-member="andrej" data-family="1"><span class="hl-who" style="--m:#D52B2B;--m-rgb:213, 43, 43;--md-rgb:240, 82, 82">Andrej</span> <span class="item-text">Príprava MAT 15:15–16:45 a baseball 16:00–18:00 sa prekrývajú.</span><span class="item-detail">Utorok 10. 11. — príprava na gymnázium (MAT) 15:15–16:45 na Českolipskej a SaBaT baseball 16:00–18:00 sa prekrývajú; dohodnúť presun.</span></li>
+<li data-member="andrej" data-family="1"><span class="hl-who" style="--m:#2F7D4A">Andrej</span> <span class="item-text">Príprava MAT 15:15–16:45 a baseball 16:00–18:00 sa prekrývajú.</span><span class="item-detail">Utorok 10. 11. — príprava na gymnázium (MAT) 15:15–16:45 na Českolipskej a SaBaT baseball 16:00–18:00 sa prekrývajú; dohodnúť presun.</span></li>
 <li data-member="" data-family="1"><span class="item-text">Ďalej: Logopédia 9:00, upratovanie 12:30, vyniesť kôš 20:00.</span><span class="item-detail">Utorok 10. 11. — Logopédia 9:00–9:30, upratovanie 12:30–13:30, vyniesť kôš 20:00–21:00.</span></li>
 </ul></div></div></aside>
 </aside>

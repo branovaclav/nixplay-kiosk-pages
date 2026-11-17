@@ -378,10 +378,14 @@ def family_calendar(day, people, start, end, family_info=None):
     lines = []
     for m in labels:
         top = pct(m, start, end)
-        lines.append(
-            f'<div class="tl-hour" style="top:{top:.3f}%">'
-            f'<span class="tl-hour-label">{m // 60:02d}:00</span></div>'
+        # Label sits above the rule (top:-12px); skip the top-edge hour so it
+        # is not clipped by .tl-body { overflow:hidden } (pre-existing).
+        label = (
+            f'<span class="tl-hour-label">{m // 60:02d}:00</span>'
+            if top > 0.01
+            else ""
         )
+        lines.append(f'<div class="tl-hour" style="top:{top:.3f}%">{label}</div>')
 
     heads = []
     for p in people:
@@ -464,10 +468,12 @@ def member_calendar(day, people, focus_id, start, end, family_info=None):
     lines = []
     for m in labels:
         top = pct(m, start, end)
-        lines.append(
-            f'<div class="tl-hour" style="top:{top:.3f}%">'
-            f'<span class="tl-hour-label">{m // 60:02d}:00</span></div>'
+        label = (
+            f'<span class="tl-hour-label">{m // 60:02d}:00</span>'
+            if top > 0.01
+            else ""
         )
+        lines.append(f'<div class="tl-hour" style="top:{top:.3f}%">{label}</div>')
 
     heads = (
         f'<div class="lane-head lane-head-focus" style="{style_m(focus)}">'

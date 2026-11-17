@@ -133,16 +133,34 @@ test("members.json has new person colours and RGB triplets", function () {
   assert.ok(/\.(webp|png)$/i.test(byId.branislav.avatar));
 });
 
-test("built day page emits --m-rgb/--md-rgb and new avatar files", function () {
-  var html = fs.readFileSync(
-    path.join(__dirname, "..", "designs", "2026-11-18.html"),
-    "utf8"
-  );
+test("generator emits --m-rgb/--md-rgb (render smoke, no designs/ commit needed)", function () {
+  var { execFileSync } = require("child_process");
+  var os = require("os");
+  var out = fs.mkdtempSync(path.join(os.tmpdir(), "ds-rgb-"));
+  var py = [
+    "import os, sys",
+    "sys.path.insert(0, " + JSON.stringify(path.join(__dirname, "..", "tools")) + ")",
+    "import build",
+    "day = build.load_json(build.DATA, '2026-11-18.json')",
+    "pack = build.load_json(build.DATA, 'members.json')",
+    "html = build.render_day_page(day, pack)",
+    "open(os.path.join(" + JSON.stringify(out) + ", 'out.html'), 'w', encoding='utf-8').write(html)",
+  ].join("\n");
+  execFileSync("python3", ["-c", py], { encoding: "utf8" });
+  var html = fs.readFileSync(path.join(out, "out.html"), "utf8");
   assert.ok(html.indexOf("--m:#E8B400;--m-rgb:232, 180, 0;--md-rgb:242, 196, 51") !== -1);
   assert.ok(html.indexOf("--m:#D52B2B;--m-rgb:213, 43, 43;--md-rgb:240, 82, 82") !== -1);
   assert.ok(html.indexOf("avatars/zuzka.webp") !== -1);
   assert.ok(html.indexOf("avatars/andrej.webp") !== -1);
   assert.ok(fs.existsSync(path.join(__dirname, "..", "assets", "avatars", "lukas.webp")));
+  // Span layer must not cover the hour gutter (absolute kids ignore padding).
+  var css = fs.readFileSync(
+    path.join(__dirname, "..", "themes", "_shared", "base.css"),
+    "utf8"
+  );
+  assert.ok(/\.tl-span-layer\s*\{[^}]*left:\s*52px/m.test(css));
+  // Top-edge hour has no clipped label.
+  assert.ok(html.indexOf('style="top:0.000%"></div>') !== -1 || html.indexOf("top:0.000%\"></div>") !== -1);
 });
 
 test("fitEventBlocks still prefers hiding flags/status before title", function () {

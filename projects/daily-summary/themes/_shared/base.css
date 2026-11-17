@@ -732,8 +732,10 @@ body[data-view="tomas"] .calendar-member[data-focus="tomas"] {
   z-index: 2;
 }
 
+/* Absolute children ignore padding — inset the layer itself so is-span
+   blocks align with the lane columns (same 52px gutter as .tl-lanes). */
 .tl-span-layer {
-  padding-left: 52px;
+  left: 52px;
   pointer-events: none;
   z-index: 3;
 }

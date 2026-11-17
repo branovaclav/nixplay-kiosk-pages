@@ -423,7 +423,7 @@
         root.setAttribute("data-sunset", fmtMins(sun.set));
       }
       var meta = document.querySelector('meta[name="theme-color"]');
-      if (meta) meta.setAttribute("content", mode === "dark" ? "#0B1220" : "#F5F7FA");
+      if (meta) meta.setAttribute("content", mode === "dark" ? "#0B1220" : "#d9e3ea");
     } catch (e) {}
   }
 
