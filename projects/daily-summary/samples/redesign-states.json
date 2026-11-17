@@ -1,0 +1,143 @@
+{
+  "date": "2026-11-18",
+  "locale": "sk-SK",
+  "timezone": "Europe/Prague",
+  "now": "14:20",
+  "refresh_at": "06:30",
+  "weather": {
+    "sample": true,
+    "summary": "Dážď",
+    "icon": "rain",
+    "temp_high_c": 13,
+    "temp_low_c": 10
+  },
+  "timeline": {
+    "start": "07:00",
+    "end": "21:00"
+  },
+  "events": [
+    {
+      "id": "tomas-allday-diag",
+      "members": ["tomas"],
+      "title": "Diagnostika INEP",
+      "all_day": true,
+      "status": "confirmed",
+      "flags": [],
+      "conflict_with": [],
+      "notes": [],
+      "reminders": []
+    },
+    {
+      "id": "family-allday-blue",
+      "members": ["branislav", "zuzka", "andrej", "tomas"],
+      "title": "Rodinný výlet — ukážka",
+      "all_day": true,
+      "status": "confirmed",
+      "flags": [],
+      "conflict_with": [],
+      "notes": [],
+      "reminders": []
+    },
+    {
+      "id": "branislav-unconfirmed",
+      "members": ["branislav"],
+      "title": "Tenis (nepotvrdené)",
+      "start": "14:00",
+      "end": "15:00",
+      "all_day": false,
+      "status": "unconfirmed",
+      "flags": [],
+      "conflict_with": [],
+      "notes": [],
+      "reminders": []
+    },
+    {
+      "id": "andrej-clash-a",
+      "members": ["andrej"],
+      "title": "Príprava MAT",
+      "start": "15:15",
+      "end": "16:45",
+      "all_day": false,
+      "location": "Českolipská",
+      "status": "confirmed",
+      "flags": ["conflict"],
+      "conflict_with": ["andrej-clash-b"],
+      "notes": [],
+      "reminders": []
+    },
+    {
+      "id": "andrej-clash-b",
+      "members": ["andrej"],
+      "title": "Baseball Sabat",
+      "start": "16:00",
+      "end": "18:00",
+      "all_day": false,
+      "location": "U Vltavy",
+      "status": "confirmed",
+      "flags": ["conflict"],
+      "conflict_with": ["andrej-clash-a"],
+      "notes": [],
+      "reminders": []
+    },
+    {
+      "id": "family-span-blue",
+      "members": ["branislav", "zuzka", "andrej", "tomas"],
+      "title": "Spoločná večera",
+      "start": "19:00",
+      "end": "20:00",
+      "all_day": false,
+      "status": "confirmed",
+      "flags": [],
+      "conflict_with": [],
+      "notes": [],
+      "reminders": []
+    },
+    {
+      "id": "zuzka-kino",
+      "members": ["zuzka"],
+      "title": "V kine",
+      "start": "18:00",
+      "end": "20:00",
+      "all_day": false,
+      "status": "confirmed",
+      "flags": [],
+      "conflict_with": [],
+      "notes": [],
+      "reminders": []
+    }
+  ],
+  "sections": [
+    {
+      "id": "rodina",
+      "title": "Rodina",
+      "items": [
+        {
+          "text": "Ukážkové stavy: nepotvrdené, kolízia, celý deň, rodina.",
+          "detail": "Lokálny fixture pre redesign screenshoty — nie je v data/."
+        }
+      ]
+    },
+    {
+      "id": "zobrat",
+      "title": "Zobrať / vybaviť",
+      "items": [
+        {
+          "member": "andrej",
+          "text": "Ukázka person pill.",
+          "detail": "Andrej — ukážka."
+        }
+      ]
+    },
+    {
+      "id": "vyhlad",
+      "title": "Zajtra",
+      "outlook": { "from": "zajtra", "to": "zajtra" },
+      "items": [
+        {
+          "text": "Bežný deň — nič mimoriadne.",
+          "detail": "Bežný deň."
+        }
+      ]
+    }
+  ]
+}
