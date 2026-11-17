@@ -378,13 +378,7 @@ def family_calendar(day, people, start, end, family_info=None):
     lines = []
     for m in labels:
         top = pct(m, start, end)
-        # Label sits above the rule (top:-12px); skip the top-edge hour so it
-        # is not clipped by .tl-body { overflow:hidden } (pre-existing).
-        label = (
-            f'<span class="tl-hour-label">{m // 60:02d}:00</span>'
-            if top > 0.01
-            else ""
-        )
+        label = f'<span class="tl-hour-label">{m // 60:02d}:00</span>'
         lines.append(f'<div class="tl-hour" style="top:{top:.3f}%">{label}</div>')
 
     heads = []
@@ -450,10 +444,12 @@ def family_calendar(day, people, start, end, family_info=None):
 <div class="calendar calendar-family" data-mode="family">
   <div class="lane-heads lane-heads-4">{"".join(heads)}</div>
   <div class="tl-body">
-    <div class="tl-hours">{"".join(lines)}</div>
-    <div class="tl-lanes tl-lanes-4">{"".join(cols)}</div>
-    <div class="tl-span-layer">{"".join(span_blocks)}</div>
-    {now_html}
+    <div class="tl-track">
+      <div class="tl-hours">{"".join(lines)}</div>
+      <div class="tl-lanes tl-lanes-4">{"".join(cols)}</div>
+      <div class="tl-span-layer">{"".join(span_blocks)}</div>
+      {now_html}
+    </div>
   </div>
 </div>
 """
@@ -468,11 +464,7 @@ def member_calendar(day, people, focus_id, start, end, family_info=None):
     lines = []
     for m in labels:
         top = pct(m, start, end)
-        label = (
-            f'<span class="tl-hour-label">{m // 60:02d}:00</span>'
-            if top > 0.01
-            else ""
-        )
+        label = f'<span class="tl-hour-label">{m // 60:02d}:00</span>'
         lines.append(f'<div class="tl-hour" style="top:{top:.3f}%">{label}</div>')
 
     heads = (
@@ -531,13 +523,15 @@ def member_calendar(day, people, focus_id, start, end, family_info=None):
 <div class="calendar calendar-member" data-mode="member" data-focus="{esc(focus_id)}">
   <div class="lane-heads lane-heads-2">{heads}</div>
   <div class="tl-body">
-    <div class="tl-hours">{"".join(lines)}</div>
-    <div class="tl-lanes tl-lanes-2">
-      <div class="lane-col lane-col-focus" style="{style_m(focus)}">{"".join(focus_blocks)}</div>
-      <div class="lane-col lane-col-others">{"".join(other_blocks)}</div>
+    <div class="tl-track">
+      <div class="tl-hours">{"".join(lines)}</div>
+      <div class="tl-lanes tl-lanes-2">
+        <div class="lane-col lane-col-focus" style="{style_m(focus)}">{"".join(focus_blocks)}</div>
+        <div class="lane-col lane-col-others">{"".join(other_blocks)}</div>
+      </div>
+      <div class="tl-span-layer">{"".join(span_blocks)}</div>
+      {now_html}
     </div>
-    <div class="tl-span-layer">{"".join(span_blocks)}</div>
-    {now_html}
   </div>
 </div>
 """

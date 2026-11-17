@@ -73,7 +73,7 @@ Stránka každú minútu prepočíta režim (`html.theme-dark` / `html.theme-lig
   "now": "09:30",
   "refresh_at": "06:30",
   "weather": { "sample": true, "summary": "Polojasno", "temp_high_c": 12, "temp_low_c": 4, "icon": "partly-cloudy" },
-  "timeline": { "start": "07:00", "end": "21:00" },
+  "timeline": { "start": "07:00", "end": "22:00" },
   "events": [],
   "sections": []
 }

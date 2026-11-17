@@ -18,7 +18,7 @@
 :root {
   --fs-base: 20px;
   --fs-kicker: 18px;          /* all-caps headings: kicker, section labels, ZAJTRA — same ~10% step */
-  --fs-date: 33px;
+  --fs-date: 30px; /* ~9% under prior 33px */
   --fs-clock: 51px;
   --fs-clock-sec: 26px;
   --clock-sec-opacity: 0.55;
@@ -343,16 +343,17 @@ body.is-stale-day .stale-note {
   flex-direction: column;
 }
 
-/* Member views: calendar 38% / sidebar 62% of the card row
-   (15 + 372 + 15 + 607 + 15 = 1024). Explicit px — % calc was unreliable. */
+/* Member views: calendar 41% / sidebar 59% of the card row
+   (15 + 401 + 15 + 578 + 15 = 1024). Extra width → person column;
+   ostatní stays 102px. Explicit px — % calc was unreliable. */
 body[data-view="branislav"] .cal-panel,
 body[data-view="zuzka"] .cal-panel,
 body[data-view="andrej"] .cal-panel,
 body[data-view="tomas"] .cal-panel {
   -webkit-box-flex: 0;
-  flex: 0 0 372px;
-  width: 372px;
-  max-width: 372px;
+  flex: 0 0 401px;
+  width: 401px;
+  max-width: 401px;
   margin-right: 15px;
 }
 
@@ -361,9 +362,9 @@ body[data-view="zuzka"] .sidebar-panel,
 body[data-view="andrej"] .sidebar-panel,
 body[data-view="tomas"] .sidebar-panel {
   -webkit-box-flex: 0;
-  flex: 0 0 607px;
-  width: 607px;
-  max-width: 607px;
+  flex: 0 0 578px;
+  width: 578px;
+  max-width: 578px;
 }
 
 .panel {
@@ -712,13 +713,22 @@ body[data-view="tomas"] .calendar-member[data-focus="tomas"] {
 
 .tl-body {
   position: relative;
-  /* Fills leftover under chips + lane heads; hour lines stay % of this box */
+  /* Fills leftover under chips + lane heads; hour lines stay % of tl-track */
   -webkit-box-flex: 1;
   flex: 1 1 auto;
   height: auto;
   min-height: 0;
   border-radius: 0;
   overflow: hidden;
+}
+
+/* Inset track so first/last centered hour labels (and teraz badge) are not clipped */
+.tl-track {
+  position: absolute;
+  top: 8px;
+  right: 0;
+  bottom: 8px;
+  left: 0;
 }
 
 .tl-hours,
@@ -761,8 +771,10 @@ body[data-view="tomas"] .calendar-member[data-focus="tomas"] {
   position: absolute;
   left: auto;
   right: calc(100% + 8px);
-  /* digit baseline sits on the rule (Inter 15px, line-height 1) */
-  top: -12px;
+  /* Vertically center on the hour rule (line through label middle) */
+  top: 0;
+  -webkit-transform: translateY(-50%);
+  transform: translateY(-50%);
   line-height: 1;
   font-size: var(--fs-hour);
   font-weight: var(--fw-body);
@@ -941,7 +953,10 @@ body.is-future-day .tl-now {
 .tl-now-label {
   position: absolute;
   right: 6px;
-  top: -23px;
+  /* Vertically center on the now-line */
+  top: 0;
+  -webkit-transform: translateY(-50%);
+  transform: translateY(-50%);
   padding: 2px 9px;
   border-radius: 999px;
   background: var(--now);

@@ -159,8 +159,9 @@ test("generator emits --m-rgb/--md-rgb (render smoke, no designs/ commit needed)
     "utf8"
   );
   assert.ok(/\.tl-span-layer\s*\{[^}]*left:\s*52px/m.test(css));
-  // Top-edge hour has no clipped label.
-  assert.ok(html.indexOf('style="top:0.000%"></div>') !== -1 || html.indexOf("top:0.000%\"></div>") !== -1);
+  // Top-edge hour keeps a centered 07:00 label (tl-track inset prevents clip).
+  assert.ok(html.indexOf('style="top:0.000%"><span class="tl-hour-label">07:00</span>') !== -1);
+  assert.ok(html.indexOf('>22:00</span>') !== -1);
 });
 
 test("fitEventBlocks still prefers hiding flags/status before title", function () {
@@ -180,7 +181,7 @@ test("event status/flag CSS is inline-block (not full-width block)", function ()
   assert.ok(/\.event-block \.ev-status,\s*\n\.event-block \.ev-flags\s*\{[^}]*display:\s*inline-block/m.test(src));
 });
 
-test("personal view 38/62 split and dotted lane separators", function () {
+test("personal view 41/59 split and dotted lane separators", function () {
   var base = fs.readFileSync(
     path.join(__dirname, "..", "themes", "_shared", "base.css"),
     "utf8"
@@ -193,8 +194,8 @@ test("personal view 38/62 split and dotted lane separators", function () {
     path.join(__dirname, "..", "themes", "_shared", "dark.css"),
     "utf8"
   );
-  assert.ok(base.indexOf("flex: 0 0 372px") !== -1);
-  assert.ok(base.indexOf("flex: 0 0 607px") !== -1);
+  assert.ok(base.indexOf("flex: 0 0 401px") !== -1);
+  assert.ok(base.indexOf("flex: 0 0 578px") !== -1);
   assert.ok(base.indexOf("flex: 0 0 102px") !== -1);
   assert.ok(base.indexOf("repeating-linear-gradient") !== -1);
   assert.ok(base.indexOf("var(--tl-lane-sep)") !== -1);
@@ -219,6 +220,34 @@ test("name cards align over lanes; teraz is orange and lane-bound", function () 
   assert.ok(/\.tl-now\s*\{[^}]*left:\s*52px/m.test(base));
   assert.ok(light.indexOf("--now: #F07800") !== -1);
   assert.ok(dark.indexOf("--now: #FF9A33") !== -1);
+});
+
+test("hour labels centered with 07:00–22:00; date smaller; teraz badge centered", function () {
+  var base = fs.readFileSync(
+    path.join(__dirname, "..", "themes", "_shared", "base.css"),
+    "utf8"
+  );
+  assert.ok(base.indexOf("--fs-date: 30px") !== -1);
+  assert.ok(/\.tl-track\s*\{[^}]*top:\s*8px[^}]*bottom:\s*8px/m.test(base));
+  assert.ok(/\.tl-hour-label\s*\{[^}]*translateY\(-50%\)/m.test(base));
+  assert.ok(/\.tl-now-label\s*\{[^}]*translateY\(-50%\)/m.test(base));
+  var cp = require("child_process");
+  var script =
+    "import sys\n" +
+    "sys.path.insert(0, " +
+    JSON.stringify(path.join(__dirname, "..", "tools")) +
+    ")\n" +
+    "import build\n" +
+    "day = build.load_json(build.PROJECT, 'samples', 'redesign-states.json')\n" +
+    "assert day['timeline']['end'] == '22:00'\n" +
+    "pack = build.load_json(build.DATA, 'members.json')\n" +
+    "html = build.render_day_page(day, pack)\n" +
+    "assert 'tl-track' in html\n" +
+    "assert '>07:00</span>' in html\n" +
+    "assert '>22:00</span>' in html\n" +
+    "print('ok')\n";
+  var out = cp.execFileSync("python3", ["-c", script], { encoding: "utf8" });
+  assert.ok(out.indexOf("ok") !== -1);
 });
 
 test("family spans stack under lane events", function () {
