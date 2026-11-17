@@ -13,9 +13,10 @@ html.theme-light {
   /* Same grey as hour rules; dots read lower-prominence than solid hours */
   --tl-lane-sep: rgba(16, 24, 40, 0.14);
   --chip-bg: #ffffff;
-  --now: #0A7CC4;
+  /* Orange — distinct from person colours + family blue */
+  --now: #F07800;
   --now-ink: #FFFFFF;
-  --now-rgb: 10, 124, 196;
+  --now-rgb: 240, 120, 0;
   --head-bg: #FFFFFF;
   --page-bg: linear-gradient(180deg, #F9FBFC 0%, #F1F4F7 100%);
   --hour-label: #64727E;

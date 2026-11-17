@@ -13,9 +13,10 @@ html.theme-dark {
   /* Same grey as hour rules; dots read lower-prominence than solid hours */
   --tl-lane-sep: rgba(154, 168, 188, 0.28);
   --chip-bg: #1a2438;
-  --now: #3AA8E6;
-  --now-ink: #08121E;
-  --now-rgb: 58, 168, 230;
+  /* Brighter orange for dark; dark ink for contrast on the badge */
+  --now: #FF9A33;
+  --now-ink: #1A1000;
+  --now-rgb: 255, 154, 51;
   --head-bg: #212C40;
   --page-bg: linear-gradient(180deg, #111A2A 0%, #0A101B 100%);
   --hour-label: var(--muted);

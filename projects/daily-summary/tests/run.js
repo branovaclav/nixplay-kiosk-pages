@@ -202,6 +202,25 @@ test("personal view 38/62 split and dotted lane separators", function () {
   assert.ok(dark.indexOf("--tl-lane-sep:") !== -1);
 });
 
+test("name cards align over lanes; teraz is orange and lane-bound", function () {
+  var base = fs.readFileSync(
+    path.join(__dirname, "..", "themes", "_shared", "base.css"),
+    "utf8"
+  );
+  var light = fs.readFileSync(
+    path.join(__dirname, "..", "themes", "_shared", "light.css"),
+    "utf8"
+  );
+  var dark = fs.readFileSync(
+    path.join(__dirname, "..", "themes", "_shared", "dark.css"),
+    "utf8"
+  );
+  assert.ok(/\.lane-heads\s*\{[^}]*padding-left:\s*52px/m.test(base));
+  assert.ok(/\.tl-now\s*\{[^}]*left:\s*52px/m.test(base));
+  assert.ok(light.indexOf("--now: #F07800") !== -1);
+  assert.ok(dark.indexOf("--now: #FF9A33") !== -1);
+});
+
 test("family spans stack under lane events", function () {
   var base = fs.readFileSync(
     path.join(__dirname, "..", "themes", "_shared", "base.css"),
