@@ -180,5 +180,26 @@ test("event status/flag CSS is inline-block (not full-width block)", function ()
   assert.ok(/\.event-block \.ev-status,\s*\n\.event-block \.ev-flags\s*\{[^}]*display:\s*inline-block/m.test(src));
 });
 
+test("personal view 38/62 split and dotted lane separators", function () {
+  var base = fs.readFileSync(
+    path.join(__dirname, "..", "themes", "_shared", "base.css"),
+    "utf8"
+  );
+  var light = fs.readFileSync(
+    path.join(__dirname, "..", "themes", "_shared", "light.css"),
+    "utf8"
+  );
+  var dark = fs.readFileSync(
+    path.join(__dirname, "..", "themes", "_shared", "dark.css"),
+    "utf8"
+  );
+  assert.ok(base.indexOf("flex: 0 0 372px") !== -1);
+  assert.ok(base.indexOf("flex: 0 0 607px") !== -1);
+  assert.ok(base.indexOf("flex: 0 0 102px") !== -1);
+  assert.ok(base.indexOf("1px dotted var(--tl-lane-sep)") !== -1);
+  assert.ok(light.indexOf("--tl-lane-sep:") !== -1);
+  assert.ok(dark.indexOf("--tl-lane-sep:") !== -1);
+});
+
 console.log("\n" + passed + " passed, " + failed + " failed");
 process.exit(failed ? 1 : 0);

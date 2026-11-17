@@ -10,6 +10,7 @@ html.theme-dark {
   --focus: #f5d78e;
   --tl-bg: #0f1726;
   --tl-hour: rgba(154, 168, 188, 0.14);
+  --tl-lane-sep: rgba(154, 168, 188, 0.10);
   --chip-bg: #1a2438;
   --now: #3AA8E6;
   --now-ink: #08121E;

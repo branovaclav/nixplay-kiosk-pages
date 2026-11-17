@@ -343,16 +343,16 @@ body.is-stale-day .stale-note {
   flex-direction: column;
 }
 
-/* Member views: equal cards, 15px outer pad + 15px gap → 489.5 each
-   (15 + 489.5 + 15 + 489.5 + 15 = 1024). Explicit px — % calc was unreliable. */
+/* Member views: calendar 38% / sidebar 62% of the card row
+   (15 + 372 + 15 + 607 + 15 = 1024). Explicit px — % calc was unreliable. */
 body[data-view="branislav"] .cal-panel,
 body[data-view="zuzka"] .cal-panel,
 body[data-view="andrej"] .cal-panel,
 body[data-view="tomas"] .cal-panel {
   -webkit-box-flex: 0;
-  flex: 0 0 489.5px;
-  width: 489.5px;
-  max-width: 489.5px;
+  flex: 0 0 372px;
+  width: 372px;
+  max-width: 372px;
   margin-right: 15px;
 }
 
@@ -361,9 +361,9 @@ body[data-view="zuzka"] .sidebar-panel,
 body[data-view="andrej"] .sidebar-panel,
 body[data-view="tomas"] .sidebar-panel {
   -webkit-box-flex: 0;
-  flex: 0 0 489.5px;
-  width: 489.5px;
-  max-width: 489.5px;
+  flex: 0 0 607px;
+  width: 607px;
+  max-width: 607px;
 }
 
 .panel {
@@ -691,14 +691,19 @@ body[data-view="tomas"] .calendar-member[data-focus="tomas"] {
   letter-spacing: 0.04em;
 }
 
+/* Personal views: others keeps the pre-redesign absolute width (~102px at
+   1024×768); the focus column absorbs the narrower calendar. */
 .lane-heads-2 .lane-head-focus {
-  -webkit-box-flex: 3;
-  flex: 3 1 0;
+  -webkit-box-flex: 1;
+  flex: 1 1 0;
+  width: 0;
 }
 
 .lane-heads-2 .lane-head-others {
-  -webkit-box-flex: 1;
-  flex: 1 1 0;
+  -webkit-box-flex: 0;
+  flex: 0 0 102px;
+  width: 102px;
+  max-width: 102px;
 }
 
 .tl-body {
@@ -774,18 +779,27 @@ body[data-view="tomas"] .calendar-member[data-focus="tomas"] {
   width: 0;
   margin-right: 6px;
   height: 100%;
+  /* Dotted separators between lanes (not outer edges / not over hour gutter).
+     Same hue as hour rules, lower alpha; sits under event-blocks + spans. */
+  border-right: 1px dotted var(--tl-lane-sep);
 }
 
-.tl-lanes .lane-col:last-child { margin-right: 0; }
+.tl-lanes .lane-col:last-child {
+  margin-right: 0;
+  border-right: 0;
+}
 
 .tl-lanes-2 .lane-col-focus {
-  -webkit-box-flex: 3;
-  flex: 3 1 0;
+  -webkit-box-flex: 1;
+  flex: 1 1 0;
+  width: 0;
 }
 
 .tl-lanes-2 .lane-col-others {
-  -webkit-box-flex: 1;
-  flex: 1 1 0;
+  -webkit-box-flex: 0;
+  flex: 0 0 102px;
+  width: 102px;
+  max-width: 102px;
   opacity: 0.42;
 }
 
