@@ -10,7 +10,8 @@ html.theme-light {
   --focus: #c45c00;
   --tl-bg: #f6f9fb;
   --tl-hour: rgba(16, 24, 40, 0.07);
-  --tl-lane-sep: rgba(16, 24, 40, 0.055);
+  /* Same grey as hour rules; dots read lower-prominence than solid hours */
+  --tl-lane-sep: rgba(16, 24, 40, 0.14);
   --chip-bg: #ffffff;
   --now: #0A7CC4;
   --now-ink: #FFFFFF;
@@ -81,6 +82,8 @@ html.theme-light .event-block.is-span {
   background-color: transparent;
   background-image: none;
   background: rgba(var(--m-rgb, 10, 124, 196), 0.10);
+  border: 0;
+  border-left: 0;
 }
 
 html.theme-light .event-block.is-unconfirmed {

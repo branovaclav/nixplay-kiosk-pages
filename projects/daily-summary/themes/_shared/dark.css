@@ -10,7 +10,8 @@ html.theme-dark {
   --focus: #f5d78e;
   --tl-bg: #0f1726;
   --tl-hour: rgba(154, 168, 188, 0.14);
-  --tl-lane-sep: rgba(154, 168, 188, 0.10);
+  /* Same grey as hour rules; dots read lower-prominence than solid hours */
+  --tl-lane-sep: rgba(154, 168, 188, 0.28);
   --chip-bg: #1a2438;
   --now: #3AA8E6;
   --now-ink: #08121E;
@@ -82,6 +83,8 @@ html.theme-dark .event-block.is-span {
   background-color: transparent;
   background-image: none;
   background: rgba(var(--md-rgb, 58, 168, 230), 0.16);
+  border: 0;
+  border-left: 0;
 }
 
 html.theme-dark .event-block.is-unconfirmed {

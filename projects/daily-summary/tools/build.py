@@ -460,7 +460,7 @@ def family_calendar(day, people, start, end, family_info=None):
 
 
 def member_calendar(day, people, focus_id, start, end, family_info=None):
-    """Wide focus column + narrow ostatní merged column."""
+    """Wide focus column + narrow ostatní; multi-person events as family spans."""
     family_info = family_info or FAMILY_COLOR_DEFAULT
     people_map = {p["id"]: p for p in people}
     focus = next(p for p in people if p["id"] == focus_id)
@@ -485,25 +485,39 @@ def member_calendar(day, people, focus_id, start, end, family_info=None):
 
     focus_ev = []
     other_unique = []
-    seen_other = set()
+    span_blocks = []
     for e in day.get("events", []):
         if not e.get("start") or e.get("all_day"):
             continue
         mids = expand_members(event_members(e))
-        if focus_id in mids:
+        if not mids:
+            continue
+        # Not exactly one member → soft family-blue band across both columns
+        # (same stacking as family view: behind opaque lane events).
+        if len(mids) != 1:
+            s = parse_hhmm(e["start"])
+            ee = parse_hhmm(e.get("end")) or (s + 30)
+            top = pct(s, start, end)
+            height = max(pct(ee, start, end) - top, 8.5)
+            short = (ee - s) <= 45
+            span_blocks.append(
+                event_block_html(
+                    e, family_info, top, height, 0.0, 100.0,
+                    extra_class=" is-span", short=short,
+                )
+            )
+            continue
+        if mids[0] == focus_id:
             focus_ev.append(e)
-        if any(m != focus_id for m in mids):
-            if e["id"] not in seen_other:
-                seen_other.add(e["id"])
-                other_unique.append(e)
+        else:
+            other_unique.append(e)
 
     def focus_color(ev):
         return color_info_for_member(focus)
 
     def other_color(ev):
         mids = expand_members(event_members(ev))
-        others = [m for m in mids if m != focus_id]
-        return colors_for_mids(others, people_map, family_info)
+        return colors_for_mids(mids, people_map, family_info)
 
     focus_blocks = place_events_in_track(focus_ev, start, end, focus_color)
     other_blocks = place_events_in_track(other_unique, start, end, other_color)
@@ -522,6 +536,7 @@ def member_calendar(day, people, focus_id, start, end, family_info=None):
       <div class="lane-col lane-col-focus" style="{style_m(focus)}">{"".join(focus_blocks)}</div>
       <div class="lane-col lane-col-others">{"".join(other_blocks)}</div>
     </div>
+    <div class="tl-span-layer">{"".join(span_blocks)}</div>
     {now_html}
   </div>
 </div>

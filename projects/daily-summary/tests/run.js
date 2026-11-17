@@ -196,7 +196,8 @@ test("personal view 38/62 split and dotted lane separators", function () {
   assert.ok(base.indexOf("flex: 0 0 372px") !== -1);
   assert.ok(base.indexOf("flex: 0 0 607px") !== -1);
   assert.ok(base.indexOf("flex: 0 0 102px") !== -1);
-  assert.ok(base.indexOf("1px dotted var(--tl-lane-sep)") !== -1);
+  assert.ok(base.indexOf("repeating-linear-gradient") !== -1);
+  assert.ok(base.indexOf("var(--tl-lane-sep)") !== -1);
   assert.ok(light.indexOf("--tl-lane-sep:") !== -1);
   assert.ok(dark.indexOf("--tl-lane-sep:") !== -1);
 });
@@ -217,5 +218,38 @@ test("family spans stack under lane events", function () {
   assert.ok(light.indexOf(".event-block.is-span") !== -1);
 });
 
+test("personal view puts multi-member events in family-blue span layer", function () {
+  var cp = require("child_process");
+  var script =
+    "import sys\n" +
+    "sys.path.insert(0, " +
+    JSON.stringify(path.join(__dirname, "..", "tools")) +
+    ")\n" +
+    "import build\n" +
+    "day = build.load_json(build.PROJECT, 'samples', 'redesign-states.json')\n" +
+    "pack = build.load_json(build.DATA, 'members.json')\n" +
+    "html = build.render_day_page(day, pack)\n" +
+    "marker = 'data-mode=\"member\" data-focus=\"andrej\"'\n" +
+    "idx = html.find(marker)\n" +
+    "assert idx > 0, 'andrej calendar missing'\n" +
+    "cal = html[idx:idx + 8000]\n" +
+    "assert 'tl-span-layer' in cal\n" +
+    "assert 'is-span' in cal\n" +
+    "assert 'Premiéra' in cal\n" +
+    "assert '--m:#0A7CC4' in cal\n" +
+    "f0 = cal.find('lane-col-focus')\n" +
+    "f1 = cal.find('lane-col-others')\n" +
+    "assert f0 > 0 and f1 > f0\n" +
+    "fc = cal[f0:f1]\n" +
+    "assert 'Baseball' in fc\n" +
+    "assert 'Premiéra' not in fc\n" +
+    "assert 'Zabaliť bubny' not in fc\n" +
+    "assert 'width:100.000%' in fc\n" +
+    "span = cal[cal.find('tl-span-layer'):]\n" +
+    "assert 'Premiéra' in span and 'width:100.000%' in span\n" +
+    "print('ok')\n";
+  var out = cp.execFileSync("python3", ["-c", script], { encoding: "utf8" });
+  assert.ok(out.indexOf("ok") !== -1);
+});
 console.log("\n" + passed + " passed, " + failed + " failed");
 process.exit(failed ? 1 : 0);

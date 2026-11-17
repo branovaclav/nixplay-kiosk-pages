@@ -780,13 +780,23 @@ body[data-view="tomas"] .calendar-member[data-focus="tomas"] {
   margin-right: 6px;
   height: 100%;
   /* Dotted separators between lanes (not outer edges / not over hour gutter).
-     Same hue as hour rules, lower alpha; sits under event-blocks + spans. */
-  border-right: 1px dotted var(--tl-lane-sep);
+     repeating-linear-gradient: Chromium 81's 1px border-dotted often looks solid.
+     Drawn on the lane background so it sits under event-blocks + spans. */
+  background-image: repeating-linear-gradient(
+    to bottom,
+    var(--tl-lane-sep) 0,
+    var(--tl-lane-sep) 4px,
+    transparent 4px,
+    transparent 9px
+  );
+  background-position: right top;
+  background-size: 2px 9px;
+  background-repeat: repeat-y;
 }
 
 .tl-lanes .lane-col:last-child {
   margin-right: 0;
-  border-right: 0;
+  background-image: none;
 }
 
 .tl-lanes-2 .lane-col-focus {
