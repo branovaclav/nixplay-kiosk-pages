@@ -729,19 +729,19 @@ body[data-view="tomas"] .calendar-member[data-focus="tomas"] {
 
 .tl-hours { z-index: 1; }
 
+/* Family spans sit BEHIND single-lane events so overlaps stay readable;
+   the span title remains visible in free lanes. */
+.tl-span-layer {
+  left: 52px;
+  pointer-events: none;
+  z-index: 2;
+}
+
 .tl-lanes {
   display: -webkit-box;
   display: flex;
   /* Room for regular hour labels + small clear gap before events */
   padding-left: 52px;
-  z-index: 2;
-}
-
-/* Absolute children ignore padding — inset the layer itself so is-span
-   blocks align with the lane columns (same 52px gutter as .tl-lanes). */
-.tl-span-layer {
-  left: 52px;
-  pointer-events: none;
   z-index: 3;
 }
 
@@ -817,7 +817,8 @@ body[data-view="tomas"] .calendar-member[data-focus="tomas"] {
 }
 
 .event-block.is-span {
-  z-index: 4;
+  /* Span layer is under .tl-lanes; keep a low local stack for multi-spans */
+  z-index: 1;
   pointer-events: none;
 }
 

@@ -63,9 +63,13 @@ html.theme-dark .tl-body { background: none; border: 0; }
 html.theme-dark .tl-hour { border-top-color: var(--tl-hour); }
 html.theme-dark .tl-hour-label { color: var(--hour-label); opacity: 1; }
 
-/* Events: tint of the brighter dark shade + 3px bar */
+/* Events: opaque panel + tint (must cover family spans sitting behind) */
 html.theme-dark .event-block {
-  background: rgba(var(--md-rgb, 58, 168, 230), 0.20);
+  background-color: var(--panel);
+  background-image: linear-gradient(
+    rgba(var(--md-rgb, 58, 168, 230), 0.20),
+    rgba(var(--md-rgb, 58, 168, 230), 0.20)
+  );
   color: var(--ink);
   border: 0;
   border-left: 3px solid rgb(var(--md-rgb, 58, 168, 230));
@@ -73,8 +77,17 @@ html.theme-dark .event-block {
   box-shadow: none;
 }
 
+/* Family spans: softer band under lane events */
+html.theme-dark .event-block.is-span {
+  background-color: transparent;
+  background-image: none;
+  background: rgba(var(--md-rgb, 58, 168, 230), 0.16);
+}
+
 html.theme-dark .event-block.is-unconfirmed {
-  background: rgba(255, 255, 255, 0.02);
+  background-color: var(--panel);
+  background-image: none;
+  background: var(--panel);
   border: 1.5px dashed rgb(var(--md-rgb, 58, 168, 230));
   box-shadow: none;
 }

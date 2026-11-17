@@ -2,7 +2,7 @@
   "date": "2026-11-18",
   "locale": "sk-SK",
   "timezone": "Europe/Prague",
-  "now": "14:20",
+  "now": "18:15",
   "refresh_at": "06:30",
   "weather": {
     "sample": true,
@@ -28,17 +28,6 @@
       "reminders": []
     },
     {
-      "id": "family-allday-blue",
-      "members": ["branislav", "zuzka", "andrej", "tomas"],
-      "title": "Rodinný výlet — ukážka",
-      "all_day": true,
-      "status": "confirmed",
-      "flags": [],
-      "conflict_with": [],
-      "notes": [],
-      "reminders": []
-    },
-    {
       "id": "branislav-unconfirmed",
       "members": ["branislav"],
       "title": "Tenis (nepotvrdené)",
@@ -52,39 +41,52 @@
       "reminders": []
     },
     {
-      "id": "andrej-clash-a",
+      "id": "tomas-odpoledne",
+      "members": ["tomas"],
+      "title": "Angličtina",
+      "start": "15:00",
+      "end": "16:00",
+      "all_day": false,
+      "status": "confirmed",
+      "flags": [],
+      "conflict_with": [],
+      "notes": [],
+      "reminders": []
+    },
+    {
+      "id": "andrej-priprava-cj",
       "members": ["andrej"],
-      "title": "Príprava MAT",
+      "title": "Príprava ČJ",
       "start": "15:15",
       "end": "16:45",
       "all_day": false,
-      "location": "Českolipská",
+      "location": "Gymnázium Českolipská",
       "status": "confirmed",
-      "flags": ["conflict"],
-      "conflict_with": ["andrej-clash-b"],
+      "flags": [],
+      "conflict_with": [],
       "notes": [],
       "reminders": []
     },
     {
-      "id": "andrej-clash-b",
+      "id": "andrej-baseball-lob",
       "members": ["andrej"],
-      "title": "Baseball Sabat",
-      "start": "16:00",
-      "end": "18:00",
+      "title": "Baseball LOB",
+      "start": "17:00",
+      "end": "19:00",
       "all_day": false,
-      "location": "U Vltavy",
+      "location": "LOB Bohnice",
       "status": "confirmed",
-      "flags": ["conflict"],
-      "conflict_with": ["andrej-clash-a"],
+      "flags": [],
+      "conflict_with": [],
       "notes": [],
       "reminders": []
     },
     {
-      "id": "family-span-blue",
+      "id": "family-premiera",
       "members": ["branislav", "zuzka", "andrej", "tomas"],
-      "title": "Spoločná večera",
-      "start": "19:00",
-      "end": "20:00",
+      "title": "Premiéra Tři oříšky pro Popelku",
+      "start": "17:30",
+      "end": "19:00",
       "all_day": false,
       "status": "confirmed",
       "flags": [],
@@ -104,6 +106,19 @@
       "conflict_with": [],
       "notes": [],
       "reminders": []
+    },
+    {
+      "id": "family-bubny",
+      "members": ["branislav", "zuzka", "andrej", "tomas"],
+      "title": "Zabaliť bubny deťom",
+      "start": "19:00",
+      "end": "20:00",
+      "all_day": false,
+      "status": "confirmed",
+      "flags": [],
+      "conflict_with": [],
+      "notes": [],
+      "reminders": []
     }
   ],
   "sections": [
@@ -112,8 +127,12 @@
       "title": "Rodina",
       "items": [
         {
-          "text": "Ukážkové stavy: nepotvrdené, kolízia, celý deň, rodina.",
-          "detail": "Lokálny fixture pre redesign screenshoty — nie je v data/."
+          "text": "Premiéra Tři oříšky 17:30–19:00 (nevie sa kto).",
+          "detail": "Ukážka family-span prekrývajúceho V kine a baseball."
+        },
+        {
+          "text": "Zabaliť bubny 19:00–20:00 na Bubnovačku.",
+          "detail": "Druhý family-span prekrývajúci Zuzkinu kinu."
         }
       ]
     },
@@ -123,7 +142,7 @@
       "items": [
         {
           "member": "andrej",
-          "text": "Ukázka person pill.",
+          "text": "Podpísať súhlas Invenio do 20. 11.",
           "detail": "Andrej — ukážka."
         }
       ]

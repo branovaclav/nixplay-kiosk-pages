@@ -201,5 +201,21 @@ test("personal view 38/62 split and dotted lane separators", function () {
   assert.ok(dark.indexOf("--tl-lane-sep:") !== -1);
 });
 
+test("family spans stack under lane events", function () {
+  var base = fs.readFileSync(
+    path.join(__dirname, "..", "themes", "_shared", "base.css"),
+    "utf8"
+  );
+  // Specific .tl-span-layer rule (left:52px) must be under .tl-lanes (z-index 2 < 3).
+  assert.ok(/\.tl-span-layer\s*\{[^}]*left:\s*52px[^}]*z-index:\s*2/m.test(base));
+  assert.ok(/\.tl-lanes\s*\{[^}]*z-index:\s*3/m.test(base));
+  var light = fs.readFileSync(
+    path.join(__dirname, "..", "themes", "_shared", "light.css"),
+    "utf8"
+  );
+  assert.ok(light.indexOf("background-color: #fff") !== -1);
+  assert.ok(light.indexOf(".event-block.is-span") !== -1);
+});
+
 console.log("\n" + passed + " passed, " + failed + " failed");
 process.exit(failed ? 1 : 0);
