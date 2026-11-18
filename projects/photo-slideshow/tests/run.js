@@ -177,6 +177,90 @@ test("shuffle bag keeps remaining and adds new ids", function () {
   assert.ok(rem2.indexOf(rem[0]) >= 0);
 });
 
+function assertNoConsecutiveDupesAcrossCycles(ids, cycles) {
+  var bag = new PS.ShuffleBag(ids);
+  var prev = null;
+  var c, i, n, seen;
+  for (c = 0; c < cycles; c++) {
+    seen = {};
+    for (i = 0; i < ids.length; i++) {
+      n = bag.next();
+      assert.ok(ids.indexOf(n) >= 0, "id in universe");
+      assert.ok(!seen[n], "each id once per cycle");
+      seen[n] = true;
+      if (ids.length >= 2) {
+        assert.notStrictEqual(n, prev, "no consecutive duplicate at cycle boundary");
+      }
+      prev = n;
+    }
+    assert.strictEqual(Object.keys(seen).length, ids.length);
+  }
+}
+
+test("shuffle bag no consecutive dupes across cycles (2 ids, many iters)", function () {
+  assertNoConsecutiveDupesAcrossCycles(["a", "b"], 200);
+});
+
+test("shuffle bag no consecutive dupes across cycles (3 ids, many iters)", function () {
+  assertNoConsecutiveDupesAcrossCycles(["a", "b", "c"], 200);
+});
+
+test("shuffle bag no consecutive dupes across cycles (5 ids, many iters)", function () {
+  assertNoConsecutiveDupesAcrossCycles(["a", "b", "c", "d", "e"], 100);
+});
+
+test("shuffle bag single id may repeat", function () {
+  var bag = new PS.ShuffleBag(["only"]);
+  assert.strictEqual(bag.next(), "only");
+  assert.strictEqual(bag.next(), "only");
+  assert.strictEqual(bag.next(), "only");
+});
+
+test("shuffle bag state round-trip keeps no-repeat guarantee", function () {
+  var ids = ["a", "b", "c"];
+  var bag = new PS.ShuffleBag(ids);
+  var first = bag.next();
+  var state = bag.toState();
+  assert.ok(Object.prototype.hasOwnProperty.call(state, "last"));
+  assert.strictEqual(state.last, first);
+  var restored = PS.ShuffleBag.fromState(state);
+  var prev = first;
+  var i, n, seen;
+  // Finish the cycle + several more; never consecutive-dupe.
+  for (i = 0; i < ids.length * 50; i++) {
+    n = restored.next();
+    assert.notStrictEqual(n, prev);
+    prev = n;
+  }
+  // Old state without `last` still loads; setLast(currentId) covers restore.
+  var legacy = PS.ShuffleBag.fromState({ all: ids, remaining: [] });
+  legacy.setLast("b");
+  var rem = legacy.peekRemaining();
+  assert.strictEqual(rem.length, 3);
+  assert.notStrictEqual(rem[0], "b");
+});
+
+test("shuffle setIds empty refill avoids immediate repeat of last", function () {
+  var bag = new PS.ShuffleBag(["a", "b", "c"]);
+  var last = null;
+  var i;
+  for (i = 0; i < 3; i++) last = bag.next();
+  assert.strictEqual(bag.peekRemaining().length, 0);
+  bag.setIds(["a", "b", "c"]);
+  assert.notStrictEqual(bag.peekRemaining()[0], last);
+});
+
+test("shuffle setIds new ids do not put last at front", function () {
+  var bag = new PS.ShuffleBag(["a", "b"]);
+  var last = bag.next();
+  bag.next(); // empty bag
+  bag.setIds(["a", "b", "c", "d"]);
+  // Empty kept + new ids only, or full refill — front must not be last when >=2.
+  var rem = bag.peekRemaining();
+  assert.ok(rem.length >= 2);
+  assert.notStrictEqual(rem[0], last);
+});
+
 // ---- cloudkit asset/master pairing (synthetic; no network) ----
 function loadCloudkit() {
   var code = fs.readFileSync(path.join(ROOT, "lib/cloudkit.js"), "utf8");
