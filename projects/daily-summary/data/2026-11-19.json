@@ -1,0 +1,145 @@
+{
+  "date": "2026-11-19",
+  "locale": "sk-SK",
+  "timezone": "Europe/Prague",
+  "now": "18:55",
+  "refresh_at": "06:30",
+  "weather": {
+    "sample": false,
+    "summary": "Dážď",
+    "icon": "rain",
+    "temp_high_c": 9,
+    "temp_low_c": 7
+  },
+  "timeline": {
+    "start": "07:00",
+    "end": "21:00"
+  },
+  "events": [
+    {
+      "id": "andrej-priprava-skola",
+      "members": [
+        "andrej"
+      ],
+      "title": "Príprava v škole",
+      "start": "13:30",
+      "end": "15:45",
+      "all_day": false,
+      "status": "confirmed",
+      "flags": [],
+      "conflict_with": [],
+      "notes": [],
+      "reminders": []
+    },
+    {
+      "id": "laskava-kavarna",
+      "members": [
+        "branislav",
+        "zuzka",
+        "andrej",
+        "tomas"
+      ],
+      "title": "Laskavá kavárna",
+      "start": "15:00",
+      "end": "18:00",
+      "all_day": false,
+      "status": "confirmed",
+      "flags": [],
+      "conflict_with": [],
+      "notes": [
+        "Pri altánku Trojánek; preferujú hotovosť, výťažok ide centru LOCIKA. Teplé oblečenie. Kto ide, nie je v kalendári."
+      ],
+      "reminders": []
+    },
+    {
+      "id": "bertik-oslava",
+      "members": [
+        "branislav",
+        "zuzka",
+        "andrej",
+        "tomas"
+      ],
+      "title": "Bertík oslava narodenín",
+      "start": "15:00",
+      "end": "19:00",
+      "all_day": false,
+      "status": "confirmed",
+      "flags": [],
+      "conflict_with": [],
+      "notes": [
+        "Kto ide, nie je v kalendári."
+      ],
+      "reminders": []
+    }
+  ],
+  "sections": [
+    {
+      "id": "rodina",
+      "title": "Rodina",
+      "items": [
+        {
+          "text": "Bubnovačka dopoludnia: malý bubon do školy.",
+          "detail": "Vo štvrtok dopoludnia je na školskom ihrisku Bubnovačka (celá škola). Zobrať malý bubon alebo čokoľvek s hlbším tónom."
+        }
+      ]
+    },
+    {
+      "id": "zobrat",
+      "title": "Zobrať / vybaviť",
+      "items": [
+        {
+          "member": "andrej",
+          "text": "Podpísať súhlas Invenio do 20. 11.",
+          "detail": "Škola ponúka ďalšie Invenio hry v informatike (zadarmo, cca 30 min). Podpísaný súhlas do 20. 11.; formulár dostanú deti aj v škole."
+        }
+      ]
+    },
+    {
+      "id": "nezabudnut",
+      "title": "Nezabudnúť",
+      "items": [
+        {
+          "text": "Do 24. 11.: Albatros — knižný darček",
+          "detail": "Trieda zbiera knižné darčeky Albatros (dárky od Ježíška) do 24. 11. Podrobnosti v školskom e-maile.",
+          "member": "tomas"
+        },
+        {
+          "text": "28. 11.: DOD PORG Libeň 10–16",
+          "detail": "Deň otvorených dverí PORG Libeň v sobotu 28. 11., 10–16.",
+          "member": "andrej"
+        },
+        {
+          "text": "Do 30. 11.: Záloha na hory 3 000 Kč",
+          "detail": "Škola žiada zálohu 3 000 Kč na hory 2027 do 30. 11. ako záväznú prihlášku. Údaje na platbu sú v školskom e-maile.",
+          "member": "andrej",
+          "family": false
+        },
+        {
+          "text": "8. 12.: DOD Trojské gymnázium",
+          "detail": "Deň otvorených dverí na Trojskom gymnáziu 8. 12.",
+          "member": "andrej"
+        }
+      ]
+    },
+    {
+      "id": "vyhlad",
+      "title": "Zajtra",
+      "outlook": {
+        "from": "2026-11-20",
+        "to": "2026-11-20"
+      },
+      "items": [
+        {
+          "member": "andrej",
+          "text": "Tripartita 13:30–14:30.",
+          "detail": "V rodinnom kalendári je Andrejova tripartita v piatok 13:30–14:30."
+        },
+        {
+          "member": "andrej",
+          "text": "Baseball Českolipská 17:00–19:00.",
+          "detail": "Andrejov baseball v piatok 17:00–19:00 v Gymnáziu Českolipská."
+        }
+      ]
+    }
+  ]
+}
