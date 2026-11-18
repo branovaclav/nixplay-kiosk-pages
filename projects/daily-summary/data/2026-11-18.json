@@ -34,6 +34,21 @@
       "reminders": []
     },
     {
+      "id": "tomas-tenis",
+      "members": [
+        "tomas"
+      ],
+      "title": "Tenis",
+      "start": "15:00",
+      "end": "16:00",
+      "all_day": false,
+      "status": "confirmed",
+      "flags": [],
+      "conflict_with": [],
+      "notes": [],
+      "reminders": []
+    },
+    {
       "id": "andrej-priprava-cj",
       "members": [
         "andrej"
@@ -81,37 +96,88 @@
       "conflict_with": [],
       "notes": [],
       "reminders": []
+    },
+    {
+      "id": "rodina-premiera-popelka",
+      "members": [
+        "branislav",
+        "zuzka",
+        "andrej",
+        "tomas"
+      ],
+      "title": "Premiéra Tři oříšky pro Popelku",
+      "start": "17:30",
+      "end": "19:00",
+      "all_day": false,
+      "status": "confirmed",
+      "flags": [],
+      "conflict_with": [],
+      "notes": [
+        "Kto ide, nie je v kalendári uvedené."
+      ],
+      "reminders": []
+    },
+    {
+      "id": "rodina-zabalit-bubny",
+      "members": [
+        "branislav",
+        "zuzka",
+        "andrej",
+        "tomas"
+      ],
+      "title": "Zabaliť bubny deťom",
+      "start": "19:00",
+      "end": "20:00",
+      "all_day": false,
+      "status": "confirmed",
+      "flags": [],
+      "conflict_with": [],
+      "notes": [
+        "Vo štvrtok dopoludnia je v škole Bubnovačka."
+      ],
+      "reminders": []
     }
   ],
   "sections": [
-    {
-      "id": "rodina",
-      "title": "Rodina",
-      "items": [
-        {
-          "text": "Premiéra Tři oříšky 17:30–19:00 (nevie sa kto).",
-          "detail": "Premiéra pre deti Tři oříšky pro Popelku 17:30–19:00; kto ide, nie je uvedené. Prekrýva sa s Andrejovým baseballom v Bohniciach."
-        },
-        {
-          "text": "Zabaliť bubny 19:00–20:00 na Bubnovačku.",
-          "detail": "V kalendári je zabaliť bubny deťom 19:00–20:00. Vo štvrtok 19. 11. dopoludnia je na školskom ihrisku Bubnovačka (celá škola). Zobrať malý bubon alebo čokoľvek s hlbším tónom."
-        }
-      ]
-    },
     {
       "id": "zobrat",
       "title": "Zobrať / vybaviť",
       "items": [
         {
-          "member": "andrej",
-          "text": "Podpísať súhlas Invenio do 20. 11.",
-          "detail": "Škola ponúka ďalšie Invenio hry v informatike (zadarmo, cca 30 min). Podpísaný súhlas do 20. 11. Ak nie je tlačiareň, formuláre dostanú deti v škole (streda). Podrobnosti sú v školskom e-maile."
+          "text": "Zajtra ráno bubny na Bubnovačku.",
+          "detail": "Vo štvrtok 19. 11. dopoludnia je na školskom ihrisku Bubnovačka. Malý bubon alebo čokoľvek s hlbším tónom."
+        }
+      ]
+    },
+    {
+      "id": "nezabudnut",
+      "title": "Nezabudnúť",
+      "items": [
+        {
+          "text": "Do 20. 11.: Podpísať súhlas Invenio",
+          "detail": "Podpísaný súhlas s Invenio hrami v informatike (zadarmo, cca 30 min) do 20. 11. Formulár v školskom e-maile alebo ho deti dostanú v škole.",
+          "member": "andrej"
         },
         {
+          "text": "Do 24. 11.: Albatros — knižný darček",
+          "detail": "Trieda zbiera knižné darčeky Albatros (dárky od Ježíška) do 24. 11. Podrobnosti v školskom e-maile.",
+          "member": "tomas"
+        },
+        {
+          "text": "28. 11.: DOD PORG Libeň 10–16",
+          "detail": "Deň otvorených dverí PORG Libeň v sobotu 28. 11., 10–16.",
+          "member": "andrej"
+        },
+        {
+          "text": "Do 30. 11.: Záloha na hory 3 000 Kč",
+          "detail": "Škola žiada zálohu 3 000 Kč na hory 2027 do 30. 11. ako záväznú prihlášku. Údaje na platbu sú v školskom e-maile.",
           "member": "andrej",
-          "text": "Záloha na hory 3 000 Kč do 30. 11.",
-          "detail": "Škola žiada zálohu 3 000 Kč na hory 2027 do 30. 11. 2026 ako záväznú prihlášku. Údaje na platbu sú v školskom e-maile.",
           "family": false
+        },
+        {
+          "text": "8. 12.: DOD Trojské gymnázium",
+          "detail": "Deň otvorených dverí na Trojskom gymnáziu 8. 12.",
+          "member": "andrej"
         }
       ]
     },
