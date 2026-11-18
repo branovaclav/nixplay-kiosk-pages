@@ -59,9 +59,54 @@ ICON_SK = {
 # Fixed column order for the family calendar
 PEOPLE_ORDER = ["branislav", "zuzka", "andrej", "tomas"]
 
+# Family / unassigned fallback (multi-person, rodina, empty members)
+FAMILY_COLOR_DEFAULT = {
+    "color": "#0A7CC4",
+    "color_rgb": "10, 124, 196",
+    "color_dark_rgb": "58, 168, 230",
+}
+
 
 def esc(s):
     return html.escape("" if s is None else str(s), quote=True)
+
+
+def family_color_info(pack):
+    """RGB triplets for family / unassigned events (both themes)."""
+    fam = (pack or {}).get("family") or {}
+    return {
+        "color": fam.get("color") or FAMILY_COLOR_DEFAULT["color"],
+        "color_rgb": fam.get("color_rgb") or FAMILY_COLOR_DEFAULT["color_rgb"],
+        "color_dark_rgb": fam.get("color_dark_rgb") or FAMILY_COLOR_DEFAULT["color_dark_rgb"],
+    }
+
+
+def color_info_for_member(person):
+    """Normalize a members.json person (or family) dict to colour + RGB triplets."""
+    if not isinstance(person, dict):
+        return dict(FAMILY_COLOR_DEFAULT)
+    return {
+        "color": person.get("color") or FAMILY_COLOR_DEFAULT["color"],
+        "color_rgb": person.get("color_rgb") or FAMILY_COLOR_DEFAULT["color_rgb"],
+        "color_dark_rgb": person.get("color_dark_rgb") or FAMILY_COLOR_DEFAULT["color_dark_rgb"],
+    }
+
+
+def colors_for_mids(mids, people_map, family_info):
+    """Exactly one person → their colour; otherwise family / unassigned blue."""
+    if len(mids) == 1 and mids[0] in people_map:
+        return color_info_for_member(people_map[mids[0]])
+    return family_info
+
+
+def style_m(cinfo):
+    """Inline --m / --m-rgb / --md-rgb for Chromium 81 tinted fills."""
+    c = color_info_for_member(cinfo)
+    return (
+        f'--m:{esc(c["color"])};'
+        f'--m-rgb:{esc(c["color_rgb"])};'
+        f'--md-rgb:{esc(c["color_dark_rgb"])}'
+    )
 
 
 def rd(*parts):
@@ -265,7 +310,7 @@ def weather_icon_svg(icon):
     return raw
 
 
-def event_block_html(ev, color, top, height, left_pct, width_pct, extra_class="", short=False):
+def event_block_html(ev, cinfo, top, height, left_pct, width_pct, extra_class="", short=False):
     s = parse_hhmm(ev.get("start"))
     e = parse_hhmm(ev.get("end")) or ((s + 30) if s is not None else None)
     conflict = " is-conflict" if ("conflict" in ev.get("flags", []) or ev.get("conflict_with")) else ""
@@ -290,7 +335,7 @@ def event_block_html(ev, color, top, height, left_pct, width_pct, extra_class=""
     return (
         f'<div class="event-block{short_c}{conflict}{unconf}{todo}{extra_class}" '
         f'style="top:{top:.3f}%;height:{height:.3f}%;left:{left_pct:.3f}%;'
-        f'width:{width_pct:.3f}%;--m:{esc(color)}" '
+        f'width:{width_pct:.3f}%;{style_m(cinfo)}" '
         f'data-members="{esc(mids)}"{end_attr}>'
         f'<span class="ev-time">{esc(fmt_range(ev))}</span>'
         f'<span class="ev-title">{esc(ev["title"])}</span>'
@@ -325,22 +370,22 @@ def place_events_in_track(events, start, end, color_for_ev, n_cols=1):
     return blocks
 
 
-def family_calendar(day, people, start, end):
+def family_calendar(day, people, start, end, family_info=None):
     """4-column family calendar with spanning events."""
+    family_info = family_info or FAMILY_COLOR_DEFAULT
+    people_map = {p["id"]: p for p in people}
     labels = hour_labels(start, end)
     lines = []
     for m in labels:
         top = pct(m, start, end)
-        lines.append(
-            f'<div class="tl-hour" style="top:{top:.3f}%">'
-            f'<span class="tl-hour-label">{m // 60:02d}:00</span></div>'
-        )
+        label = f'<span class="tl-hour-label">{m // 60:02d}:00</span>'
+        lines.append(f'<div class="tl-hour" style="top:{top:.3f}%">{label}</div>')
 
     heads = []
     for p in people:
         heads.append(
-            f'<div class="lane-head" style="--m:{esc(p["color"])}" data-person="{esc(p["id"])}">'
-            f'<img class="avatar" src="avatars/{esc(p["avatar"])}" alt="" width="44" height="44">'
+            f'<div class="lane-head" style="{style_m(p)}" data-person="{esc(p["id"])}">'
+            f'<img class="avatar" src="avatars/{esc(p["avatar"])}" alt="" width="40" height="40">'
             f'<span class="lane-name">{esc(p["display_name"])}</span></div>'
         )
 
@@ -363,23 +408,19 @@ def family_calendar(day, people, start, end):
         if len(mids) == 1 and len(spans) == 1 and spans[0][0] == spans[0][1]:
             col_events[mids[0]].append(e)
             continue
-        # Multi: each contiguous span as one block across columns
+        # Multi: each contiguous span as one block across columns (family blue)
         s = parse_hhmm(e["start"])
         ee = parse_hhmm(e.get("end")) or (s + 30)
         top = pct(s, start, end)
         height = max(pct(ee, start, end) - top, 8.5)
         short = (ee - s) <= 45
-        # color: if all four → family slate; else first member color
-        if len(mids) >= 4:
-            color = "#6B4C9A"
-        else:
-            color = next(p["color"] for p in people if p["id"] == mids[0])
+        cinfo = colors_for_mids(mids, people_map, family_info)
         for lo, hi in spans:
             left = (lo / n) * 100.0
             width = ((hi - lo + 1) / n) * 100.0
             span_blocks.append(
                 event_block_html(
-                    e, color, top, height, left, width,
+                    e, cinfo, top, height, left, width,
                     extra_class=" is-span", short=short,
                 )
             )
@@ -387,10 +428,10 @@ def family_calendar(day, people, start, end):
     cols = []
     for p in people:
         blocks = place_events_in_track(
-            col_events[p["id"]], start, end, lambda ev, c=p["color"]: c
+            col_events[p["id"]], start, end, lambda ev, c=p: color_info_for_member(c)
         )
         cols.append(
-            f'<div class="lane-col" data-person="{esc(p["id"])}" style="--m:{esc(p["color"])}">'
+            f'<div class="lane-col" data-person="{esc(p["id"])}" style="{style_m(p)}">'
             f'{"".join(blocks)}</div>'
         )
 
@@ -403,30 +444,31 @@ def family_calendar(day, people, start, end):
 <div class="calendar calendar-family" data-mode="family">
   <div class="lane-heads lane-heads-4">{"".join(heads)}</div>
   <div class="tl-body">
-    <div class="tl-hours">{"".join(lines)}</div>
-    <div class="tl-lanes tl-lanes-4">{"".join(cols)}</div>
-    <div class="tl-span-layer">{"".join(span_blocks)}</div>
-    {now_html}
+    <div class="tl-track">
+      <div class="tl-hours">{"".join(lines)}</div>
+      <div class="tl-lanes tl-lanes-4">{"".join(cols)}</div>
+      <div class="tl-span-layer">{"".join(span_blocks)}</div>
+      {now_html}
+    </div>
   </div>
 </div>
 """
 
 
-def member_calendar(day, people, focus_id, start, end):
-    """Wide focus column + narrow ostatní merged column."""
+def member_calendar(day, people, focus_id, start, end, family_info=None):
+    """Wide focus column + narrow ostatní; multi-person events as family spans."""
+    family_info = family_info or FAMILY_COLOR_DEFAULT
+    people_map = {p["id"]: p for p in people}
     focus = next(p for p in people if p["id"] == focus_id)
-    others = [p for p in people if p["id"] != focus_id]
     labels = hour_labels(start, end)
     lines = []
     for m in labels:
         top = pct(m, start, end)
-        lines.append(
-            f'<div class="tl-hour" style="top:{top:.3f}%">'
-            f'<span class="tl-hour-label">{m // 60:02d}:00</span></div>'
-        )
+        label = f'<span class="tl-hour-label">{m // 60:02d}:00</span>'
+        lines.append(f'<div class="tl-hour" style="top:{top:.3f}%">{label}</div>')
 
     heads = (
-        f'<div class="lane-head lane-head-focus" style="--m:{esc(focus["color"])}">'
+        f'<div class="lane-head lane-head-focus" style="{style_m(focus)}">'
         f'<img class="avatar" src="avatars/{esc(focus["avatar"])}" alt="" width="48" height="48">'
         f'<span class="lane-name">{esc(focus["display_name"])}</span></div>'
         f'<div class="lane-head lane-head-others">'
@@ -435,27 +477,39 @@ def member_calendar(day, people, focus_id, start, end):
 
     focus_ev = []
     other_unique = []
-    seen_other = set()
+    span_blocks = []
     for e in day.get("events", []):
         if not e.get("start") or e.get("all_day"):
             continue
         mids = expand_members(event_members(e))
-        if focus_id in mids:
+        if not mids:
+            continue
+        # Not exactly one member → soft family-blue band across both columns
+        # (same stacking as family view: behind opaque lane events).
+        if len(mids) != 1:
+            s = parse_hhmm(e["start"])
+            ee = parse_hhmm(e.get("end")) or (s + 30)
+            top = pct(s, start, end)
+            height = max(pct(ee, start, end) - top, 8.5)
+            short = (ee - s) <= 45
+            span_blocks.append(
+                event_block_html(
+                    e, family_info, top, height, 0.0, 100.0,
+                    extra_class=" is-span", short=short,
+                )
+            )
+            continue
+        if mids[0] == focus_id:
             focus_ev.append(e)
-        if any(m != focus_id for m in mids):
-            if e["id"] not in seen_other:
-                seen_other.add(e["id"])
-                other_unique.append(e)
+        else:
+            other_unique.append(e)
 
     def focus_color(ev):
-        return focus["color"]
+        return color_info_for_member(focus)
 
     def other_color(ev):
         mids = expand_members(event_members(ev))
-        for p in people:
-            if p["id"] in mids and p["id"] != focus_id:
-                return p["color"]
-        return "#6b7280"
+        return colors_for_mids(mids, people_map, family_info)
 
     focus_blocks = place_events_in_track(focus_ev, start, end, focus_color)
     other_blocks = place_events_in_track(other_unique, start, end, other_color)
@@ -469,18 +523,22 @@ def member_calendar(day, people, focus_id, start, end):
 <div class="calendar calendar-member" data-mode="member" data-focus="{esc(focus_id)}">
   <div class="lane-heads lane-heads-2">{heads}</div>
   <div class="tl-body">
-    <div class="tl-hours">{"".join(lines)}</div>
-    <div class="tl-lanes tl-lanes-2">
-      <div class="lane-col lane-col-focus" style="--m:{esc(focus["color"])}">{"".join(focus_blocks)}</div>
-      <div class="lane-col lane-col-others">{"".join(other_blocks)}</div>
+    <div class="tl-track">
+      <div class="tl-hours">{"".join(lines)}</div>
+      <div class="tl-lanes tl-lanes-2">
+        <div class="lane-col lane-col-focus" style="{style_m(focus)}">{"".join(focus_blocks)}</div>
+        <div class="lane-col lane-col-others">{"".join(other_blocks)}</div>
+      </div>
+      <div class="tl-span-layer">{"".join(span_blocks)}</div>
+      {now_html}
     </div>
-    {now_html}
   </div>
 </div>
 """
 
 
-def untimed_strip(day, people_map):
+def untimed_strip(day, people_map, family_info=None):
+    family_info = family_info or FAMILY_COLOR_DEFAULT
     floating = [
         e for e in day.get("events", [])
         if e.get("all_day") or not e.get("start")
@@ -490,26 +548,20 @@ def untimed_strip(day, people_map):
     chips = []
     for e in floating:
         mids = expand_members(event_members(e))
-        # color from first member
-        color = "#6B4C9A"
+        cinfo = colors_for_mids(mids, people_map, family_info)
         label = "Rodina"
-        if mids:
-            m = people_map.get(mids[0], {})
-            color = m.get("color", color)
-            if len(mids) == 1:
-                label = m.get("display_name", "")
-            elif len(mids) >= 4:
-                label = "Rodina"
-            else:
-                label = "+".join(
-                    people_map[i]["display_name"] for i in mids if i in people_map
-                )
+        if len(mids) == 1 and mids[0] in people_map:
+            label = people_map[mids[0]].get("display_name", "")
+        elif mids and len(mids) < 4:
+            label = "+".join(
+                people_map[i]["display_name"] for i in mids if i in people_map
+            )
         status = STATUS_SK.get(e.get("status", ""), "")
         conflict = " is-conflict" if "conflict" in e.get("flags", []) else ""
         unconf = " is-unconfirmed" if e.get("status") in ("unconfirmed", "tentative") else ""
         mem_classes = " ".join(f"mem-{m}" for m in mids) or "mem-none"
         chips.append(
-            f'<div class="allday-chip{conflict}{unconf} {mem_classes}" style="--m:{esc(color)}" '
+            f'<div class="allday-chip{conflict}{unconf} {mem_classes}" style="{style_m(cinfo)}" '
             f'data-members="{esc(",".join(mids))}">'
             f'<span class="chip-line"><strong>{esc(label)}</strong> {esc(e["title"])}</span>'
             f'<span class="chip-meta">{esc(fmt_range(e))}'
@@ -570,7 +622,7 @@ def sidebar_html(day, people_map):
             if mid and mid in people_map:
                 m = people_map[mid]
                 who = (
-                    f'<span class="hl-who" style="--m:{esc(m["color"])}">'
+                    f'<span class="hl-who" style="{style_m(m)}">'
                     f'{esc(m["display_name"])}</span> '
                 )
             lis.append(
@@ -644,13 +696,14 @@ def clock_html():
 def render_day_page(day, pack):
     people = people_list(pack)
     people_map = members_by_id(pack)
+    family_info = family_color_info(pack)
     start, end = timeline_bounds(day)
     d = day["date"]
     sched = theme_schedule(pack, day)
     w = day.get("weather") or {}
-    calendars = [family_calendar(day, people, start, end)]
+    calendars = [family_calendar(day, people, start, end, family_info)]
     for p in people:
-        calendars.append(member_calendar(day, people, p["id"], start, end))
+        calendars.append(member_calendar(day, people, p["id"], start, end, family_info))
 
     body = f"""
 <div class="frame page-day">
@@ -671,7 +724,7 @@ def render_day_page(day, pack):
   </header>
   <div class="day-main">
     <section class="panel cal-panel">
-      {untimed_strip(day, people_map)}
+      {untimed_strip(day, people_map, family_info)}
       <div class="calendars">
         {"".join(calendars)}
       </div>

@@ -16,14 +16,18 @@ Dva vizuálne režimy z toho istého JSON: **dark** (Večerná) a **light** (tá
       "id": "branislav",
       "display_name": "Braňo",
       "role": "otec",
-      "color": "#1F6AA5",
-      "avatar": "branislav.svg"
+      "color": "#8E5B2E",
+      "color_rgb": "142, 91, 46",
+      "color_dark_rgb": "194, 138, 82",
+      "avatar": "branislav.webp"
     }
   ],
   "family": {
     "id": "rodina",
     "display_name": "Rodina",
-    "color": "#6B4C9A",
+    "color": "#0A7CC4",
+    "color_rgb": "10, 124, 196",
+    "color_dark_rgb": "58, 168, 230",
     "avatar": "rodina.svg"
   },
   "theme_schedule": {
@@ -39,7 +43,10 @@ Dva vizuálne režimy z toho istého JSON: **dark** (Večerná) a **light** (tá
 ```
 
 Štyria ľudia v pevnom poradí stĺpcov: Braňo, Zuzka, Andrej, Tomáš.
-`family` je meta pre pohľad Rodina (avatar/farba) — **nie** stĺpec kalendára. Stránka ho momentálne nezobrazuje (hlavička nemá odznak osoby), validátor ho však stále vyžaduje.
+`color` je hex (pill + light bars); `color_rgb` / `color_dark_rgb` sú RGB tripletty pre tinty
+v light / dark (Chromium 81 nemá `color-mix`). Generátor ich emitne ako `--m` / `--m-rgb` / `--md-rgb`.
+`family` je meta pre pohľad Rodina a farba **nepriradených / viacčlenných** eventov (cyan-leaning blue) —
+**nie** stĺpec kalendára. Stránka ho momentálne nezobrazuje ako odznak, validátor ho však stále vyžaduje.
 
 ### `theme_schedule`
 
@@ -66,7 +73,7 @@ Stránka každú minútu prepočíta režim (`html.theme-dark` / `html.theme-lig
   "now": "09:30",
   "refresh_at": "06:30",
   "weather": { "sample": true, "summary": "Polojasno", "temp_high_c": 12, "temp_low_c": 4, "icon": "partly-cloudy" },
-  "timeline": { "start": "07:00", "end": "21:00" },
+  "timeline": { "start": "07:00", "end": "22:00" },
   "events": [],
   "sections": []
 }

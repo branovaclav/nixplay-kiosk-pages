@@ -14,12 +14,14 @@
   },
   "timeline": {
     "start": "07:00",
-    "end": "21:00"
+    "end": "22:00"
   },
   "events": [
     {
       "id": "tomas-tripartita",
-      "members": ["tomas"],
+      "members": [
+        "tomas"
+      ],
       "title": "Tripartita",
       "start": "13:00",
       "end": "13:30",
@@ -28,29 +30,39 @@
       "status": "confirmed",
       "flags": [],
       "conflict_with": [],
-      "notes": ["Stretnutie rodič – učiteľ – dieťa."],
+      "notes": [
+        "Stretnutie rodič – učiteľ – dieťa."
+      ],
       "reminders": [
         "Lístok so školským e-mailom a heslom vložiť do peračníka (informatika sa tento a budúci týždeň prihlasuje cez e-mail)."
       ]
     },
     {
       "id": "brano-jami",
-      "members": ["branislav"],
+      "members": [
+        "branislav"
+      ],
       "title": "Jakub Víšek — JAMI Gardens",
       "start": null,
       "end": null,
       "all_day": false,
       "location": "doma",
       "status": "unconfirmed",
-      "flags": ["time-tbd"],
+      "flags": [
+        "time-tbd"
+      ],
       "conflict_with": [],
-      "notes": ["Príde ráno; zatiaľ nie je v kalendári."],
+      "notes": [
+        "Príde ráno; zatiaľ nie je v kalendári."
+      ],
       "reminders": [],
       "time_note": "čas potvrdí telefonát"
     },
     {
       "id": "brano-tenis",
-      "members": ["branislav"],
+      "members": [
+        "branislav"
+      ],
       "title": "Tenis",
       "start": "14:00",
       "end": "15:00",
@@ -64,14 +76,18 @@
     },
     {
       "id": "brano-sportisimo",
-      "members": ["branislav"],
+      "members": [
+        "branislav"
+      ],
       "title": "Vyzdvihnúť balík Sportisimo",
       "start": null,
       "end": null,
       "all_day": false,
       "location": "OC Krakov Bohnice",
       "status": "todo",
-      "flags": ["pickup"],
+      "flags": [
+        "pickup"
+      ],
       "conflict_with": [],
       "notes": [
         "Do zatváracej doby dnes.",
@@ -83,7 +99,9 @@
     },
     {
       "id": "andrej-baseball",
-      "members": ["andrej"],
+      "members": [
+        "andrej"
+      ],
       "title": "Baseball",
       "start": "17:00",
       "end": "19:00",
@@ -130,7 +148,10 @@
     {
       "id": "vyhlad",
       "title": "Víkend",
-      "outlook": { "from": "2026-11-07", "to": "2026-11-08" },
+      "outlook": {
+        "from": "2026-11-07",
+        "to": "2026-11-08"
+      },
       "items": [
         {
           "text": "So 7. 11. — nič naplánované.",

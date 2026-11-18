@@ -1,8 +1,7 @@
-/* Light mode — Večerná structure + Papier palette (html.theme-light).
-   Calendar/timeline bg slightly brighter than original Papier (#eef2f5 → #f6f9fb). */
+/* Light mode — Clean white redesign (html.theme-light). */
 html.theme-light {
-  --bg: #d9e3ea;
-  --panel: #f3f6f8;
+  --bg: #F5F7FA;
+  --panel: #FFFFFF;
   --panel2: #ffffff;
   --ink: #1a2832;
   --muted: #4d5e6a;
@@ -10,21 +9,22 @@ html.theme-light {
   --line: #b7c5cf;
   --focus: #c45c00;
   --tl-bg: #f6f9fb;
-  --tl-hour: rgba(44, 95, 122, 0.14);
+  --tl-hour: rgba(16, 24, 40, 0.07);
+  /* Same grey as hour rules; dots read lower-prominence than solid hours */
+  --tl-lane-sep: rgba(16, 24, 40, 0.14);
   --chip-bg: #ffffff;
-  --now: #9f1239;
-  --now-ink: #fff;
-  --head-bg: #fcfdfe;
-  --page-bg:
-    radial-gradient(ellipse at 12% 0%, rgba(44, 95, 122, 0.10), transparent 42%),
-    repeating-linear-gradient(
-      0deg,
-      transparent,
-      transparent 23px,
-      rgba(44, 95, 122, 0.035) 23px,
-      rgba(44, 95, 122, 0.035) 24px
-    ),
-    #d9e3ea;
+  /* Orange — distinct from person colours + family blue */
+  --now: #F07800;
+  --now-ink: #FFFFFF;
+  --now-rgb: 240, 120, 0;
+  --head-bg: #FFFFFF;
+  --page-bg: linear-gradient(180deg, #F9FBFC 0%, #F1F4F7 100%);
+  --hour-label: #64727E;
+  --section-label: #5F6E7A;
+  --bullet: #A7B6C2;
+  --outlook-bg: #F0F5F9;
+  --outlook-ink: var(--accent);
+  --wx: var(--accent);
 }
 
 html.theme-light body {
@@ -45,87 +45,95 @@ html.theme-light .eyebrow { color: var(--accent); opacity: 0.9; }
 
 html.theme-light .panel {
   background: var(--panel);
-  border: 1px solid var(--line);
-  border-radius: 16px;
-  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.7) inset, 0 8px 18px rgba(26, 40, 50, 0.06);
+  border: 0;
+  border-radius: 20px;
+  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.04), 0 8px 24px rgba(16, 24, 40, 0.06);
 }
 
-html.theme-light .wx-icon { color: var(--accent); }
 html.theme-light .wx-temps { color: var(--ink); }
 html.theme-light .wx-summary { color: var(--muted); }
 
 html.theme-light .lane-head {
   background: var(--head-bg);
   color: var(--ink);
-  border: none;
-  border-bottom: 4px solid var(--m, transparent);
+  border: 1px solid rgba(16, 24, 40, 0.07);
+  box-shadow: 0 2px 8px rgba(30, 50, 80, 0.07);
 }
 
-html.theme-light .tl-body {
-  background: linear-gradient(90deg, rgba(44, 95, 122, 0.035) 0, transparent 52px), var(--tl-bg);
-  border: 1px solid var(--line);
-}
-
+html.theme-light .tl-body { background: none; border: 0; }
 html.theme-light .tl-hour { border-top-color: var(--tl-hour); }
-html.theme-light .tl-hour-label { color: var(--muted); opacity: 0.85; }
+html.theme-light .tl-hour-label { color: var(--hour-label); opacity: 1; }
 
-/* Filled member color would be loud on light — paper card + strong left edge */
+/* Events: opaque paper + tint (must cover family spans sitting behind) */
 html.theme-light .event-block {
-  background: #fff;
+  background-color: #fff;
+  background-image: linear-gradient(
+    rgba(var(--m-rgb, 10, 124, 196), 0.12),
+    rgba(var(--m-rgb, 10, 124, 196), 0.12)
+  );
   color: var(--ink);
-  border: 1px solid var(--line);
-  border-left: 6px solid var(--m);
+  border: 0;
+  border-left: 3px solid rgb(var(--m-rgb, 10, 124, 196));
   border-radius: 8px;
   box-shadow: none;
 }
 
+/* Family spans: softer band — readable in free lanes, under lane events */
+html.theme-light .event-block.is-span {
+  background-color: transparent;
+  background-image: none;
+  background: rgba(var(--m-rgb, 10, 124, 196), 0.10);
+  border: 0;
+  border-left: 0;
+}
+
 html.theme-light .event-block.is-unconfirmed {
-  /* Uniform dashed — no thick left stripe */
-  border: 2px dashed var(--m);
   background: #fff;
+  border: 1.5px dashed rgb(var(--m-rgb, 10, 124, 196));
+}
+
+/* Clash: member-colour stripes, no amber ring */
+html.theme-light .event-block.is-conflict {
+  background-color: #fff;
+  background-image: repeating-linear-gradient(-45deg,
+    rgba(var(--m-rgb), 0.16), rgba(var(--m-rgb), 0.16) 6px,
+    rgba(var(--m-rgb), 0.06) 6px, rgba(var(--m-rgb), 0.06) 12px);
+  box-shadow: none;
 }
 
 html.theme-light .event-block .ev-time { color: var(--muted); }
+html.theme-light .ev-status { background: rgba(16, 24, 40, 0.06); color: var(--muted); }
+html.theme-light .ev-flags  { background: rgba(16, 24, 40, 0.06); color: var(--ink); }
 
-html.theme-light .event-block.is-conflict {
-  box-shadow: inset 0 0 0 2px #b45309;
-  background-image: repeating-linear-gradient(
-    -45deg, #fff7ed, #fff7ed 5px, #ffedd5 5px, #ffedd5 10px
-  );
-}
-
-html.theme-light .event-block.is-conflict .ev-flags { color: #9a3412; }
-
+/* All-day chips: tint + 3px bar in the person colour */
 html.theme-light .allday-chip {
-  background: var(--chip-bg);
-  border: 1px solid var(--line);
-  border-left-width: 6px;
+  background: rgba(var(--m-rgb, 10, 124, 196), 0.10);
+  border: 0;
+  border-left: 3px solid rgb(var(--m-rgb, 10, 124, 196));
   color: var(--ink);
 }
 
 html.theme-light .allday-chip.is-unconfirmed {
-  border-style: dashed;
-  border-left-width: 1px;
+  background: #fff;
+  border: 1.5px dashed rgb(var(--m-rgb, 10, 124, 196));
+}
+
+html.theme-light .allday-chip.is-conflict {
+  background-color: #fff;
+  background-image: repeating-linear-gradient(-45deg,
+    rgba(var(--m-rgb), 0.16), rgba(var(--m-rgb), 0.16) 6px,
+    rgba(var(--m-rgb), 0.06) 6px, rgba(var(--m-rgb), 0.06) 12px);
+  box-shadow: none;
 }
 
 html.theme-light .tl-now { border-top-color: var(--now); }
 html.theme-light .tl-now-label { background: var(--now); color: var(--now-ink); }
 
-html.theme-light .outlook-box {
-  background: #eef3f6;
-  border-color: var(--accent);
-  border-style: solid;
-}
+html.theme-light .outlook-box { background: var(--outlook-bg); border: 0; }
+html.theme-light .outlook-box h3 { color: var(--outlook-ink); }
+html.theme-light .hl-block h3 { color: var(--section-label); }
 
-html.theme-light .outlook-box h3 { color: var(--accent); }
-html.theme-light .hl-block h3 { color: var(--muted); }
-
-html.theme-light .ev-status {
-  background: #e8eef2;
-  color: var(--accent);
-}
-
-html.theme-light .lane-head-others { opacity: 0.55; border-bottom-color: var(--line); }
+html.theme-light .lane-head-others { opacity: 0.55; border: 1px solid rgba(16, 24, 40, 0.07); }
 html.theme-light .empty-inline { color: var(--muted); }
 
 html.theme-light .topbar-date h1 { font-weight: var(--fw-date); }

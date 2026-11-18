@@ -14,7 +14,7 @@
   },
   "timeline": {
     "start": "07:00",
-    "end": "21:00"
+    "end": "22:00"
   },
   "events": [
     {
@@ -148,7 +148,10 @@
     {
       "id": "vyhlad",
       "title": "Pondelok",
-      "outlook": { "from": "2026-11-09", "to": "2026-11-09" },
+      "outlook": {
+        "from": "2026-11-09",
+        "to": "2026-11-09"
+      },
       "items": [
         {
           "text": "Po 9. 11. — bežný školský deň.",
