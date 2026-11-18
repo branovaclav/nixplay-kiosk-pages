@@ -226,6 +226,9 @@
       if (s.history) history = s.history.slice();
       if (typeof s.historyPos === "number") historyPos = s.historyPos;
       if (s.currentId) currentId = s.currentId;
+      // Restored currentId was not taken via next(); treat it as last so a
+      // refilled bag cannot put the on-screen photo at the front again.
+      if (shuffleBag && currentId) shuffleBag.setLast(currentId);
     });
   }
 

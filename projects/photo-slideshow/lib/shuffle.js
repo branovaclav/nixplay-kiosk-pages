@@ -2,10 +2,12 @@
 (function (global) {
   "use strict";
 
-  function ShuffleBag(ids, remaining) {
+  function ShuffleBag(ids, remaining, last) {
     this._all = ids ? ids.slice() : [];
+    this._last = arguments.length >= 3 ? last : null;
     this._bag = remaining && remaining.length ? remaining.slice() : this._all.slice();
     this._shuffleInPlace(this._bag);
+    this._avoidImmediateRepeat();
   }
 
   ShuffleBag.prototype._shuffleInPlace = function (arr) {
@@ -16,6 +18,22 @@
       arr[i] = arr[j];
       arr[j] = t;
     }
+  };
+
+  /** If the next draw would repeat `_last`, swap front with a random later slot. */
+  ShuffleBag.prototype._avoidImmediateRepeat = function () {
+    if (this._bag.length < 2 || this._last == null) return;
+    if (this._bag[0] !== this._last) return;
+    var j = 1 + Math.floor(Math.random() * (this._bag.length - 1));
+    var t = this._bag[0];
+    this._bag[0] = this._bag[j];
+    this._bag[j] = t;
+  };
+
+  /** Record an id as last-shown (e.g. restored currentId) and fix bag front if needed. */
+  ShuffleBag.prototype.setLast = function (id) {
+    this._last = id != null ? id : null;
+    this._avoidImmediateRepeat();
   };
 
   /** Replace the universe of ids; keep unseen bag entries that still exist; add new ones. */
@@ -39,14 +57,19 @@
       this._bag = this._all.slice();
       this._shuffleInPlace(this._bag);
     }
+    this._avoidImmediateRepeat();
   };
 
   ShuffleBag.prototype.next = function () {
     if (!this._bag.length) {
       this._bag = this._all.slice();
       this._shuffleInPlace(this._bag);
+      this._avoidImmediateRepeat();
     }
-    return this._bag.length ? this._bag.shift() : null;
+    if (!this._bag.length) return null;
+    var id = this._bag.shift();
+    this._last = id;
+    return id;
   };
 
   ShuffleBag.prototype.peekRemaining = function () {
@@ -54,12 +77,14 @@
   };
 
   ShuffleBag.prototype.toState = function () {
-    return { remaining: this._bag.slice(), all: this._all.slice() };
+    return { remaining: this._bag.slice(), all: this._all.slice(), last: this._last };
   };
 
   ShuffleBag.fromState = function (state) {
-    var bag = new ShuffleBag(state && state.all ? state.all : [], state && state.remaining);
-    return bag;
+    var all = state && state.all ? state.all : [];
+    var remaining = state && state.remaining;
+    var last = state && Object.prototype.hasOwnProperty.call(state, "last") ? state.last : null;
+    return new ShuffleBag(all, remaining, last);
   };
 
   global.PS = global.PS || {};
