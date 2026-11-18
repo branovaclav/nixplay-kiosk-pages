@@ -953,10 +953,10 @@ body.is-future-day .tl-now {
 .tl-now-label {
   position: absolute;
   right: 6px;
-  /* Vertically center on the now-line */
+  /* Vertically center on the now-line, then 1px up */
   top: 0;
-  -webkit-transform: translateY(-50%);
-  transform: translateY(-50%);
+  -webkit-transform: translateY(calc(-50% - 1px));
+  transform: translateY(calc(-50% - 1px));
   padding: 2px 9px;
   border-radius: 999px;
   background: var(--now);

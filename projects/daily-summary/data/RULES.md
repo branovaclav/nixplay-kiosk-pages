@@ -129,7 +129,8 @@ Príklad: utorkový súbor s výhľadom na stredu — v pondelok večer ukáže 
 Obsah položiek: Po–Št → nasledujúci deň; Pia → So+Ne; So/Ne → pondelok (víkend So+Ne = jeden „deň“ voči ďalšiemu pracovnému).
 
 Nový title OK ako fallback, keď lepšie sedí (1–3 slová). Max **4 sekcie**, ~**8 položiek** spolu;
-`text` ≤ ~100 znakov, `detail` ≤ ~220.
+`text` ≤ ~120 znakov, `detail` ≤ ~260
+(personal sidebar ~59% width — raised ~+18% from prior ~100 / ~220).
 
 Poradie: Rodina / detský šport → Pripomienky detí → osobné → výhľad (`vyhlad`) na konci.
 
