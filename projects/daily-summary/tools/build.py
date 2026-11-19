@@ -198,9 +198,31 @@ def people_list(pack):
     return [by[i] for i in PEOPLE_ORDER if i in by]
 
 
+# Visible day window on the frame — always at least this range, even when
+# older JSON still says timeline.end "21:00" (or a later start than 07:00).
+TIMELINE_FLOOR_START = 7 * 60   # 07:00
+TIMELINE_CEIL_END = 22 * 60     # 22:00
+
+# Approx. one span label (time + title chip) in timeline-minutes on a
+# typical 07:00–22:00 track — used to avoid stacking labels that already
+# sit far enough apart vertically.
+SPAN_LABEL_SLOT_MIN = 55
+
+# Pixel offset per label row inside an .is-span band (must match CSS
+# --span-label-row-h). Set as an explicit length for Chromium 81 — do not
+# rely on calc(var(--n) * 40px) alone.
+SPAN_LABEL_ROW_PX = 44
+
+
 def timeline_bounds(day):
-    start = parse_hhmm(day["timeline"]["start"])
-    end = parse_hhmm(day["timeline"]["end"])
+    """Return (start_min, end_min) for the track.
+
+    Uses the earlier of timeline.start and 07:00, and the later of
+    timeline.end and 22:00, then expands for out-of-range events and
+    snaps to whole hours so hour labels include both endpoints.
+    """
+    start = min(parse_hhmm(day["timeline"]["start"]), TIMELINE_FLOOR_START)
+    end = max(parse_hhmm(day["timeline"]["end"]), TIMELINE_CEIL_END)
     for ev in day.get("events", []):
         if ev.get("all_day"):
             continue
@@ -217,6 +239,65 @@ def timeline_bounds(day):
     if end <= start:
         end = start + 60
     return start, end
+
+
+def spans_time_overlap(a_start, a_end, b_start, b_end):
+    """True when open intervals overlap (touching end==start is NOT overlap)."""
+    return a_start < b_end and b_start < a_end
+
+
+def spans_horizontal_overlap(a_left, a_width, b_left, b_width):
+    return a_left < b_left + b_width and b_left < a_left + a_width
+
+
+def assign_span_label_rows(span_specs):
+    """Mutate span_specs with label_row so span labels never collide.
+
+    Greedy by start time: each label sits at band_start + row*SLOT.
+    A row is taken only when that absolute slot collides with an already
+    placed label that also overlaps horizontally. Adjacent bands
+    (end == other start) normally keep row 0; if an earlier stacked label
+    still reaches into the next band's top, the later label bumps down.
+    """
+    n = len(span_specs)
+    for spec in span_specs:
+        spec["label_row"] = 0
+    if n <= 1:
+        return span_specs
+
+    order = sorted(
+        range(n),
+        key=lambda i: (
+            span_specs[i]["start"],
+            span_specs[i]["end"],
+            span_specs[i].get("title") or "",
+            i,
+        ),
+    )
+    # (abs_top, abs_bot, left, width)
+    placed = []
+    for i in order:
+        spec = span_specs[i]
+        row = 0
+        while True:
+            abs_top = spec["start"] + row * SPAN_LABEL_SLOT_MIN
+            abs_bot = abs_top + SPAN_LABEL_SLOT_MIN
+            conflict = False
+            for ptop, pbot, pleft, pwidth in placed:
+                if not spans_horizontal_overlap(
+                    spec["left"], spec["width"], pleft, pwidth
+                ):
+                    continue
+                if abs_top < pbot and ptop < abs_bot:
+                    conflict = True
+                    break
+            if not conflict or row > n + 2:
+                spec["label_row"] = row
+                placed.append((abs_top, abs_bot, spec["left"], spec["width"]))
+                break
+            row += 1
+
+    return span_specs
 
 
 def pct(minute, start, end):
@@ -310,7 +391,10 @@ def weather_icon_svg(icon):
     return raw
 
 
-def event_block_html(ev, cinfo, top, height, left_pct, width_pct, extra_class="", short=False):
+def event_block_html(
+    ev, cinfo, top, height, left_pct, width_pct,
+    extra_class="", short=False, label_row=0,
+):
     s = parse_hhmm(ev.get("start"))
     e = parse_hhmm(ev.get("end")) or ((s + 30) if s is not None else None)
     conflict = " is-conflict" if ("conflict" in ev.get("flags", []) or ev.get("conflict_with")) else ""
@@ -332,15 +416,62 @@ def event_block_html(ev, cinfo, top, height, left_pct, width_pct, extra_class=""
     )
     end_attr = f' data-end-min="{e}"' if e is not None else ""
     mids = ",".join(expand_members(event_members(ev)))
+    is_span = "is-span" in (extra_class or "")
+    row = max(0, int(label_row or 0))
+    row_attr = f' data-label-row="{row}"' if is_span else ""
+    time_el = f'<span class="ev-time">{esc(fmt_range(ev))}</span>'
+    title_el = f'<span class="ev-title">{esc(ev["title"])}</span>'
+    if is_span:
+        # Band only — labels are siblings after all bands so chips paint above
+        # every translucent fill (see span_label_html / render_span_layer).
+        body = ""
+    else:
+        body = f"{time_el}{title_el}{loc}{st}{flags}"
     return (
         f'<div class="event-block{short_c}{conflict}{unconf}{todo}{extra_class}" '
         f'style="top:{top:.3f}%;height:{height:.3f}%;left:{left_pct:.3f}%;'
         f'width:{width_pct:.3f}%;{style_m(cinfo)}" '
-        f'data-members="{esc(mids)}"{end_attr}>'
-        f'<span class="ev-time">{esc(fmt_range(ev))}</span>'
-        f'<span class="ev-title">{esc(ev["title"])}</span>'
-        f"{loc}{st}{flags}</div>"
+        f'data-members="{esc(mids)}"{end_attr}{row_attr}>'
+        f"{body}</div>"
     )
+
+
+def span_label_html(ev, cinfo, top, left_pct, width_pct, label_row=0, short=False):
+    """Absolutely-positioned label chip for a family span (above all bands)."""
+    row = max(0, int(label_row or 0))
+    offset_px = row * SPAN_LABEL_ROW_PX
+    short_c = " is-short" if short else ""
+    time_el = f'<span class="ev-time">{esc(fmt_range(ev))}</span>'
+    title_el = f'<span class="ev-title">{esc(ev["title"])}</span>'
+    return (
+        f'<div class="span-label{short_c}" style="top:{top:.3f}%;left:{left_pct:.3f}%;'
+        f'width:{width_pct:.3f}%;margin-top:{offset_px}px;{style_m(cinfo)}" '
+        f'data-label-row="{row}">'
+        f"{time_el}{title_el}</div>"
+    )
+
+
+def render_span_layer(span_specs):
+    """Bands first, then label chips — chips must paint above every band."""
+    bands = [
+        event_block_html(
+            spec["ev"], spec["cinfo"], spec["top"], spec["height"],
+            spec["left"], spec["width"],
+            extra_class=" is-span", short=spec["short"],
+            label_row=spec.get("label_row", 0),
+        )
+        for spec in span_specs
+    ]
+    labels = [
+        span_label_html(
+            spec["ev"], spec["cinfo"], spec["top"],
+            spec["left"], spec["width"],
+            label_row=spec.get("label_row", 0),
+            short=spec["short"],
+        )
+        for spec in span_specs
+    ]
+    return "".join(bands) + "".join(labels)
 
 
 def place_events_in_track(events, start, end, color_for_ev, n_cols=1):
@@ -393,7 +524,7 @@ def family_calendar(day, people, start, end, family_info=None):
     id_to_idx = {p["id"]: i for i, p in enumerate(people)}
     n = len(people)
     col_events = {p["id"]: [] for p in people}
-    span_blocks = []
+    span_specs = []
 
     timed = [e for e in day.get("events", []) if e.get("start") and not e.get("all_day")]
     for e in timed:
@@ -418,12 +549,21 @@ def family_calendar(day, people, start, end, family_info=None):
         for lo, hi in spans:
             left = (lo / n) * 100.0
             width = ((hi - lo + 1) / n) * 100.0
-            span_blocks.append(
-                event_block_html(
-                    e, cinfo, top, height, left, width,
-                    extra_class=" is-span", short=short,
-                )
-            )
+            span_specs.append({
+                "ev": e,
+                "cinfo": cinfo,
+                "top": top,
+                "height": height,
+                "left": left,
+                "width": width,
+                "short": short,
+                "start": s,
+                "end": ee,
+                "title": e.get("title") or "",
+            })
+
+    assign_span_label_rows(span_specs)
+    span_blocks = render_span_layer(span_specs)
 
     cols = []
     for p in people:
@@ -477,7 +617,7 @@ def member_calendar(day, people, focus_id, start, end, family_info=None):
 
     focus_ev = []
     other_unique = []
-    span_blocks = []
+    span_specs = []
     for e in day.get("events", []):
         if not e.get("start") or e.get("all_day"):
             continue
@@ -492,17 +632,26 @@ def member_calendar(day, people, focus_id, start, end, family_info=None):
             top = pct(s, start, end)
             height = max(pct(ee, start, end) - top, 8.5)
             short = (ee - s) <= 45
-            span_blocks.append(
-                event_block_html(
-                    e, family_info, top, height, 0.0, 100.0,
-                    extra_class=" is-span", short=short,
-                )
-            )
+            span_specs.append({
+                "ev": e,
+                "cinfo": family_info,
+                "top": top,
+                "height": height,
+                "left": 0.0,
+                "width": 100.0,
+                "short": short,
+                "start": s,
+                "end": ee,
+                "title": e.get("title") or "",
+            })
             continue
         if mids[0] == focus_id:
             focus_ev.append(e)
         else:
             other_unique.append(e)
+
+    assign_span_label_rows(span_specs)
+    span_blocks = render_span_layer(span_specs)
 
     def focus_color(ev):
         return color_info_for_member(focus)

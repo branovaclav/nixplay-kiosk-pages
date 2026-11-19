@@ -85,6 +85,20 @@ html.theme-light .event-block.is-span {
   background: rgba(var(--m-rgb, 10, 124, 196), 0.10);
   border: 0;
   border-left: 0;
+  border-top: 2px solid rgba(var(--m-rgb, 10, 124, 196), 0.40);
+}
+
+html.theme-light .tl-span-layer .span-label {
+  background: rgba(255, 255, 255, 0.94);
+  color: var(--ink);
+  box-shadow: 0 0 0 1px rgba(var(--m-rgb, 10, 124, 196), 0.14);
+}
+
+html.theme-light .tl-span-layer .span-label .ev-time { color: var(--muted); }
+html.theme-light .tl-span-layer .span-label .ev-title {
+  color: var(--ink);
+  font-weight: var(--fw-bold);
+  font-size: var(--fs-ev-title);
 }
 
 html.theme-light .event-block.is-unconfirmed {

@@ -299,5 +299,153 @@ test("personal view puts multi-member events in family-blue span layer", functio
   var out = cp.execFileSync("python3", ["-c", script], { encoding: "utf8" });
   assert.ok(out.indexOf("ok") !== -1);
 });
+
+test("timeline_bounds clamps to at least 07:00–22:00", function () {
+  var cp = require("child_process");
+  var script =
+    "import sys\n" +
+    "sys.path.insert(0, " +
+    JSON.stringify(path.join(__dirname, "..", "tools")) +
+    ")\n" +
+    "import build\n" +
+    "# Old file style: end 21:00, no late events\n" +
+    "day = {'timeline': {'start': '07:00', 'end': '21:00'}, 'events': []}\n" +
+    "assert build.timeline_bounds(day) == (7 * 60, 22 * 60)\n" +
+    "day2 = {'timeline': {'start': '08:00', 'end': '20:00'}, 'events': []}\n" +
+    "assert build.timeline_bounds(day2) == (7 * 60, 22 * 60)\n" +
+    "# Still expands past 22:00 when an event runs later\n" +
+    "day3 = {\n" +
+    "  'timeline': {'start': '07:00', 'end': '21:00'},\n" +
+    "  'events': [{'start': '21:30', 'end': '23:15', 'all_day': False}],\n" +
+    "}\n" +
+    "assert build.timeline_bounds(day3) == (7 * 60, 24 * 60)\n" +
+    "# 2026-11-19 published file still ends at 21:00 in JSON\n" +
+    "live = build.load_json(build.DATA, '2026-11-19.json')\n" +
+    "assert live['timeline']['end'] == '21:00'\n" +
+    "assert build.timeline_bounds(live) == (7 * 60, 22 * 60)\n" +
+    "pack = build.load_json(build.DATA, 'members.json')\n" +
+    "html = build.render_day_page(live, pack)\n" +
+    "assert '>07:00</span>' in html and '>22:00</span>' in html\n" +
+    "print('ok')\n";
+  var out = cp.execFileSync("python3", ["-c", script], { encoding: "utf8" });
+  assert.ok(out.indexOf("ok") !== -1);
+});
+
+test("assign_span_label_rows stacks same-start and partial overlaps", function () {
+  var cp = require("child_process");
+  var script =
+    "import sys\n" +
+    "sys.path.insert(0, " +
+    JSON.stringify(path.join(__dirname, "..", "tools")) +
+    ")\n" +
+    "import build\n" +
+    "\n" +
+    "def spec(start, end, title, left=0.0, width=100.0):\n" +
+    "  return {'start': start, 'end': end, 'title': title, 'left': left, 'width': width}\n" +
+    "\n" +
+    "# Same start → distinct rows\n" +
+    "same = [\n" +
+    "  spec(15 * 60, 18 * 60, 'A'),\n" +
+    "  spec(15 * 60, 19 * 60, 'B'),\n" +
+    "]\n" +
+    "build.assign_span_label_rows(same)\n" +
+    "rows = sorted(s['label_row'] for s in same)\n" +
+    "assert rows == [0, 1], rows\n" +
+    "\n" +
+    "# Adjacent (end == start) → separate clusters, both row 0\n" +
+    "adj = [\n" +
+    "  spec(17 * 60 + 30, 19 * 60, 'Early'),\n" +
+    "  spec(19 * 60, 20 * 60, 'Late'),\n" +
+    "]\n" +
+    "build.assign_span_label_rows(adj)\n" +
+    "assert adj[0]['label_row'] == 0 and adj[1]['label_row'] == 0\n" +
+    "\n" +
+    "# Partial overlap with different starts\n" +
+    "partial = [\n" +
+    "  spec(17 * 60 + 30, 19 * 60, 'A'),\n" +
+    "  spec(18 * 60, 20 * 60, 'B'),\n" +
+    "]\n" +
+    "build.assign_span_label_rows(partial)\n" +
+    "assert partial[0]['label_row'] == 0\n" +
+    "assert partial[1]['label_row'] >= 1\n" +
+    "\n" +
+    "# Three same-start spans → rows 0,1,2\n" +
+    "three = [\n" +
+    "  spec(15 * 60, 18 * 60, 'A'),\n" +
+    "  spec(15 * 60, 19 * 60, 'B'),\n" +
+    "  spec(15 * 60, 17 * 60 + 30, 'C'),\n" +
+    "]\n" +
+    "build.assign_span_label_rows(three)\n" +
+    "assert sorted(s['label_row'] for s in three) == [0, 1, 2]\n" +
+    "\n" +
+    "# Non-overlapping horizontally → independent row 0\n" +
+    "cols = [\n" +
+    "  spec(15 * 60, 18 * 60, 'L', left=0.0, width=50.0),\n" +
+    "  spec(15 * 60, 18 * 60, 'R', left=50.0, width=50.0),\n" +
+    "]\n" +
+    "build.assign_span_label_rows(cols)\n" +
+    "assert cols[0]['label_row'] == 0 and cols[1]['label_row'] == 0\n" +
+    "\n" +
+    "# Absolute label slots must not overlap within a cluster\n" +
+    "def slots_ok(specs):\n" +
+    "  build.assign_span_label_rows(specs)\n" +
+    "  boxes = []\n" +
+    "  for s in specs:\n" +
+    "    top = s['start'] + s['label_row'] * build.SPAN_LABEL_SLOT_MIN\n" +
+    "    boxes.append((top, top + build.SPAN_LABEL_SLOT_MIN, s['left'], s['width']))\n" +
+    "  for i in range(len(boxes)):\n" +
+    "    for j in range(i + 1, len(boxes)):\n" +
+    "      a, b = boxes[i], boxes[j]\n" +
+    "      if not build.spans_horizontal_overlap(a[2], a[3], b[2], b[3]):\n" +
+    "        continue\n" +
+    "      assert not (a[0] < b[1] and b[0] < a[1]), (a, b)\n" +
+    "  return True\n" +
+    "assert slots_ok(three)\n" +
+    "assert slots_ok(partial)\n" +
+    "\n" +
+    "# Rendered HTML uses data-label-row + span-label chip\n" +
+    "day = build.load_json(build.PROJECT, 'samples', 'overlap-three-spans.json')\n" +
+    "pack = build.load_json(build.DATA, 'members.json')\n" +
+    "html = build.render_day_page(day, pack)\n" +
+    "assert 'span-label' in html\n" +
+    "assert 'data-label-row=\"0\"' in html\n" +
+    "assert 'data-label-row=\"1\"' in html\n" +
+    "assert 'data-label-row=\"2\"' in html\n" +
+    "assert 'margin-top:44px' in html\n" +
+    "assert 'margin-top:88px' in html\n" +
+    "# Clamped end despite sample timeline.end 21:00\n" +
+    "assert '>22:00</span>' in html\n" +
+    "# Live bug day: two same-start family spans get distinct rows\n" +
+    "live = build.load_json(build.DATA, '2026-11-19.json')\n" +
+    "html_live = build.render_day_page(live, pack)\n" +
+    "fam = html_live[html_live.find('data-mode=\"family\"'):html_live.find('data-mode=\"member\"')]\n" +
+    "assert 'Laskavá kavárna' in fam and 'Bertík oslava' in fam\n" +
+    "assert 'data-label-row=\"0\"' in fam and 'data-label-row=\"1\"' in fam\n" +
+    "assert 'margin-top:0px' in fam and 'margin-top:44px' in fam\n" +
+    "print('ok')\n";
+  var out = cp.execFileSync("python3", ["-c", script], { encoding: "utf8" });
+  assert.ok(out.indexOf("ok") !== -1);
+});
+
+test("span overlap CSS has label chip + top border (Chromium 81 safe)", function () {
+  var base = fs.readFileSync(
+    path.join(__dirname, "..", "themes", "_shared", "base.css"),
+    "utf8"
+  );
+  var light = fs.readFileSync(
+    path.join(__dirname, "..", "themes", "_shared", "light.css"),
+    "utf8"
+  );
+  var dark = fs.readFileSync(
+    path.join(__dirname, "..", "themes", "_shared", "dark.css"),
+    "utf8"
+  );
+  assert.ok(base.indexOf(".tl-span-layer .span-label") !== -1);
+  assert.ok(light.indexOf(".tl-span-layer .span-label") !== -1);
+  assert.ok(dark.indexOf(".tl-span-layer .span-label") !== -1);
+  assert.ok(/border-top:\s*2px solid/.test(light));
+  assert.ok(/border-top:\s*2px solid/.test(dark));
+});
+
 console.log("\n" + passed + " passed, " + failed + " failed");
 process.exit(failed ? 1 : 0);

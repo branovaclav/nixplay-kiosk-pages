@@ -846,6 +846,41 @@ body[data-view="tomas"] .calendar-member[data-focus="tomas"] {
   /* Span layer is under .tl-lanes; keep a low local stack for multi-spans */
   z-index: 1;
   pointer-events: none;
+  /* Distinguish stacked/overlapping translucent bands */
+  border-top-width: 2px;
+  border-top-style: solid;
+  /* Bands are colour washes only — titles live in sibling .span-label chips */
+  padding: 0;
+  overflow: hidden;
+  color: transparent;
+}
+
+/* Label chips sit AFTER all bands in .tl-span-layer so they paint above every
+   translucent fill. Inline top/left/width/margin-top from build.py. */
+.tl-span-layer .span-label {
+  position: absolute;
+  z-index: 4;
+  box-sizing: border-box;
+  padding: 2px 6px;
+  border-radius: 4px;
+  overflow: hidden;
+  pointer-events: none;
+  line-height: 1.15;
+  font-size: var(--fs-ev);
+}
+
+.tl-span-layer .span-label .ev-time,
+.tl-span-layer .span-label .ev-title {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tl-span-layer .span-label.is-short .ev-time { display: none; }
+.tl-span-layer .span-label.is-short .ev-title {
+  font-size: var(--fs-ev-title-short);
+  line-height: 1.1;
 }
 
 .event-block .ev-time,

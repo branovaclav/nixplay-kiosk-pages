@@ -79,6 +79,9 @@ Stránka každú minútu prepočíta režim (`html.theme-dark` / `html.theme-lig
 }
 ```
 
+`timeline` — typický rozsah **07:00–22:00** (celé hodiny; label aj na oboch koncoch).
+Build vždy zobrazí aspoň toto okno: berie skorší z `timeline.start` a `07:00`, a neskorší z `timeline.end` a `22:00` (staršie súbory s `end: "21:00"` sa teda stále kreslia do 22:00).
+
 `refresh_at` — `HH:MM` Europe/Prague; stránka sa raz denne obnoví tesne po tomto čase (predvolene `06:30`).
 Ak je `date` v minulosti oproti Prague „dnes“, stránka ostane (žiadna reload-slučka) a čaká na nový build.
 
