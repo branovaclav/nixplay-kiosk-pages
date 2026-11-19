@@ -1,0 +1,104 @@
+{
+  "date": "2026-11-20",
+  "locale": "sk-SK",
+  "timezone": "Europe/Prague",
+  "now": "18:55",
+  "refresh_at": "06:30",
+  "weather": {
+    "sample": false,
+    "summary": "Dážď",
+    "icon": "rain",
+    "temp_high_c": 10,
+    "temp_low_c": 7
+  },
+  "timeline": {
+    "start": "07:00",
+    "end": "22:00"
+  },
+  "events": [
+    {
+      "id": "andrej-tripartita",
+      "members": [
+        "andrej"
+      ],
+      "title": "Tripartita",
+      "start": "13:30",
+      "end": "14:30",
+      "all_day": false,
+      "status": "confirmed",
+      "flags": [],
+      "conflict_with": [],
+      "notes": [],
+      "reminders": []
+    },
+    {
+      "id": "andrej-baseball-ceskolipska",
+      "members": [
+        "andrej"
+      ],
+      "title": "Baseball Českolipská",
+      "start": "17:00",
+      "end": "19:00",
+      "all_day": false,
+      "status": "confirmed",
+      "flags": [],
+      "conflict_with": [],
+      "notes": [],
+      "reminders": []
+    }
+  ],
+  "sections": [
+    {
+      "id": "zobrat",
+      "title": "Zobrať / vybaviť",
+      "items": [
+        {
+          "member": "andrej",
+          "text": "Podpísať súhlas Invenio do 20. 11. (dnes)",
+          "detail": "Podpísaný súhlas s Invenio hrami v informatike (zadarmo, cca 30 min) treba doniesť do 20. 11. Formulár je v školskom e-maile alebo ho deti dostanú v škole."
+        }
+      ]
+    },
+    {
+      "id": "nezabudnut",
+      "title": "Nezabudnúť",
+      "items": [
+        {
+          "text": "Do 24. 11.: Albatros — knižný darček",
+          "detail": "Trieda zbiera knižné darčeky Albatros (dárky od Ježíška) do 24. 11. Podrobnosti v školskom e-maile.",
+          "member": "tomas"
+        },
+        {
+          "text": "28. 11.: DOD PORG Libeň 10–16",
+          "detail": "Deň otvorených dverí PORG Libeň v sobotu 28. 11., 10–16.",
+          "member": "andrej"
+        },
+        {
+          "text": "Do 30. 11.: Záloha na hory 3 000 Kč",
+          "detail": "Škola žiada zálohu 3 000 Kč na hory 2027 do 30. 11. ako záväznú prihlášku. Údaje na platbu sú v školskom e-maile.",
+          "member": "andrej",
+          "family": false
+        },
+        {
+          "text": "8. 12.: DOD Trojské gymnázium",
+          "detail": "Deň otvorených dverí na Trojskom gymnáziu 8. 12.",
+          "member": "andrej"
+        }
+      ]
+    },
+    {
+      "id": "vyhlad",
+      "title": "Víkend",
+      "outlook": {
+        "from": "2026-11-21",
+        "to": "2026-11-22"
+      },
+      "items": [
+        {
+          "text": "Sobota aj nedeľa: v kalendári nič ďalšie.",
+          "detail": "V kalendároch Personal, Family a Children nie je na sobotu 21. 11. ani nedeľu 22. 11. žiadna udalosť."
+        }
+      ]
+    }
+  ]
+}
