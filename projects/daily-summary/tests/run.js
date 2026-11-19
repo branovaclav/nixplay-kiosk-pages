@@ -352,10 +352,10 @@ test("timeline_bounds clamps to at least 07:00–22:00", function () {
   assert.ok(out.indexOf("ok") !== -1);
 });
 
-test("place_span_labels prefers side-by-side then next row", function () {
+test("place_span_labels stacks down-first with sideways fallback", function () {
   var cp = require("child_process");
   var script =
-    "import sys\n" +
+    "import sys, re\n" +
     "sys.path.insert(0, " +
     JSON.stringify(path.join(__dirname, "..", "tools")) +
     ")\n" +
@@ -364,7 +364,7 @@ test("place_span_labels prefers side-by-side then next row", function () {
     "def spec(start, end, title, left=0.0, width=100.0):\n" +
     "  return {\n" +
     "    'start': start, 'end': end, 'title': title, 'left': left, 'width': width,\n" +
-    "    'short': False,\n" +
+    "    'short': (end - start) <= 45,\n" +
     "    'ev': {\n" +
     "      'title': title,\n" +
     "      'start': '%02d:%02d' % (start // 60, start % 60),\n" +
@@ -384,17 +384,17 @@ test("place_span_labels prefers side-by-side then next row", function () {
     "        continue\n" +
     "      assert not build.spans_horizontal_overlap(a[2], a[3], b[2], b[3]), (a, b)\n" +
     "\n" +
-    "# No lane events → same-start labels sit side by side in row 0\n" +
-    "side = [\n" +
+    "# No lane events → stack: first row 0 left, second row 1 left\n" +
+    "stacked = [\n" +
     "  spec(15 * 60, 18 * 60, 'Laskavá kavárna'),\n" +
     "  spec(15 * 60, 19 * 60, 'Bertík oslava narodenín'),\n" +
     "]\n" +
-    "build.place_span_labels(side, [])\n" +
-    "assert side[0]['label_row'] == 0 and side[1]['label_row'] == 0\n" +
-    "assert side[0]['label_left'] < side[1]['label_left']\n" +
-    "boxes_ok(side)\n" +
+    "build.place_span_labels(stacked, [])\n" +
+    "assert stacked[0]['label_row'] == 0 and stacked[0]['label_left'] == 0.0\n" +
+    "assert stacked[1]['label_row'] == 1 and stacked[1]['label_left'] == 0.0\n" +
+    "boxes_ok(stacked)\n" +
     "\n" +
-    "# Andrej lane busy → Laskavá left, Bertík on Tomáš (both row 0) if gap fits\n" +
+    "# Andrej prep until 15:45 — still stack (row 1 is free on Braňo/Zuzka)\n" +
     "occ = [{'left': 50.0, 'width': 25.0, 'start': 13 * 60 + 30, 'end': 15 * 60 + 45}]\n" +
     "live = [\n" +
     "  spec(15 * 60, 18 * 60, 'Laskavá kavárna'),\n" +
@@ -402,19 +402,43 @@ test("place_span_labels prefers side-by-side then next row", function () {
     "]\n" +
     "build.place_span_labels(live, occ)\n" +
     "assert live[0]['label_row'] == 0 and live[0]['label_left'] == 0.0\n" +
-    "assert live[1]['label_row'] == 0 and abs(live[1]['label_left'] - 75.0) < 0.01\n" +
+    "assert live[1]['label_row'] == 1 and live[1]['label_left'] == 0.0\n" +
     "boxes_ok(live)\n" +
     "\n" +
-    "# Fallback to next row when row-0 free gap is too narrow for a second label\n" +
-    "occ2 = [{'left': 0.0, 'width': 55.0, 'start': 15 * 60, 'end': 16 * 60}]\n" +
-    "fb = [\n" +
+    "# Short second span cannot fit a downward row → sideways in row 0\n" +
+    "short = [\n" +
+    "  spec(15 * 60, 18 * 60, 'Dlhá spoločná'),\n" +
+    "  spec(15 * 60 + 5, 15 * 60 + 40, 'Krátka spoločná'),\n" +
+    "]\n" +
+    "build.place_span_labels(short, [])\n" +
+    "assert short[0]['label_row'] == 0 and short[0]['label_left'] == 0.0\n" +
+    "assert short[1]['label_row'] == 0 and short[1]['label_left'] > short[0]['label_left']\n" +
+    "boxes_ok(short)\n" +
+    "\n" +
+    "# Personal events sit in row 1 → second label goes sideways in row 0\n" +
+    "below = [\n" +
+    "  spec(15 * 60, 18 * 60, 'Prvá spoločná'),\n" +
+    "  spec(15 * 60 + 1, 16 * 60 + 55, 'Druhá spoločná'),\n" +
+    "]\n" +
+    "occ_below = [\n" +
+    "  {'left': i * 25.0, 'width': 25.0, 'start': 15 * 60 + 56, 'end': 16 * 60 + 55}\n" +
+    "  for i in range(4)\n" +
+    "]\n" +
+    "build.place_span_labels(below, occ_below)\n" +
+    "assert below[0]['label_row'] == 0 and below[0]['label_left'] == 0.0\n" +
+    "assert below[1]['label_row'] == 0 and below[1]['label_left'] > below[0]['label_left']\n" +
+    "boxes_ok(below)\n" +
+    "\n" +
+    "# Partial lane block in a downward row → slide within that row\n" +
+    "slide = [\n" +
     "  spec(15 * 60, 18 * 60, 'First long title here'),\n" +
     "  spec(15 * 60, 19 * 60, 'Second long title here'),\n" +
     "]\n" +
-    "build.place_span_labels(fb, occ2)\n" +
-    "assert fb[0]['label_row'] == 0\n" +
-    "assert fb[1]['label_row'] >= 1\n" +
-    "boxes_ok(fb)\n" +
+    "occ_slide = [{'left': 0.0, 'width': 50.0, 'start': 15 * 60 + 55, 'end': 16 * 60 + 30}]\n" +
+    "build.place_span_labels(slide, occ_slide)\n" +
+    "assert slide[0]['label_row'] == 0\n" +
+    "assert slide[1]['label_row'] == 1 and slide[1]['label_left'] >= 50.0 - 0.01\n" +
+    "boxes_ok(slide)\n" +
     "\n" +
     "# Adjacent bands (end == start) both row 0\n" +
     "adj = [\n" +
@@ -424,19 +448,26 @@ test("place_span_labels prefers side-by-side then next row", function () {
     "build.place_span_labels(adj, [])\n" +
     "assert adj[0]['label_row'] == 0 and adj[1]['label_row'] == 0\n" +
     "\n" +
-    "# Rendered HTML: live day labels + three-spans fixture\n" +
-    "day = build.load_json(build.PROJECT, 'samples', 'overlap-three-spans.json')\n" +
+    "# Live day + sample fixtures render expected rows\n" +
     "pack = build.load_json(build.DATA, 'members.json')\n" +
-    "html = build.render_day_page(day, pack)\n" +
-    "assert 'span-label' in html\n" +
-    "assert 'data-label-row=\"0\"' in html\n" +
-    "assert '>22:00</span>' in html\n" +
     "live_day = build.load_json(build.DATA, '2026-11-19.json')\n" +
     "fam = build.render_day_page(live_day, pack)\n" +
     "fam = fam[fam.find('data-mode=\"family\"'):fam.find('data-mode=\"member\"')]\n" +
     "assert 'Laskavá kavárna' in fam and 'Bertík oslava' in fam\n" +
-    "assert 'data-label-row=\"0\"' in fam\n" +
-    "assert 'left:75.000%' in fam or 'left:0.000%' in fam\n" +
+    "assert 'data-label-row=\"0\"' in fam and 'data-label-row=\"1\"' in fam\n" +
+    "no_prep = build.load_json(build.PROJECT, 'samples', '2026-11-19-no-prep.json')\n" +
+    "np_html = build.render_day_page(no_prep, pack)\n" +
+    "np_fam = np_html[np_html.find('data-mode=\"family\"'):np_html.find('data-mode=\"member\"')]\n" +
+    "assert 'data-label-row=\"0\"' in np_fam and 'data-label-row=\"1\"' in np_fam\n" +
+    "short_day = build.load_json(build.PROJECT, 'samples', 'overlap-short-span.json')\n" +
+    "short_html = build.render_day_page(short_day, pack)\n" +
+    "assert 'Krátka spoločná' in short_html and 'data-label-row=\"0\"' in short_html\n" +
+    "below_day = build.load_json(build.PROJECT, 'samples', 'overlap-personal-below.json')\n" +
+    "below_html = build.render_day_page(below_day, pack)\n" +
+    "assert 'Druhá spoločná' in below_html\n" +
+    "three = build.load_json(build.PROJECT, 'samples', 'overlap-three-spans.json')\n" +
+    "three_html = build.render_day_page(three, pack)\n" +
+    "assert 'span-label' in three_html and '>22:00</span>' in three_html\n" +
     "print('ok')\n";
   var out = cp.execFileSync("python3", ["-c", script], { encoding: "utf8" });
   assert.ok(out.indexOf("ok") !== -1);

@@ -278,14 +278,91 @@ def estimate_label_width_pct(ev, short=False):
     return min(100.0, 100.0 * w_px / SPAN_TRACK_PX)
 
 
-def place_span_labels(span_specs, lane_occ=None, min_width_pct=None):
-    """Place span labels: prefer side-by-side in row 0, then row 1, …
+def _span_label_ev(spec):
+    ev = spec.get("ev")
+    if isinstance(ev, dict):
+        return ev
+    return {
+        "title": spec.get("title") or "",
+        "start": "00:00",
+        "end": "01:00",
+    }
 
-    For each span (start order): try row 0 at the band top, then row 1, …
-    In each row pick the leftmost free horizontal gap inside the band that is
-    not covered by a lane event (in that vertical slot) or an already placed
-    label. Gap must be ≥ min_width_pct (~10 title chars). Label width is the
-    estimated text width, capped to the gap.
+
+def _label_slot(spec, row):
+    abs_top = spec["start"] + row * SPAN_LABEL_SLOT_MIN
+    abs_bot = abs_top + SPAN_LABEL_SLOT_MIN
+    return abs_top, abs_bot
+
+
+def _label_fits_in_band(spec, row):
+    """True when the full label height stays inside the span band."""
+    _top, abs_bot = _label_slot(spec, row)
+    return abs_bot <= spec["end"]
+
+
+def _lane_blockers(abs_top, abs_bot, band_left, band_width, lane_occ):
+    blockers = []
+    for occ in lane_occ:
+        if not spans_time_overlap(abs_top, abs_bot, occ["start"], occ["end"]):
+            continue
+        if not spans_horizontal_overlap(
+            band_left, band_width, occ["left"], occ["width"]
+        ):
+            continue
+        blockers.append((occ["left"], occ["left"] + occ["width"]))
+    return blockers
+
+
+def _label_blockers(abs_top, abs_bot, band_left, band_width, placed):
+    blockers = []
+    for ptop, pbot, pleft, pwidth in placed:
+        if not (abs_top < pbot and ptop < abs_bot):
+            continue
+        if not spans_horizontal_overlap(band_left, band_width, pleft, pwidth):
+            continue
+        blockers.append((pleft, pleft + pwidth))
+    return blockers
+
+
+def _pick_gap(gaps, needed, min_w, prefer_left=None):
+    """Return (left, width) from gaps, or None.
+
+    prefer_left: if set, only accept a gap that contains the home strip
+    starting at prefer_left. Otherwise leftmost usable gap.
+    """
+    for glo, ghi in gaps:
+        gap_w = ghi - glo
+        if gap_w + 0.01 < min_w:
+            continue
+        if prefer_left is not None:
+            # Home must lie inside this gap
+            if glo > prefer_left + 0.01 or ghi <= prefer_left + 0.01:
+                continue
+            left = prefer_left
+            width = min(needed, ghi - left)
+            if width + 0.01 < min_w:
+                continue
+            return left, width
+        width = min(needed, gap_w)
+        if width + 0.01 < min_w:
+            continue
+        return glo, width
+    return None
+
+
+def place_span_labels(span_specs, lane_occ=None, min_width_pct=None):
+    """Place span labels: stack DOWN first, sideways only as fallback.
+
+    For each span (start order):
+      1. Try row 0 at the band's left (text-width). If another label occupies
+         that home strip, try row 1, 2, … (original stacking).
+      2. A downward row is valid only if the full label height fits inside the
+         band AND the home strip is free of lane events (slide within the same
+         row into a ≥~10-char gap if a lane only partly blocks).
+      3. If no downward row works → sideways: lowest valid row, leftmost free
+         gap (not under lane events / other labels), text-sized.
+      4. Last resort: lowest in-band row (or 0), ellipsized, still no overlap.
     """
     lane_occ = lane_occ or []
     min_w = SPAN_MIN_LABEL_WIDTH_PCT if min_width_pct is None else min_width_pct
@@ -312,72 +389,108 @@ def place_span_labels(span_specs, lane_occ=None, min_width_pct=None):
     for i in order:
         spec = span_specs[i]
         band_left = spec["left"]
-        band_right = spec["left"] + spec["width"]
-        ev = spec.get("ev")
-        if not isinstance(ev, dict):
-            ev = {
-                "title": spec.get("title") or "",
-                "start": "00:00",
-                "end": "01:00",
-            }
-        needed = estimate_label_width_pct(ev, short=spec.get("short", False))
+        band_width = spec["width"]
+        band_right = band_left + band_width
+        needed = estimate_label_width_pct(
+            _span_label_ev(spec), short=spec.get("short", False)
+        )
         if needed < min_w:
             needed = min_w
+
+        def try_commit(row, left, width):
+            abs_top, abs_bot = _label_slot(spec, row)
+            spec["label_row"] = row
+            spec["label_left"] = left
+            spec["label_width"] = width
+            placed.append((abs_top, abs_bot, left, width))
+
         placed_ok = False
-        max_row = n + 3
+
+        # —— Phase 1: down-first at the home (left) strip ——
+        max_row = n + 4
         for row in range(max_row + 1):
-            abs_top = spec["start"] + row * SPAN_LABEL_SLOT_MIN
-            abs_bot = abs_top + SPAN_LABEL_SLOT_MIN
-            blockers = []
-            for occ in lane_occ:
-                if not spans_time_overlap(abs_top, abs_bot, occ["start"], occ["end"]):
-                    continue
-                if not spans_horizontal_overlap(
-                    band_left, spec["width"], occ["left"], occ["width"]
-                ):
-                    continue
-                blockers.append((occ["left"], occ["left"] + occ["width"]))
-            for ptop, pbot, pleft, pwidth in placed:
-                if not (abs_top < pbot and ptop < abs_bot):
-                    continue
-                if not spans_horizontal_overlap(
-                    band_left, spec["width"], pleft, pwidth
-                ):
-                    continue
-                blockers.append((pleft, pleft + pwidth))
-            gaps = free_intervals(band_left, band_right, blockers)
-            for glo, ghi in gaps:
-                gap_w = ghi - glo
-                if gap_w + 0.01 < min_w:
-                    continue
-                width = min(needed, gap_w)
-                if width + 0.01 < min_w:
-                    continue
-                spec["label_row"] = row
-                spec["label_left"] = glo
-                spec["label_width"] = width
-                placed.append((abs_top, abs_bot, glo, width))
+            if not _label_fits_in_band(spec, row):
+                break
+            abs_top, abs_bot = _label_slot(spec, row)
+            lane_b = _lane_blockers(
+                abs_top, abs_bot, band_left, band_width, lane_occ
+            )
+            label_b = _label_blockers(
+                abs_top, abs_bot, band_left, band_width, placed
+            )
+            # Home strip occupied by another label → stack further down.
+            home_hit_label = False
+            for lo, hi in label_b:
+                if lo < band_left + needed and hi > band_left:
+                    home_hit_label = True
+                    break
+            if home_hit_label:
+                continue
+            # Free gaps from lanes + labels; prefer placing at band_left.
+            gaps = free_intervals(band_left, band_right, lane_b + label_b)
+            pick = _pick_gap(gaps, needed, min_w, prefer_left=band_left)
+            if pick is None:
+                # Lane blocks home — slide within this row (still "down" phase).
+                pick = _pick_gap(gaps, needed, min_w, prefer_left=None)
+            if pick is not None:
+                try_commit(row, pick[0], pick[1])
                 placed_ok = True
                 break
-            if placed_ok:
-                break
+
+        # —— Phase 2: sideways (lowest row, leftmost free gap) ——
         if not placed_ok:
-            # Last resort: band-left at row 0 (should be rare)
-            spec["label_row"] = 0
-            spec["label_left"] = band_left
-            spec["label_width"] = max(min_w, min(needed, spec["width"]))
-            placed.append((
-                spec["start"],
-                spec["start"] + SPAN_LABEL_SLOT_MIN,
-                spec["label_left"],
-                spec["label_width"],
-            ))
+            rows_to_try = []
+            for row in range(max_row + 1):
+                if _label_fits_in_band(spec, row):
+                    rows_to_try.append(row)
+                else:
+                    # Short band: still allow row 0 sideways (may clip).
+                    if row == 0:
+                        rows_to_try.append(0)
+                    break
+            for row in rows_to_try:
+                abs_top, abs_bot = _label_slot(spec, row)
+                lane_b = _lane_blockers(
+                    abs_top, abs_bot, band_left, band_width, lane_occ
+                )
+                label_b = _label_blockers(
+                    abs_top, abs_bot, band_left, band_width, placed
+                )
+                gaps = free_intervals(band_left, band_right, lane_b + label_b)
+                pick = _pick_gap(gaps, needed, min_w, prefer_left=None)
+                if pick is not None:
+                    try_commit(row, pick[0], pick[1])
+                    placed_ok = True
+                    break
+
+        # —— Phase 3: last resort ——
+        if not placed_ok:
+            row = 0
+            for r in range(max_row + 1):
+                if _label_fits_in_band(spec, r):
+                    row = r
+                    break
+            abs_top, abs_bot = _label_slot(spec, row)
+            lane_b = _lane_blockers(
+                abs_top, abs_bot, band_left, band_width, lane_occ
+            )
+            label_b = _label_blockers(
+                abs_top, abs_bot, band_left, band_width, placed
+            )
+            gaps = free_intervals(band_left, band_right, lane_b + label_b)
+            pick = _pick_gap(gaps, needed, min_w, prefer_left=None)
+            if pick is None and gaps:
+                glo, ghi = gaps[0]
+                pick = (glo, max(min_w, min(needed, ghi - glo)))
+            if pick is None:
+                pick = (band_left, min(needed, band_width))
+            try_commit(row, pick[0], pick[1])
 
     return span_specs
 
 
-# Back-compat alias used by older tests / call sites during transition.
 def assign_span_label_rows(span_specs, lane_occ=None):
+    """Alias — same as place_span_labels (down-first)."""
     return place_span_labels(span_specs, lane_occ=lane_occ)
 
 
@@ -675,7 +788,7 @@ def family_calendar(day, people, start, end, family_info=None):
                 "title": e.get("title") or "",
             })
 
-    # Lane occupancy as % rectangles (equal columns) for gap-first placement.
+    # Lane occupancy as % rectangles (equal columns) for down-first placement.
     lane_occ = []
     col_w = 100.0 / n if n else 100.0
     for i, p in enumerate(people):

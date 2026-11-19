@@ -1,0 +1,115 @@
+{
+  "date": "2026-11-22",
+  "locale": "sk-SK",
+  "timezone": "Europe/Prague",
+  "now": "16:00",
+  "refresh_at": "06:30",
+  "weather": {
+    "sample": true,
+    "summary": "Polojasno",
+    "icon": "partly-cloudy",
+    "temp_high_c": 11,
+    "temp_low_c": 4
+  },
+  "timeline": {
+    "start": "07:00",
+    "end": "22:00"
+  },
+  "events": [
+    {
+      "id": "span-first",
+      "members": ["branislav", "zuzka", "andrej", "tomas"],
+      "title": "Prvá spoločná",
+      "start": "15:00",
+      "end": "18:00",
+      "all_day": false,
+      "status": "confirmed",
+      "flags": [],
+      "conflict_with": [],
+      "notes": [],
+      "reminders": []
+    },
+    {
+      "id": "span-second",
+      "members": ["branislav", "zuzka", "andrej", "tomas"],
+      "title": "Druhá spoločná",
+      "start": "15:01",
+      "end": "16:55",
+      "all_day": false,
+      "status": "confirmed",
+      "flags": [],
+      "conflict_with": [],
+      "notes": [
+        "Band fits row 0 + row 1 only; personal events occupy every lane in row 1."
+      ],
+      "reminders": []
+    },
+    {
+      "id": "lane-branislav",
+      "members": ["branislav"],
+      "title": "Osobné Braňo",
+      "start": "15:56",
+      "end": "16:55",
+      "all_day": false,
+      "status": "confirmed",
+      "flags": [],
+      "conflict_with": [],
+      "notes": [],
+      "reminders": []
+    },
+    {
+      "id": "lane-zuzka",
+      "members": ["zuzka"],
+      "title": "Osobné Zuzka",
+      "start": "15:56",
+      "end": "16:55",
+      "all_day": false,
+      "status": "confirmed",
+      "flags": [],
+      "conflict_with": [],
+      "notes": [],
+      "reminders": []
+    },
+    {
+      "id": "lane-andrej",
+      "members": ["andrej"],
+      "title": "Osobné Andrej",
+      "start": "15:56",
+      "end": "16:55",
+      "all_day": false,
+      "status": "confirmed",
+      "flags": [],
+      "conflict_with": [],
+      "notes": [],
+      "reminders": []
+    },
+    {
+      "id": "lane-tomas",
+      "members": ["tomas"],
+      "title": "Osobné Tomáš",
+      "start": "15:56",
+      "end": "16:55",
+      "all_day": false,
+      "status": "confirmed",
+      "flags": [],
+      "conflict_with": [],
+      "notes": [],
+      "reminders": []
+    }
+  ],
+  "sections": [
+    {
+      "id": "rodina",
+      "title": "Rodina",
+      "items": [
+        { "text": "Ukážka: osobné udalosti pod prvým labelom → druhý span ide sideways." }
+      ]
+    },
+    {
+      "id": "vyhlad",
+      "title": "Zajtra",
+      "outlook": { "from": "2026-11-23", "to": "2026-11-23" },
+      "items": [{ "text": "Nič naplánované." }]
+    }
+  ]
+}
