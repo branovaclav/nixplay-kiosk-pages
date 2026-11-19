@@ -203,21 +203,30 @@ def people_list(pack):
 TIMELINE_FLOOR_START = 7 * 60   # 07:00
 TIMELINE_CEIL_END = 22 * 60     # 22:00
 
-# Approx. one span label (time + title chip) in timeline-minutes on a
-# typical 07:00–22:00 track — used to avoid stacking labels that already
-# sit far enough apart vertically.
+# Approx. one span label (time + title) in timeline-minutes on a typical
+# 07:00–22:00 track — vertical slot for collision / free-gap checks.
 SPAN_LABEL_SLOT_MIN = 55
 
-# Pixel offset per label row inside an .is-span band (must match CSS
-# --span-label-row-h). Set as an explicit length for Chromium 81 — do not
-# rely on calc(var(--n) * 40px) alone.
+# Pixel offset per label row inside an .is-span band (Chromium 81-safe
+# inline margin-top; do not rely on calc(var(--n) * 40px) alone).
 SPAN_LABEL_ROW_PX = 44
 
 # Personal view: ostatní column is flex 0 0 102px; at frame width the focus
-# lane is ~68% of the span layer. Used only to dodge chips away from focus
-# lane events (bands still span 100%).
+# lane is ~68% of the span layer. Used to dodge chips away from focus events.
 MEMBER_FOCUS_WIDTH_PCT = 68.0
 MEMBER_OTHERS_WIDTH_PCT = 32.0
+
+# Text-width estimate for span labels on the 1024×768 frame (span layer ~520px).
+SPAN_TRACK_PX = 520.0
+SPAN_TITLE_CHAR_PX = 10.0   # ~18px bold Inter
+SPAN_TIME_CHAR_PX = 8.0     # ~14px tabular
+SPAN_LABEL_PAD_PX = 14.0
+# Gap must fit at least this many title characters (ellipsis OK beyond that).
+SPAN_MIN_LABEL_CHARS = 10
+SPAN_MIN_LABEL_WIDTH_PCT = (
+    100.0 * (SPAN_MIN_LABEL_CHARS * SPAN_TITLE_CHAR_PX + SPAN_LABEL_PAD_PX)
+    / SPAN_TRACK_PX
+)  # ≈ 22%
 
 
 def timeline_bounds(day):
@@ -256,19 +265,37 @@ def spans_horizontal_overlap(a_left, a_width, b_left, b_width):
     return a_left < b_left + b_width and b_left < a_left + a_width
 
 
-def assign_span_label_rows(span_specs):
-    """Mutate span_specs with label_row so span labels never collide.
+def estimate_label_width_pct(ev, short=False):
+    """Estimated label width as % of the span layer (text box, not the band)."""
+    title = ev.get("title") or ""
+    title_px = len(title) * SPAN_TITLE_CHAR_PX
+    if short:
+        w_px = title_px + SPAN_LABEL_PAD_PX
+    else:
+        time_s = fmt_range(ev)
+        time_px = len(time_s) * SPAN_TIME_CHAR_PX
+        w_px = max(time_px, title_px) + SPAN_LABEL_PAD_PX
+    return min(100.0, 100.0 * w_px / SPAN_TRACK_PX)
 
-    Greedy by start time: each label sits at band_start + row*SLOT.
-    A row is taken only when that absolute slot collides with an already
-    placed label that also overlaps horizontally. Adjacent bands
-    (end == other start) normally keep row 0; if an earlier stacked label
-    still reaches into the next band's top, the later label bumps down.
+
+def place_span_labels(span_specs, lane_occ=None, min_width_pct=None):
+    """Place span labels: prefer side-by-side in row 0, then row 1, …
+
+    For each span (start order): try row 0 at the band top, then row 1, …
+    In each row pick the leftmost free horizontal gap inside the band that is
+    not covered by a lane event (in that vertical slot) or an already placed
+    label. Gap must be ≥ min_width_pct (~10 title chars). Label width is the
+    estimated text width, capped to the gap.
     """
+    lane_occ = lane_occ or []
+    min_w = SPAN_MIN_LABEL_WIDTH_PCT if min_width_pct is None else min_width_pct
     n = len(span_specs)
     for spec in span_specs:
         spec["label_row"] = 0
-    if n <= 1:
+        spec["label_left"] = spec["left"]
+        spec["label_width"] = spec["width"]
+
+    if not span_specs:
         return span_specs
 
     order = sorted(
@@ -280,30 +307,78 @@ def assign_span_label_rows(span_specs):
             i,
         ),
     )
-    # (abs_top, abs_bot, left, width)
+    # Placed labels: (abs_top, abs_bot, left, width)
     placed = []
     for i in order:
         spec = span_specs[i]
-        row = 0
-        while True:
+        band_left = spec["left"]
+        band_right = spec["left"] + spec["width"]
+        ev = spec.get("ev")
+        if not isinstance(ev, dict):
+            ev = {
+                "title": spec.get("title") or "",
+                "start": "00:00",
+                "end": "01:00",
+            }
+        needed = estimate_label_width_pct(ev, short=spec.get("short", False))
+        if needed < min_w:
+            needed = min_w
+        placed_ok = False
+        max_row = n + 3
+        for row in range(max_row + 1):
             abs_top = spec["start"] + row * SPAN_LABEL_SLOT_MIN
             abs_bot = abs_top + SPAN_LABEL_SLOT_MIN
-            conflict = False
-            for ptop, pbot, pleft, pwidth in placed:
+            blockers = []
+            for occ in lane_occ:
+                if not spans_time_overlap(abs_top, abs_bot, occ["start"], occ["end"]):
+                    continue
                 if not spans_horizontal_overlap(
-                    spec["left"], spec["width"], pleft, pwidth
+                    band_left, spec["width"], occ["left"], occ["width"]
                 ):
                     continue
-                if abs_top < pbot and ptop < abs_bot:
-                    conflict = True
-                    break
-            if not conflict or row > n + 2:
+                blockers.append((occ["left"], occ["left"] + occ["width"]))
+            for ptop, pbot, pleft, pwidth in placed:
+                if not (abs_top < pbot and ptop < abs_bot):
+                    continue
+                if not spans_horizontal_overlap(
+                    band_left, spec["width"], pleft, pwidth
+                ):
+                    continue
+                blockers.append((pleft, pleft + pwidth))
+            gaps = free_intervals(band_left, band_right, blockers)
+            for glo, ghi in gaps:
+                gap_w = ghi - glo
+                if gap_w + 0.01 < min_w:
+                    continue
+                width = min(needed, gap_w)
+                if width + 0.01 < min_w:
+                    continue
                 spec["label_row"] = row
-                placed.append((abs_top, abs_bot, spec["left"], spec["width"]))
+                spec["label_left"] = glo
+                spec["label_width"] = width
+                placed.append((abs_top, abs_bot, glo, width))
+                placed_ok = True
                 break
-            row += 1
+            if placed_ok:
+                break
+        if not placed_ok:
+            # Last resort: band-left at row 0 (should be rare)
+            spec["label_row"] = 0
+            spec["label_left"] = band_left
+            spec["label_width"] = max(min_w, min(needed, spec["width"]))
+            placed.append((
+                spec["start"],
+                spec["start"] + SPAN_LABEL_SLOT_MIN,
+                spec["label_left"],
+                spec["label_width"],
+            ))
 
     return span_specs
+
+
+# Back-compat alias used by older tests / call sites during transition.
+def assign_span_label_rows(span_specs, lane_occ=None):
+    return place_span_labels(span_specs, lane_occ=lane_occ)
 
 
 def pct(minute, start, end):
@@ -488,43 +563,6 @@ def free_intervals(lo, hi, blockers):
     return gaps
 
 
-def avoid_lane_events_for_labels(span_specs, lane_occ, min_width_pct=22.0):
-    """Place each label chip in a free horizontal gap inside its band.
-
-    Lane events are often translucent when past (opacity), so a chip sitting
-    under a lane still *looks* like it covers the event. Prefer a free lane;
-    if none is wide enough, keep the band-wide chip (z-order still under lanes).
-    Mutates spec['label_left'] / spec['label_width'].
-    """
-    for spec in span_specs:
-        band_left = spec["left"]
-        band_right = spec["left"] + spec["width"]
-        spec["label_left"] = band_left
-        spec["label_width"] = spec["width"]
-        row = spec.get("label_row", 0)
-        lab_start = spec["start"] + row * SPAN_LABEL_SLOT_MIN
-        lab_end = lab_start + SPAN_LABEL_SLOT_MIN
-        blockers = []
-        for occ in lane_occ:
-            if not spans_time_overlap(lab_start, lab_end, occ["start"], occ["end"]):
-                continue
-            if not spans_horizontal_overlap(
-                band_left, spec["width"], occ["left"], occ["width"]
-            ):
-                continue
-            blockers.append((occ["left"], occ["left"] + occ["width"]))
-        if not blockers:
-            continue
-        gaps = free_intervals(band_left, band_right, blockers)
-        # Prefer the widest gap that is still usable for a chip
-        usable = [(a, b) for a, b in gaps if (b - a) >= min_width_pct - 0.01]
-        if not usable:
-            continue
-        lo, hi = max(usable, key=lambda g: (g[1] - g[0], -g[0]))
-        spec["label_left"] = lo
-        spec["label_width"] = hi - lo
-
-
 def render_span_layer(span_specs):
     """Bands first, then label chips — chips paint above bands, under lanes."""
     bands = [
@@ -637,8 +675,7 @@ def family_calendar(day, people, start, end, family_info=None):
                 "title": e.get("title") or "",
             })
 
-    assign_span_label_rows(span_specs)
-    # Lane occupancy as % rectangles (equal columns) so chips can dodge events.
+    # Lane occupancy as % rectangles (equal columns) for gap-first placement.
     lane_occ = []
     col_w = 100.0 / n if n else 100.0
     for i, p in enumerate(people):
@@ -648,7 +685,7 @@ def family_calendar(day, people, start, end, family_info=None):
             lane_occ.append({
                 "left": i * col_w, "width": col_w, "start": s, "end": ee,
             })
-    avoid_lane_events_for_labels(span_specs, lane_occ)
+    place_span_labels(span_specs, lane_occ)
     span_blocks = render_span_layer(span_specs)
 
     cols = []
@@ -737,7 +774,6 @@ def member_calendar(day, people, focus_id, start, end, family_info=None):
         else:
             other_unique.append(e)
 
-    assign_span_label_rows(span_specs)
     lane_occ = []
     for e in focus_ev:
         s = parse_hhmm(e["start"])
@@ -753,8 +789,12 @@ def member_calendar(day, people, focus_id, start, end, family_info=None):
             "left": MEMBER_FOCUS_WIDTH_PCT, "width": MEMBER_OTHERS_WIDTH_PCT,
             "start": s, "end": ee,
         })
-    # Allow a narrower chip in the ostatní column (~32%).
-    avoid_lane_events_for_labels(span_specs, lane_occ, min_width_pct=18.0)
+    # Ostatní is ~32% — allow gaps down to ~10 title chars (~22% default is fine;
+    # pass a slightly lower floor so a single ostatní column still counts).
+    place_span_labels(
+        span_specs, lane_occ,
+        min_width_pct=min(SPAN_MIN_LABEL_WIDTH_PCT, MEMBER_OTHERS_WIDTH_PCT - 0.5),
+    )
     span_blocks = render_span_layer(span_specs)
 
     def focus_color(ev):

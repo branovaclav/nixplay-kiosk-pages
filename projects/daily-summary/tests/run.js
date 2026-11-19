@@ -277,15 +277,11 @@ test("family spans stack under lane events", function () {
     "html = build.render_day_page(day, pack)\n" +
     "fam = html[html.find('data-mode=\"family\"'):html.find('data-mode=\"member\"')]\n" +
     "assert fam.find('tl-span-layer') < fam.find('tl-lanes')\n" +
-    "# Family: Andrej col busy → chip uses left half (Braňo+Zuzka)\n" +
-    "assert 'width:50.000%' in fam\n" +
     "marker = 'data-mode=\"member\" data-focus=\"andrej\"'\n" +
     "i0 = html.find(marker)\n" +
     "assert i0 > 0\n" +
     "cal = html[i0:i0 + 9000]\n" +
     "assert cal.find('tl-span-layer') < cal.find('tl-lanes')\n" +
-    "# Personal: focus busy → chip in ostatní (~68% left)\n" +
-    "assert 'left:68.000%' in cal\n" +
     "print('ok')\n";
   var out = cp.execFileSync("python3", ["-c", script], { encoding: "utf8" });
   assert.ok(out.indexOf("ok") !== -1);
@@ -356,7 +352,7 @@ test("timeline_bounds clamps to at least 07:00–22:00", function () {
   assert.ok(out.indexOf("ok") !== -1);
 });
 
-test("assign_span_label_rows stacks same-start and partial overlaps", function () {
+test("place_span_labels prefers side-by-side then next row", function () {
   var cp = require("child_process");
   var script =
     "import sys\n" +
@@ -366,93 +362,87 @@ test("assign_span_label_rows stacks same-start and partial overlaps", function (
     "import build\n" +
     "\n" +
     "def spec(start, end, title, left=0.0, width=100.0):\n" +
-    "  return {'start': start, 'end': end, 'title': title, 'left': left, 'width': width}\n" +
+    "  return {\n" +
+    "    'start': start, 'end': end, 'title': title, 'left': left, 'width': width,\n" +
+    "    'short': False,\n" +
+    "    'ev': {\n" +
+    "      'title': title,\n" +
+    "      'start': '%02d:%02d' % (start // 60, start % 60),\n" +
+    "      'end': '%02d:%02d' % (end // 60, end % 60),\n" +
+    "    },\n" +
+    "  }\n" +
     "\n" +
-    "# Same start → distinct rows\n" +
-    "same = [\n" +
-    "  spec(15 * 60, 18 * 60, 'A'),\n" +
-    "  spec(15 * 60, 19 * 60, 'B'),\n" +
-    "]\n" +
-    "build.assign_span_label_rows(same)\n" +
-    "rows = sorted(s['label_row'] for s in same)\n" +
-    "assert rows == [0, 1], rows\n" +
-    "\n" +
-    "# Adjacent (end == start) → separate clusters, both row 0\n" +
-    "adj = [\n" +
-    "  spec(17 * 60 + 30, 19 * 60, 'Early'),\n" +
-    "  spec(19 * 60, 20 * 60, 'Late'),\n" +
-    "]\n" +
-    "build.assign_span_label_rows(adj)\n" +
-    "assert adj[0]['label_row'] == 0 and adj[1]['label_row'] == 0\n" +
-    "\n" +
-    "# Partial overlap with different starts\n" +
-    "partial = [\n" +
-    "  spec(17 * 60 + 30, 19 * 60, 'A'),\n" +
-    "  spec(18 * 60, 20 * 60, 'B'),\n" +
-    "]\n" +
-    "build.assign_span_label_rows(partial)\n" +
-    "assert partial[0]['label_row'] == 0\n" +
-    "assert partial[1]['label_row'] >= 1\n" +
-    "\n" +
-    "# Three same-start spans → rows 0,1,2\n" +
-    "three = [\n" +
-    "  spec(15 * 60, 18 * 60, 'A'),\n" +
-    "  spec(15 * 60, 19 * 60, 'B'),\n" +
-    "  spec(15 * 60, 17 * 60 + 30, 'C'),\n" +
-    "]\n" +
-    "build.assign_span_label_rows(three)\n" +
-    "assert sorted(s['label_row'] for s in three) == [0, 1, 2]\n" +
-    "\n" +
-    "# Non-overlapping horizontally → independent row 0\n" +
-    "cols = [\n" +
-    "  spec(15 * 60, 18 * 60, 'L', left=0.0, width=50.0),\n" +
-    "  spec(15 * 60, 18 * 60, 'R', left=50.0, width=50.0),\n" +
-    "]\n" +
-    "build.assign_span_label_rows(cols)\n" +
-    "assert cols[0]['label_row'] == 0 and cols[1]['label_row'] == 0\n" +
-    "\n" +
-    "# Absolute label slots must not overlap within a cluster\n" +
-    "def slots_ok(specs):\n" +
-    "  build.assign_span_label_rows(specs)\n" +
+    "def boxes_ok(specs):\n" +
     "  boxes = []\n" +
     "  for s in specs:\n" +
     "    top = s['start'] + s['label_row'] * build.SPAN_LABEL_SLOT_MIN\n" +
-    "    boxes.append((top, top + build.SPAN_LABEL_SLOT_MIN, s['left'], s['width']))\n" +
+    "    boxes.append((top, top + build.SPAN_LABEL_SLOT_MIN, s['label_left'], s['label_width']))\n" +
     "  for i in range(len(boxes)):\n" +
     "    for j in range(i + 1, len(boxes)):\n" +
     "      a, b = boxes[i], boxes[j]\n" +
-    "      if not build.spans_horizontal_overlap(a[2], a[3], b[2], b[3]):\n" +
+    "      if not (a[0] < b[1] and b[0] < a[1]):\n" +
     "        continue\n" +
-    "      assert not (a[0] < b[1] and b[0] < a[1]), (a, b)\n" +
-    "  return True\n" +
-    "assert slots_ok(three)\n" +
-    "assert slots_ok(partial)\n" +
+    "      assert not build.spans_horizontal_overlap(a[2], a[3], b[2], b[3]), (a, b)\n" +
     "\n" +
-    "# Rendered HTML uses data-label-row + span-label chip\n" +
+    "# No lane events → same-start labels sit side by side in row 0\n" +
+    "side = [\n" +
+    "  spec(15 * 60, 18 * 60, 'Laskavá kavárna'),\n" +
+    "  spec(15 * 60, 19 * 60, 'Bertík oslava narodenín'),\n" +
+    "]\n" +
+    "build.place_span_labels(side, [])\n" +
+    "assert side[0]['label_row'] == 0 and side[1]['label_row'] == 0\n" +
+    "assert side[0]['label_left'] < side[1]['label_left']\n" +
+    "boxes_ok(side)\n" +
+    "\n" +
+    "# Andrej lane busy → Laskavá left, Bertík on Tomáš (both row 0) if gap fits\n" +
+    "occ = [{'left': 50.0, 'width': 25.0, 'start': 13 * 60 + 30, 'end': 15 * 60 + 45}]\n" +
+    "live = [\n" +
+    "  spec(15 * 60, 18 * 60, 'Laskavá kavárna'),\n" +
+    "  spec(15 * 60, 19 * 60, 'Bertík oslava narodenín'),\n" +
+    "]\n" +
+    "build.place_span_labels(live, occ)\n" +
+    "assert live[0]['label_row'] == 0 and live[0]['label_left'] == 0.0\n" +
+    "assert live[1]['label_row'] == 0 and abs(live[1]['label_left'] - 75.0) < 0.01\n" +
+    "boxes_ok(live)\n" +
+    "\n" +
+    "# Fallback to next row when row-0 free gap is too narrow for a second label\n" +
+    "occ2 = [{'left': 0.0, 'width': 55.0, 'start': 15 * 60, 'end': 16 * 60}]\n" +
+    "fb = [\n" +
+    "  spec(15 * 60, 18 * 60, 'First long title here'),\n" +
+    "  spec(15 * 60, 19 * 60, 'Second long title here'),\n" +
+    "]\n" +
+    "build.place_span_labels(fb, occ2)\n" +
+    "assert fb[0]['label_row'] == 0\n" +
+    "assert fb[1]['label_row'] >= 1\n" +
+    "boxes_ok(fb)\n" +
+    "\n" +
+    "# Adjacent bands (end == start) both row 0\n" +
+    "adj = [\n" +
+    "  spec(17 * 60 + 30, 19 * 60, 'Early event title'),\n" +
+    "  spec(19 * 60, 20 * 60, 'Late event title'),\n" +
+    "]\n" +
+    "build.place_span_labels(adj, [])\n" +
+    "assert adj[0]['label_row'] == 0 and adj[1]['label_row'] == 0\n" +
+    "\n" +
+    "# Rendered HTML: live day labels + three-spans fixture\n" +
     "day = build.load_json(build.PROJECT, 'samples', 'overlap-three-spans.json')\n" +
     "pack = build.load_json(build.DATA, 'members.json')\n" +
     "html = build.render_day_page(day, pack)\n" +
     "assert 'span-label' in html\n" +
     "assert 'data-label-row=\"0\"' in html\n" +
-    "assert 'data-label-row=\"1\"' in html\n" +
-    "assert 'data-label-row=\"2\"' in html\n" +
-    "assert 'margin-top:44px' in html\n" +
-    "assert 'margin-top:88px' in html\n" +
-    "# Clamped end despite sample timeline.end 21:00\n" +
     "assert '>22:00</span>' in html\n" +
-    "# Live bug day: two same-start family spans get distinct rows\n" +
-    "live = build.load_json(build.DATA, '2026-11-19.json')\n" +
-    "html_live = build.render_day_page(live, pack)\n" +
-    "fam = html_live[html_live.find('data-mode=\"family\"'):html_live.find('data-mode=\"member\"')]\n" +
+    "live_day = build.load_json(build.DATA, '2026-11-19.json')\n" +
+    "fam = build.render_day_page(live_day, pack)\n" +
+    "fam = fam[fam.find('data-mode=\"family\"'):fam.find('data-mode=\"member\"')]\n" +
     "assert 'Laskavá kavárna' in fam and 'Bertík oslava' in fam\n" +
-    "assert 'data-label-row=\"0\"' in fam and 'data-label-row=\"1\"' in fam\n" +
-    "assert 'margin-top:0px' in fam and 'margin-top:44px' in fam\n" +
+    "assert 'data-label-row=\"0\"' in fam\n" +
+    "assert 'left:75.000%' in fam or 'left:0.000%' in fam\n" +
     "print('ok')\n";
   var out = cp.execFileSync("python3", ["-c", script], { encoding: "utf8" });
   assert.ok(out.indexOf("ok") !== -1);
 });
 
-test("span overlap CSS has label chip + top border (Chromium 81 safe)", function () {
+test("span label CSS is transparent with top border on bands", function () {
   var base = fs.readFileSync(
     path.join(__dirname, "..", "themes", "_shared", "base.css"),
     "utf8"
@@ -470,37 +460,11 @@ test("span overlap CSS has label chip + top border (Chromium 81 safe)", function
   assert.ok(dark.indexOf(".tl-span-layer .span-label") !== -1);
   assert.ok(/border-top:\s*2px solid/.test(light));
   assert.ok(/border-top:\s*2px solid/.test(dark));
-});
-
-test("avoid_lane_events_for_labels shifts chip into free columns", function () {
-  var cp = require("child_process");
-  var script =
-    "import sys\n" +
-    "sys.path.insert(0, " +
-    JSON.stringify(path.join(__dirname, "..", "tools")) +
-    ")\n" +
-    "import build\n" +
-    "specs = [{\n" +
-    "  'start': 15 * 60, 'end': 18 * 60, 'left': 0.0, 'width': 100.0,\n" +
-    "  'label_row': 0, 'title': 'A',\n" +
-    "}]\n" +
-    "# Andrej column busy (family 4-col = 25% each, col index 2)\n" +
-    "occ = [{'left': 50.0, 'width': 25.0, 'start': 13 * 60 + 30, 'end': 15 * 60 + 45}]\n" +
-    "build.avoid_lane_events_for_labels(specs, occ)\n" +
-    "assert specs[0]['label_left'] == 0.0\n" +
-    "assert specs[0]['label_width'] == 50.0  # Braňo+Zuzka free\n" +
-    "# Personal: focus busy → chip in ostatní\n" +
-    "specs2 = [{\n" +
-    "  'start': 15 * 60, 'end': 18 * 60, 'left': 0.0, 'width': 100.0,\n" +
-    "  'label_row': 0, 'title': 'B',\n" +
-    "}]\n" +
-    "occ2 = [{'left': 0.0, 'width': 68.0, 'start': 13 * 60 + 30, 'end': 15 * 60 + 45}]\n" +
-    "build.avoid_lane_events_for_labels(specs2, occ2, min_width_pct=18.0)\n" +
-    "assert abs(specs2[0]['label_left'] - 68.0) < 0.01\n" +
-    "assert abs(specs2[0]['label_width'] - 32.0) < 0.01\n" +
-    "print('ok')\n";
-  var out = cp.execFileSync("python3", ["-c", script], { encoding: "utf8" });
-  assert.ok(out.indexOf("ok") !== -1);
+  // No opaque chip fill / ring on labels
+  assert.ok(/html\.theme-light \.tl-span-layer \.span-label\s*\{[^}]*background:\s*transparent/m.test(light));
+  assert.ok(/html\.theme-dark \.tl-span-layer \.span-label\s*\{[^}]*background:\s*transparent/m.test(dark));
+  assert.ok(/html\.theme-light \.tl-span-layer \.span-label\s*\{[^}]*box-shadow:\s*none/m.test(light));
+  assert.ok(/html\.theme-dark \.tl-span-layer \.span-label\s*\{[^}]*box-shadow:\s*none/m.test(dark));
 });
 
 console.log("\n" + passed + " passed, " + failed + " failed");

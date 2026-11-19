@@ -856,18 +856,21 @@ body[data-view="tomas"] .calendar-member[data-focus="tomas"] {
   color: transparent;
 }
 
-/* Label chips sit AFTER all bands in .tl-span-layer (above bands) but the
-   whole span layer is under .tl-lanes — lane events always win. */
+/* Labels sit AFTER all bands in .tl-span-layer (above bands) but the whole
+   span layer is under .tl-lanes — lane events always win. No chip fill:
+   text sits on the translucent band (theme sets ink colours). */
 .tl-span-layer .span-label {
   position: absolute;
   z-index: 2;
   box-sizing: border-box;
-  padding: 2px 6px;
-  border-radius: 4px;
+  padding: 1px 4px 1px 2px;
+  border-radius: 0;
   overflow: hidden;
   pointer-events: none;
   line-height: 1.15;
   font-size: var(--fs-ev);
+  background: transparent;
+  box-shadow: none;
 }
 
 .tl-span-layer .span-label .ev-time,
