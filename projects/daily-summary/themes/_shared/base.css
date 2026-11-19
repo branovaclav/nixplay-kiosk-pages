@@ -743,8 +743,9 @@ body[data-view="tomas"] .calendar-member[data-focus="tomas"] {
 
 .tl-hours { z-index: 1; }
 
-/* Family spans sit BEHIND single-lane events so overlaps stay readable;
-   the span title remains visible in free lanes. */
+/* Family spans (bands + label chips) sit BEHIND lane events.
+   Stack: hours(1) < span-layer(2) < lanes(3) < now(6).
+   DOM also puts .tl-span-layer before .tl-lanes as a belt-and-braces. */
 .tl-span-layer {
   left: 52px;
   pointer-events: none;
@@ -855,11 +856,11 @@ body[data-view="tomas"] .calendar-member[data-focus="tomas"] {
   color: transparent;
 }
 
-/* Label chips sit AFTER all bands in .tl-span-layer so they paint above every
-   translucent fill. Inline top/left/width/margin-top from build.py. */
+/* Label chips sit AFTER all bands in .tl-span-layer (above bands) but the
+   whole span layer is under .tl-lanes — lane events always win. */
 .tl-span-layer .span-label {
   position: absolute;
-  z-index: 4;
+  z-index: 2;
   box-sizing: border-box;
   padding: 2px 6px;
   border-radius: 4px;

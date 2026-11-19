@@ -213,6 +213,12 @@ SPAN_LABEL_SLOT_MIN = 55
 # rely on calc(var(--n) * 40px) alone.
 SPAN_LABEL_ROW_PX = 44
 
+# Personal view: ostatní column is flex 0 0 102px; at frame width the focus
+# lane is ~68% of the span layer. Used only to dodge chips away from focus
+# lane events (bands still span 100%).
+MEMBER_FOCUS_WIDTH_PCT = 68.0
+MEMBER_OTHERS_WIDTH_PCT = 32.0
+
 
 def timeline_bounds(day):
     """Return (start_min, end_min) for the track.
@@ -451,8 +457,76 @@ def span_label_html(ev, cinfo, top, left_pct, width_pct, label_row=0, short=Fals
     )
 
 
+def merge_intervals(intervals):
+    """Merge overlapping [lo, hi) intervals; return sorted list."""
+    if not intervals:
+        return []
+    items = sorted(intervals)
+    out = [list(items[0])]
+    for lo, hi in items[1:]:
+        if lo <= out[-1][1]:
+            out[-1][1] = max(out[-1][1], hi)
+        else:
+            out.append([lo, hi])
+    return [(a, b) for a, b in out]
+
+
+def free_intervals(lo, hi, blockers):
+    """Gaps in [lo, hi] not covered by merged blockers."""
+    gaps = []
+    cursor = lo
+    for blo, bhi in merge_intervals(blockers):
+        if bhi <= lo or blo >= hi:
+            continue
+        blo = max(blo, lo)
+        bhi = min(bhi, hi)
+        if blo > cursor:
+            gaps.append((cursor, blo))
+        cursor = max(cursor, bhi)
+    if cursor < hi:
+        gaps.append((cursor, hi))
+    return gaps
+
+
+def avoid_lane_events_for_labels(span_specs, lane_occ, min_width_pct=22.0):
+    """Place each label chip in a free horizontal gap inside its band.
+
+    Lane events are often translucent when past (opacity), so a chip sitting
+    under a lane still *looks* like it covers the event. Prefer a free lane;
+    if none is wide enough, keep the band-wide chip (z-order still under lanes).
+    Mutates spec['label_left'] / spec['label_width'].
+    """
+    for spec in span_specs:
+        band_left = spec["left"]
+        band_right = spec["left"] + spec["width"]
+        spec["label_left"] = band_left
+        spec["label_width"] = spec["width"]
+        row = spec.get("label_row", 0)
+        lab_start = spec["start"] + row * SPAN_LABEL_SLOT_MIN
+        lab_end = lab_start + SPAN_LABEL_SLOT_MIN
+        blockers = []
+        for occ in lane_occ:
+            if not spans_time_overlap(lab_start, lab_end, occ["start"], occ["end"]):
+                continue
+            if not spans_horizontal_overlap(
+                band_left, spec["width"], occ["left"], occ["width"]
+            ):
+                continue
+            blockers.append((occ["left"], occ["left"] + occ["width"]))
+        if not blockers:
+            continue
+        gaps = free_intervals(band_left, band_right, blockers)
+        # Prefer the widest gap that is still usable for a chip
+        usable = [(a, b) for a, b in gaps if (b - a) >= min_width_pct - 0.01]
+        if not usable:
+            continue
+        lo, hi = max(usable, key=lambda g: (g[1] - g[0], -g[0]))
+        spec["label_left"] = lo
+        spec["label_width"] = hi - lo
+
+
 def render_span_layer(span_specs):
-    """Bands first, then label chips — chips must paint above every band."""
+    """Bands first, then label chips — chips paint above bands, under lanes."""
     bands = [
         event_block_html(
             spec["ev"], spec["cinfo"], spec["top"], spec["height"],
@@ -465,7 +539,8 @@ def render_span_layer(span_specs):
     labels = [
         span_label_html(
             spec["ev"], spec["cinfo"], spec["top"],
-            spec["left"], spec["width"],
+            spec.get("label_left", spec["left"]),
+            spec.get("label_width", spec["width"]),
             label_row=spec.get("label_row", 0),
             short=spec["short"],
         )
@@ -563,6 +638,17 @@ def family_calendar(day, people, start, end, family_info=None):
             })
 
     assign_span_label_rows(span_specs)
+    # Lane occupancy as % rectangles (equal columns) so chips can dodge events.
+    lane_occ = []
+    col_w = 100.0 / n if n else 100.0
+    for i, p in enumerate(people):
+        for e in col_events[p["id"]]:
+            s = parse_hhmm(e["start"])
+            ee = parse_hhmm(e.get("end")) or (s + 30)
+            lane_occ.append({
+                "left": i * col_w, "width": col_w, "start": s, "end": ee,
+            })
+    avoid_lane_events_for_labels(span_specs, lane_occ)
     span_blocks = render_span_layer(span_specs)
 
     cols = []
@@ -580,14 +666,15 @@ def family_calendar(day, people, start, end, family_info=None):
         '<span class="tl-now-label">teraz</span></div>'
     )
 
+    # Span layer BEFORE lanes in DOM + lower z-index → bands < chips < lane events.
     return f"""
 <div class="calendar calendar-family" data-mode="family">
   <div class="lane-heads lane-heads-4">{"".join(heads)}</div>
   <div class="tl-body">
     <div class="tl-track">
       <div class="tl-hours">{"".join(lines)}</div>
-      <div class="tl-lanes tl-lanes-4">{"".join(cols)}</div>
       <div class="tl-span-layer">{"".join(span_blocks)}</div>
+      <div class="tl-lanes tl-lanes-4">{"".join(cols)}</div>
       {now_html}
     </div>
   </div>
@@ -651,6 +738,23 @@ def member_calendar(day, people, focus_id, start, end, family_info=None):
             other_unique.append(e)
 
     assign_span_label_rows(span_specs)
+    lane_occ = []
+    for e in focus_ev:
+        s = parse_hhmm(e["start"])
+        ee = parse_hhmm(e.get("end")) or (s + 30)
+        lane_occ.append({
+            "left": 0.0, "width": MEMBER_FOCUS_WIDTH_PCT,
+            "start": s, "end": ee,
+        })
+    for e in other_unique:
+        s = parse_hhmm(e["start"])
+        ee = parse_hhmm(e.get("end")) or (s + 30)
+        lane_occ.append({
+            "left": MEMBER_FOCUS_WIDTH_PCT, "width": MEMBER_OTHERS_WIDTH_PCT,
+            "start": s, "end": ee,
+        })
+    # Allow a narrower chip in the ostatní column (~32%).
+    avoid_lane_events_for_labels(span_specs, lane_occ, min_width_pct=18.0)
     span_blocks = render_span_layer(span_specs)
 
     def focus_color(ev):
@@ -668,17 +772,18 @@ def member_calendar(day, people, focus_id, start, end, family_info=None):
         '<span class="tl-now-label">teraz</span></div>'
     )
 
+    # Span layer BEFORE lanes — chips must never paint over lane events.
     return f"""
 <div class="calendar calendar-member" data-mode="member" data-focus="{esc(focus_id)}">
   <div class="lane-heads lane-heads-2">{heads}</div>
   <div class="tl-body">
     <div class="tl-track">
       <div class="tl-hours">{"".join(lines)}</div>
+      <div class="tl-span-layer">{"".join(span_blocks)}</div>
       <div class="tl-lanes tl-lanes-2">
         <div class="lane-col lane-col-focus" style="{style_m(focus)}">{"".join(focus_blocks)}</div>
         <div class="lane-col lane-col-others">{"".join(other_blocks)}</div>
       </div>
-      <div class="tl-span-layer">{"".join(span_blocks)}</div>
       {now_html}
     </div>
   </div>

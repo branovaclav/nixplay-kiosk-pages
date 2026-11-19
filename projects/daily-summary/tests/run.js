@@ -264,6 +264,31 @@ test("family spans stack under lane events", function () {
   );
   assert.ok(light.indexOf("background-color: #fff") !== -1);
   assert.ok(light.indexOf(".event-block.is-span") !== -1);
+  // DOM: span layer before lanes (belt-and-braces with z-index).
+  var cp = require("child_process");
+  var script =
+    "import sys,re\n" +
+    "sys.path.insert(0, " +
+    JSON.stringify(path.join(__dirname, "..", "tools")) +
+    ")\n" +
+    "import build\n" +
+    "day = build.load_json(build.DATA, '2026-11-19.json')\n" +
+    "pack = build.load_json(build.DATA, 'members.json')\n" +
+    "html = build.render_day_page(day, pack)\n" +
+    "fam = html[html.find('data-mode=\"family\"'):html.find('data-mode=\"member\"')]\n" +
+    "assert fam.find('tl-span-layer') < fam.find('tl-lanes')\n" +
+    "# Family: Andrej col busy → chip uses left half (Braňo+Zuzka)\n" +
+    "assert 'width:50.000%' in fam\n" +
+    "marker = 'data-mode=\"member\" data-focus=\"andrej\"'\n" +
+    "i0 = html.find(marker)\n" +
+    "assert i0 > 0\n" +
+    "cal = html[i0:i0 + 9000]\n" +
+    "assert cal.find('tl-span-layer') < cal.find('tl-lanes')\n" +
+    "# Personal: focus busy → chip in ostatní (~68% left)\n" +
+    "assert 'left:68.000%' in cal\n" +
+    "print('ok')\n";
+  var out = cp.execFileSync("python3", ["-c", script], { encoding: "utf8" });
+  assert.ok(out.indexOf("ok") !== -1);
 });
 
 test("personal view puts multi-member events in family-blue span layer", function () {
@@ -445,6 +470,37 @@ test("span overlap CSS has label chip + top border (Chromium 81 safe)", function
   assert.ok(dark.indexOf(".tl-span-layer .span-label") !== -1);
   assert.ok(/border-top:\s*2px solid/.test(light));
   assert.ok(/border-top:\s*2px solid/.test(dark));
+});
+
+test("avoid_lane_events_for_labels shifts chip into free columns", function () {
+  var cp = require("child_process");
+  var script =
+    "import sys\n" +
+    "sys.path.insert(0, " +
+    JSON.stringify(path.join(__dirname, "..", "tools")) +
+    ")\n" +
+    "import build\n" +
+    "specs = [{\n" +
+    "  'start': 15 * 60, 'end': 18 * 60, 'left': 0.0, 'width': 100.0,\n" +
+    "  'label_row': 0, 'title': 'A',\n" +
+    "}]\n" +
+    "# Andrej column busy (family 4-col = 25% each, col index 2)\n" +
+    "occ = [{'left': 50.0, 'width': 25.0, 'start': 13 * 60 + 30, 'end': 15 * 60 + 45}]\n" +
+    "build.avoid_lane_events_for_labels(specs, occ)\n" +
+    "assert specs[0]['label_left'] == 0.0\n" +
+    "assert specs[0]['label_width'] == 50.0  # Braňo+Zuzka free\n" +
+    "# Personal: focus busy → chip in ostatní\n" +
+    "specs2 = [{\n" +
+    "  'start': 15 * 60, 'end': 18 * 60, 'left': 0.0, 'width': 100.0,\n" +
+    "  'label_row': 0, 'title': 'B',\n" +
+    "}]\n" +
+    "occ2 = [{'left': 0.0, 'width': 68.0, 'start': 13 * 60 + 30, 'end': 15 * 60 + 45}]\n" +
+    "build.avoid_lane_events_for_labels(specs2, occ2, min_width_pct=18.0)\n" +
+    "assert abs(specs2[0]['label_left'] - 68.0) < 0.01\n" +
+    "assert abs(specs2[0]['label_width'] - 32.0) < 0.01\n" +
+    "print('ok')\n";
+  var out = cp.execFileSync("python3", ["-c", script], { encoding: "utf8" });
+  assert.ok(out.indexOf("ok") !== -1);
 });
 
 console.log("\n" + passed + " passed, " + failed + " failed");
