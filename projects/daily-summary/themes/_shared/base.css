@@ -743,8 +743,9 @@ body[data-view="tomas"] .calendar-member[data-focus="tomas"] {
 
 .tl-hours { z-index: 1; }
 
-/* Family spans sit BEHIND single-lane events so overlaps stay readable;
-   the span title remains visible in free lanes. */
+/* Family spans (bands + label chips) sit BEHIND lane events.
+   Stack: hours(1) < span-layer(2) < lanes(3) < now(6).
+   DOM also puts .tl-span-layer before .tl-lanes as a belt-and-braces. */
 .tl-span-layer {
   left: 52px;
   pointer-events: none;
@@ -846,6 +847,44 @@ body[data-view="tomas"] .calendar-member[data-focus="tomas"] {
   /* Span layer is under .tl-lanes; keep a low local stack for multi-spans */
   z-index: 1;
   pointer-events: none;
+  /* Distinguish stacked/overlapping translucent bands */
+  border-top-width: 2px;
+  border-top-style: solid;
+  /* Bands are colour washes only — titles live in sibling .span-label chips */
+  padding: 0;
+  overflow: hidden;
+  color: transparent;
+}
+
+/* Labels sit AFTER all bands in .tl-span-layer (above bands) but the whole
+   span layer is under .tl-lanes — lane events always win. No chip fill:
+   text sits on the translucent band (theme sets ink colours). */
+.tl-span-layer .span-label {
+  position: absolute;
+  z-index: 2;
+  box-sizing: border-box;
+  padding: 1px 4px 1px 2px;
+  border-radius: 0;
+  overflow: hidden;
+  pointer-events: none;
+  line-height: 1.15;
+  font-size: var(--fs-ev);
+  background: transparent;
+  box-shadow: none;
+}
+
+.tl-span-layer .span-label .ev-time,
+.tl-span-layer .span-label .ev-title {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tl-span-layer .span-label.is-short .ev-time { display: none; }
+.tl-span-layer .span-label.is-short .ev-title {
+  font-size: var(--fs-ev-title-short);
+  line-height: 1.1;
 }
 
 .event-block .ev-time,

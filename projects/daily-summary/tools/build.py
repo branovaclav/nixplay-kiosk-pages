@@ -198,9 +198,46 @@ def people_list(pack):
     return [by[i] for i in PEOPLE_ORDER if i in by]
 
 
+# Visible day window on the frame — always at least this range, even when
+# older JSON still says timeline.end "21:00" (or a later start than 07:00).
+TIMELINE_FLOOR_START = 7 * 60   # 07:00
+TIMELINE_CEIL_END = 22 * 60     # 22:00
+
+# Approx. one span label (time + title) in timeline-minutes on a typical
+# 07:00–22:00 track — vertical slot for collision / free-gap checks.
+SPAN_LABEL_SLOT_MIN = 55
+
+# Pixel offset per label row inside an .is-span band (Chromium 81-safe
+# inline margin-top; do not rely on calc(var(--n) * 40px) alone).
+SPAN_LABEL_ROW_PX = 44
+
+# Personal view: ostatní column is flex 0 0 102px; at frame width the focus
+# lane is ~68% of the span layer. Used to dodge chips away from focus events.
+MEMBER_FOCUS_WIDTH_PCT = 68.0
+MEMBER_OTHERS_WIDTH_PCT = 32.0
+
+# Text-width estimate for span labels on the 1024×768 frame (span layer ~520px).
+SPAN_TRACK_PX = 520.0
+SPAN_TITLE_CHAR_PX = 10.0   # ~18px bold Inter
+SPAN_TIME_CHAR_PX = 8.0     # ~14px tabular
+SPAN_LABEL_PAD_PX = 14.0
+# Gap must fit at least this many title characters (ellipsis OK beyond that).
+SPAN_MIN_LABEL_CHARS = 10
+SPAN_MIN_LABEL_WIDTH_PCT = (
+    100.0 * (SPAN_MIN_LABEL_CHARS * SPAN_TITLE_CHAR_PX + SPAN_LABEL_PAD_PX)
+    / SPAN_TRACK_PX
+)  # ≈ 22%
+
+
 def timeline_bounds(day):
-    start = parse_hhmm(day["timeline"]["start"])
-    end = parse_hhmm(day["timeline"]["end"])
+    """Return (start_min, end_min) for the track.
+
+    Uses the earlier of timeline.start and 07:00, and the later of
+    timeline.end and 22:00, then expands for out-of-range events and
+    snaps to whole hours so hour labels include both endpoints.
+    """
+    start = min(parse_hhmm(day["timeline"]["start"]), TIMELINE_FLOOR_START)
+    end = max(parse_hhmm(day["timeline"]["end"]), TIMELINE_CEIL_END)
     for ev in day.get("events", []):
         if ev.get("all_day"):
             continue
@@ -217,6 +254,244 @@ def timeline_bounds(day):
     if end <= start:
         end = start + 60
     return start, end
+
+
+def spans_time_overlap(a_start, a_end, b_start, b_end):
+    """True when open intervals overlap (touching end==start is NOT overlap)."""
+    return a_start < b_end and b_start < a_end
+
+
+def spans_horizontal_overlap(a_left, a_width, b_left, b_width):
+    return a_left < b_left + b_width and b_left < a_left + a_width
+
+
+def estimate_label_width_pct(ev, short=False):
+    """Estimated label width as % of the span layer (text box, not the band)."""
+    title = ev.get("title") or ""
+    title_px = len(title) * SPAN_TITLE_CHAR_PX
+    if short:
+        w_px = title_px + SPAN_LABEL_PAD_PX
+    else:
+        time_s = fmt_range(ev)
+        time_px = len(time_s) * SPAN_TIME_CHAR_PX
+        w_px = max(time_px, title_px) + SPAN_LABEL_PAD_PX
+    return min(100.0, 100.0 * w_px / SPAN_TRACK_PX)
+
+
+def _span_label_ev(spec):
+    ev = spec.get("ev")
+    if isinstance(ev, dict):
+        return ev
+    return {
+        "title": spec.get("title") or "",
+        "start": "00:00",
+        "end": "01:00",
+    }
+
+
+def _label_slot(spec, row):
+    abs_top = spec["start"] + row * SPAN_LABEL_SLOT_MIN
+    abs_bot = abs_top + SPAN_LABEL_SLOT_MIN
+    return abs_top, abs_bot
+
+
+def _label_fits_in_band(spec, row):
+    """True when the full label height stays inside the span band."""
+    _top, abs_bot = _label_slot(spec, row)
+    return abs_bot <= spec["end"]
+
+
+def _lane_blockers(abs_top, abs_bot, band_left, band_width, lane_occ):
+    blockers = []
+    for occ in lane_occ:
+        if not spans_time_overlap(abs_top, abs_bot, occ["start"], occ["end"]):
+            continue
+        if not spans_horizontal_overlap(
+            band_left, band_width, occ["left"], occ["width"]
+        ):
+            continue
+        blockers.append((occ["left"], occ["left"] + occ["width"]))
+    return blockers
+
+
+def _label_blockers(abs_top, abs_bot, band_left, band_width, placed):
+    blockers = []
+    for ptop, pbot, pleft, pwidth in placed:
+        if not (abs_top < pbot and ptop < abs_bot):
+            continue
+        if not spans_horizontal_overlap(band_left, band_width, pleft, pwidth):
+            continue
+        blockers.append((pleft, pleft + pwidth))
+    return blockers
+
+
+def _pick_gap(gaps, needed, min_w, prefer_left=None):
+    """Return (left, width) from gaps, or None.
+
+    prefer_left: if set, only accept a gap that contains the home strip
+    starting at prefer_left. Otherwise leftmost usable gap.
+    """
+    for glo, ghi in gaps:
+        gap_w = ghi - glo
+        if gap_w + 0.01 < min_w:
+            continue
+        if prefer_left is not None:
+            # Home must lie inside this gap
+            if glo > prefer_left + 0.01 or ghi <= prefer_left + 0.01:
+                continue
+            left = prefer_left
+            width = min(needed, ghi - left)
+            if width + 0.01 < min_w:
+                continue
+            return left, width
+        width = min(needed, gap_w)
+        if width + 0.01 < min_w:
+            continue
+        return glo, width
+    return None
+
+
+def place_span_labels(span_specs, lane_occ=None, min_width_pct=None):
+    """Place span labels: stack DOWN first, sideways only as fallback.
+
+    For each span (start order):
+      1. Try row 0 at the band's left (text-width). If another label occupies
+         that home strip, try row 1, 2, … (original stacking).
+      2. A downward row is valid only if the full label height fits inside the
+         band AND the home strip is free of lane events (slide within the same
+         row into a ≥~10-char gap if a lane only partly blocks).
+      3. If no downward row works → sideways: lowest valid row, leftmost free
+         gap (not under lane events / other labels), text-sized.
+      4. Last resort: lowest in-band row (or 0), ellipsized, still no overlap.
+    """
+    lane_occ = lane_occ or []
+    min_w = SPAN_MIN_LABEL_WIDTH_PCT if min_width_pct is None else min_width_pct
+    n = len(span_specs)
+    for spec in span_specs:
+        spec["label_row"] = 0
+        spec["label_left"] = spec["left"]
+        spec["label_width"] = spec["width"]
+
+    if not span_specs:
+        return span_specs
+
+    order = sorted(
+        range(n),
+        key=lambda i: (
+            span_specs[i]["start"],
+            span_specs[i]["end"],
+            span_specs[i].get("title") or "",
+            i,
+        ),
+    )
+    # Placed labels: (abs_top, abs_bot, left, width)
+    placed = []
+    for i in order:
+        spec = span_specs[i]
+        band_left = spec["left"]
+        band_width = spec["width"]
+        band_right = band_left + band_width
+        needed = estimate_label_width_pct(
+            _span_label_ev(spec), short=spec.get("short", False)
+        )
+        if needed < min_w:
+            needed = min_w
+
+        def try_commit(row, left, width):
+            abs_top, abs_bot = _label_slot(spec, row)
+            spec["label_row"] = row
+            spec["label_left"] = left
+            spec["label_width"] = width
+            placed.append((abs_top, abs_bot, left, width))
+
+        placed_ok = False
+
+        # —— Phase 1: down-first at the home (left) strip ——
+        max_row = n + 4
+        for row in range(max_row + 1):
+            if not _label_fits_in_band(spec, row):
+                break
+            abs_top, abs_bot = _label_slot(spec, row)
+            lane_b = _lane_blockers(
+                abs_top, abs_bot, band_left, band_width, lane_occ
+            )
+            label_b = _label_blockers(
+                abs_top, abs_bot, band_left, band_width, placed
+            )
+            # Home strip occupied by another label → stack further down.
+            home_hit_label = False
+            for lo, hi in label_b:
+                if lo < band_left + needed and hi > band_left:
+                    home_hit_label = True
+                    break
+            if home_hit_label:
+                continue
+            # Free gaps from lanes + labels; prefer placing at band_left.
+            gaps = free_intervals(band_left, band_right, lane_b + label_b)
+            pick = _pick_gap(gaps, needed, min_w, prefer_left=band_left)
+            if pick is None:
+                # Lane blocks home — slide within this row (still "down" phase).
+                pick = _pick_gap(gaps, needed, min_w, prefer_left=None)
+            if pick is not None:
+                try_commit(row, pick[0], pick[1])
+                placed_ok = True
+                break
+
+        # —— Phase 2: sideways (lowest row, leftmost free gap) ——
+        if not placed_ok:
+            rows_to_try = []
+            for row in range(max_row + 1):
+                if _label_fits_in_band(spec, row):
+                    rows_to_try.append(row)
+                else:
+                    # Short band: still allow row 0 sideways (may clip).
+                    if row == 0:
+                        rows_to_try.append(0)
+                    break
+            for row in rows_to_try:
+                abs_top, abs_bot = _label_slot(spec, row)
+                lane_b = _lane_blockers(
+                    abs_top, abs_bot, band_left, band_width, lane_occ
+                )
+                label_b = _label_blockers(
+                    abs_top, abs_bot, band_left, band_width, placed
+                )
+                gaps = free_intervals(band_left, band_right, lane_b + label_b)
+                pick = _pick_gap(gaps, needed, min_w, prefer_left=None)
+                if pick is not None:
+                    try_commit(row, pick[0], pick[1])
+                    placed_ok = True
+                    break
+
+        # —— Phase 3: last resort ——
+        if not placed_ok:
+            row = 0
+            for r in range(max_row + 1):
+                if _label_fits_in_band(spec, r):
+                    row = r
+                    break
+            abs_top, abs_bot = _label_slot(spec, row)
+            lane_b = _lane_blockers(
+                abs_top, abs_bot, band_left, band_width, lane_occ
+            )
+            label_b = _label_blockers(
+                abs_top, abs_bot, band_left, band_width, placed
+            )
+            gaps = free_intervals(band_left, band_right, lane_b + label_b)
+            pick = _pick_gap(gaps, needed, min_w, prefer_left=None)
+            if pick is None and gaps:
+                glo, ghi = gaps[0]
+                pick = (glo, max(min_w, min(needed, ghi - glo)))
+            if pick is None:
+                pick = (band_left, min(needed, band_width))
+            try_commit(row, pick[0], pick[1])
+
+    return span_specs
+
+
+def assign_span_label_rows(span_specs, lane_occ=None):
+    """Alias — same as place_span_labels (down-first)."""
+    return place_span_labels(span_specs, lane_occ=lane_occ)
 
 
 def pct(minute, start, end):
@@ -310,7 +585,10 @@ def weather_icon_svg(icon):
     return raw
 
 
-def event_block_html(ev, cinfo, top, height, left_pct, width_pct, extra_class="", short=False):
+def event_block_html(
+    ev, cinfo, top, height, left_pct, width_pct,
+    extra_class="", short=False, label_row=0,
+):
     s = parse_hhmm(ev.get("start"))
     e = parse_hhmm(ev.get("end")) or ((s + 30) if s is not None else None)
     conflict = " is-conflict" if ("conflict" in ev.get("flags", []) or ev.get("conflict_with")) else ""
@@ -332,15 +610,94 @@ def event_block_html(ev, cinfo, top, height, left_pct, width_pct, extra_class=""
     )
     end_attr = f' data-end-min="{e}"' if e is not None else ""
     mids = ",".join(expand_members(event_members(ev)))
+    is_span = "is-span" in (extra_class or "")
+    row = max(0, int(label_row or 0))
+    row_attr = f' data-label-row="{row}"' if is_span else ""
+    time_el = f'<span class="ev-time">{esc(fmt_range(ev))}</span>'
+    title_el = f'<span class="ev-title">{esc(ev["title"])}</span>'
+    if is_span:
+        # Band only — labels are siblings after all bands so chips paint above
+        # every translucent fill (see span_label_html / render_span_layer).
+        body = ""
+    else:
+        body = f"{time_el}{title_el}{loc}{st}{flags}"
     return (
         f'<div class="event-block{short_c}{conflict}{unconf}{todo}{extra_class}" '
         f'style="top:{top:.3f}%;height:{height:.3f}%;left:{left_pct:.3f}%;'
         f'width:{width_pct:.3f}%;{style_m(cinfo)}" '
-        f'data-members="{esc(mids)}"{end_attr}>'
-        f'<span class="ev-time">{esc(fmt_range(ev))}</span>'
-        f'<span class="ev-title">{esc(ev["title"])}</span>'
-        f"{loc}{st}{flags}</div>"
+        f'data-members="{esc(mids)}"{end_attr}{row_attr}>'
+        f"{body}</div>"
     )
+
+
+def span_label_html(ev, cinfo, top, left_pct, width_pct, label_row=0, short=False):
+    """Absolutely-positioned label chip for a family span (above all bands)."""
+    row = max(0, int(label_row or 0))
+    offset_px = row * SPAN_LABEL_ROW_PX
+    short_c = " is-short" if short else ""
+    time_el = f'<span class="ev-time">{esc(fmt_range(ev))}</span>'
+    title_el = f'<span class="ev-title">{esc(ev["title"])}</span>'
+    return (
+        f'<div class="span-label{short_c}" style="top:{top:.3f}%;left:{left_pct:.3f}%;'
+        f'width:{width_pct:.3f}%;margin-top:{offset_px}px;{style_m(cinfo)}" '
+        f'data-label-row="{row}">'
+        f"{time_el}{title_el}</div>"
+    )
+
+
+def merge_intervals(intervals):
+    """Merge overlapping [lo, hi) intervals; return sorted list."""
+    if not intervals:
+        return []
+    items = sorted(intervals)
+    out = [list(items[0])]
+    for lo, hi in items[1:]:
+        if lo <= out[-1][1]:
+            out[-1][1] = max(out[-1][1], hi)
+        else:
+            out.append([lo, hi])
+    return [(a, b) for a, b in out]
+
+
+def free_intervals(lo, hi, blockers):
+    """Gaps in [lo, hi] not covered by merged blockers."""
+    gaps = []
+    cursor = lo
+    for blo, bhi in merge_intervals(blockers):
+        if bhi <= lo or blo >= hi:
+            continue
+        blo = max(blo, lo)
+        bhi = min(bhi, hi)
+        if blo > cursor:
+            gaps.append((cursor, blo))
+        cursor = max(cursor, bhi)
+    if cursor < hi:
+        gaps.append((cursor, hi))
+    return gaps
+
+
+def render_span_layer(span_specs):
+    """Bands first, then label chips — chips paint above bands, under lanes."""
+    bands = [
+        event_block_html(
+            spec["ev"], spec["cinfo"], spec["top"], spec["height"],
+            spec["left"], spec["width"],
+            extra_class=" is-span", short=spec["short"],
+            label_row=spec.get("label_row", 0),
+        )
+        for spec in span_specs
+    ]
+    labels = [
+        span_label_html(
+            spec["ev"], spec["cinfo"], spec["top"],
+            spec.get("label_left", spec["left"]),
+            spec.get("label_width", spec["width"]),
+            label_row=spec.get("label_row", 0),
+            short=spec["short"],
+        )
+        for spec in span_specs
+    ]
+    return "".join(bands) + "".join(labels)
 
 
 def place_events_in_track(events, start, end, color_for_ev, n_cols=1):
@@ -393,7 +750,7 @@ def family_calendar(day, people, start, end, family_info=None):
     id_to_idx = {p["id"]: i for i, p in enumerate(people)}
     n = len(people)
     col_events = {p["id"]: [] for p in people}
-    span_blocks = []
+    span_specs = []
 
     timed = [e for e in day.get("events", []) if e.get("start") and not e.get("all_day")]
     for e in timed:
@@ -418,12 +775,31 @@ def family_calendar(day, people, start, end, family_info=None):
         for lo, hi in spans:
             left = (lo / n) * 100.0
             width = ((hi - lo + 1) / n) * 100.0
-            span_blocks.append(
-                event_block_html(
-                    e, cinfo, top, height, left, width,
-                    extra_class=" is-span", short=short,
-                )
-            )
+            span_specs.append({
+                "ev": e,
+                "cinfo": cinfo,
+                "top": top,
+                "height": height,
+                "left": left,
+                "width": width,
+                "short": short,
+                "start": s,
+                "end": ee,
+                "title": e.get("title") or "",
+            })
+
+    # Lane occupancy as % rectangles (equal columns) for down-first placement.
+    lane_occ = []
+    col_w = 100.0 / n if n else 100.0
+    for i, p in enumerate(people):
+        for e in col_events[p["id"]]:
+            s = parse_hhmm(e["start"])
+            ee = parse_hhmm(e.get("end")) or (s + 30)
+            lane_occ.append({
+                "left": i * col_w, "width": col_w, "start": s, "end": ee,
+            })
+    place_span_labels(span_specs, lane_occ)
+    span_blocks = render_span_layer(span_specs)
 
     cols = []
     for p in people:
@@ -440,14 +816,15 @@ def family_calendar(day, people, start, end, family_info=None):
         '<span class="tl-now-label">teraz</span></div>'
     )
 
+    # Span layer BEFORE lanes in DOM + lower z-index → bands < chips < lane events.
     return f"""
 <div class="calendar calendar-family" data-mode="family">
   <div class="lane-heads lane-heads-4">{"".join(heads)}</div>
   <div class="tl-body">
     <div class="tl-track">
       <div class="tl-hours">{"".join(lines)}</div>
-      <div class="tl-lanes tl-lanes-4">{"".join(cols)}</div>
       <div class="tl-span-layer">{"".join(span_blocks)}</div>
+      <div class="tl-lanes tl-lanes-4">{"".join(cols)}</div>
       {now_html}
     </div>
   </div>
@@ -477,7 +854,7 @@ def member_calendar(day, people, focus_id, start, end, family_info=None):
 
     focus_ev = []
     other_unique = []
-    span_blocks = []
+    span_specs = []
     for e in day.get("events", []):
         if not e.get("start") or e.get("all_day"):
             continue
@@ -492,17 +869,46 @@ def member_calendar(day, people, focus_id, start, end, family_info=None):
             top = pct(s, start, end)
             height = max(pct(ee, start, end) - top, 8.5)
             short = (ee - s) <= 45
-            span_blocks.append(
-                event_block_html(
-                    e, family_info, top, height, 0.0, 100.0,
-                    extra_class=" is-span", short=short,
-                )
-            )
+            span_specs.append({
+                "ev": e,
+                "cinfo": family_info,
+                "top": top,
+                "height": height,
+                "left": 0.0,
+                "width": 100.0,
+                "short": short,
+                "start": s,
+                "end": ee,
+                "title": e.get("title") or "",
+            })
             continue
         if mids[0] == focus_id:
             focus_ev.append(e)
         else:
             other_unique.append(e)
+
+    lane_occ = []
+    for e in focus_ev:
+        s = parse_hhmm(e["start"])
+        ee = parse_hhmm(e.get("end")) or (s + 30)
+        lane_occ.append({
+            "left": 0.0, "width": MEMBER_FOCUS_WIDTH_PCT,
+            "start": s, "end": ee,
+        })
+    for e in other_unique:
+        s = parse_hhmm(e["start"])
+        ee = parse_hhmm(e.get("end")) or (s + 30)
+        lane_occ.append({
+            "left": MEMBER_FOCUS_WIDTH_PCT, "width": MEMBER_OTHERS_WIDTH_PCT,
+            "start": s, "end": ee,
+        })
+    # Ostatní is ~32% — allow gaps down to ~10 title chars (~22% default is fine;
+    # pass a slightly lower floor so a single ostatní column still counts).
+    place_span_labels(
+        span_specs, lane_occ,
+        min_width_pct=min(SPAN_MIN_LABEL_WIDTH_PCT, MEMBER_OTHERS_WIDTH_PCT - 0.5),
+    )
+    span_blocks = render_span_layer(span_specs)
 
     def focus_color(ev):
         return color_info_for_member(focus)
@@ -519,17 +925,18 @@ def member_calendar(day, people, focus_id, start, end, family_info=None):
         '<span class="tl-now-label">teraz</span></div>'
     )
 
+    # Span layer BEFORE lanes — chips must never paint over lane events.
     return f"""
 <div class="calendar calendar-member" data-mode="member" data-focus="{esc(focus_id)}">
   <div class="lane-heads lane-heads-2">{heads}</div>
   <div class="tl-body">
     <div class="tl-track">
       <div class="tl-hours">{"".join(lines)}</div>
+      <div class="tl-span-layer">{"".join(span_blocks)}</div>
       <div class="tl-lanes tl-lanes-2">
         <div class="lane-col lane-col-focus" style="{style_m(focus)}">{"".join(focus_blocks)}</div>
         <div class="lane-col lane-col-others">{"".join(other_blocks)}</div>
       </div>
-      <div class="tl-span-layer">{"".join(span_blocks)}</div>
       {now_html}
     </div>
   </div>

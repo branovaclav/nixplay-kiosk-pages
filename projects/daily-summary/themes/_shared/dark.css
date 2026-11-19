@@ -86,6 +86,25 @@ html.theme-dark .event-block.is-span {
   background: rgba(var(--md-rgb, 58, 168, 230), 0.16);
   border: 0;
   border-left: 0;
+  border-top: 2px solid rgba(var(--md-rgb, 58, 168, 230), 0.55);
+}
+
+/* Transparent label — text sits on the band (readable on ≤3 stacked fills). */
+html.theme-dark .tl-span-layer .span-label {
+  background: transparent;
+  background-image: none;
+  box-shadow: none;
+  color: var(--ink);
+}
+
+html.theme-dark .tl-span-layer .span-label .ev-time {
+  color: #c5d0de;
+  opacity: 1;
+}
+html.theme-dark .tl-span-layer .span-label .ev-title {
+  color: #f2f6fc;
+  font-weight: var(--fw-bold);
+  font-size: var(--fs-ev-title);
 }
 
 html.theme-dark .event-block.is-unconfirmed {

@@ -1,0 +1,63 @@
+{
+  "date": "2026-11-21",
+  "locale": "sk-SK",
+  "timezone": "Europe/Prague",
+  "now": "16:00",
+  "refresh_at": "06:30",
+  "weather": {
+    "sample": true,
+    "summary": "Polojasno",
+    "icon": "partly-cloudy",
+    "temp_high_c": 12,
+    "temp_low_c": 5
+  },
+  "timeline": {
+    "start": "07:00",
+    "end": "22:00"
+  },
+  "events": [
+    {
+      "id": "span-long",
+      "members": ["branislav", "zuzka", "andrej", "tomas"],
+      "title": "Dlhá spoločná",
+      "start": "15:00",
+      "end": "18:00",
+      "all_day": false,
+      "status": "confirmed",
+      "flags": [],
+      "conflict_with": [],
+      "notes": [],
+      "reminders": []
+    },
+    {
+      "id": "span-short",
+      "members": ["branislav", "zuzka", "andrej", "tomas"],
+      "title": "Krátka spoločná",
+      "start": "15:05",
+      "end": "15:40",
+      "all_day": false,
+      "status": "confirmed",
+      "flags": [],
+      "conflict_with": [],
+      "notes": [
+        "35 min — label height does not fit inside the band, so placement goes sideways in row 0."
+      ],
+      "reminders": []
+    }
+  ],
+  "sections": [
+    {
+      "id": "rodina",
+      "title": "Rodina",
+      "items": [
+        { "text": "Ukážka: krátky span ide sideways vedľa dlhého (nie pod neho)." }
+      ]
+    },
+    {
+      "id": "vyhlad",
+      "title": "Zajtra",
+      "outlook": { "from": "2026-11-22", "to": "2026-11-22" },
+      "items": [{ "text": "Nič naplánované." }]
+    }
+  ]
+}

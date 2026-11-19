@@ -51,6 +51,13 @@ Lokálne / CI: `python3 tools/validate.py` musí prejsť pred deployom.
 - Ak sú stĺpce **súvislé**, jeden blok cez ne; ak nie, rovnaký štýl bloku v každom stĺpci.
 - `time_note` povinný, keď chýba `start`.
 
+### 1.1b Timeline rozsah
+
+- Do JSON dávaj `timeline.start` / `timeline.end` typicky **`07:00` / `22:00`**.
+- Prekrývajúce sa family spany: labely sa skladajú **down-first** (riadok 0 → 1 → … vo vnútri bandu), sideways len keď sa dole nezmestia alebo lane event blokuje; text je priehľadný, vždy pod lane udalosťami.
+- Build vždy vykreslí aspoň 07:00–22:00 (skorší start, neskorší end), aj keď starší súbor
+  ešte má `end: "21:00"`.
+
 ### 1.2 Sekcie
 
 ```json
