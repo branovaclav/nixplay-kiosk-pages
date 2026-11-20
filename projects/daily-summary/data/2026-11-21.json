@@ -1,0 +1,71 @@
+{
+  "date": "2026-11-21",
+  "locale": "sk-SK",
+  "timezone": "Europe/Prague",
+  "now": "18:50",
+  "refresh_at": "06:30",
+  "weather": {
+    "sample": false,
+    "summary": "Slnečno",
+    "icon": "sunny",
+    "temp_high_c": 7,
+    "temp_low_c": 1
+  },
+  "timeline": {
+    "start": "07:00",
+    "end": "22:00"
+  },
+  "events": [],
+  "sections": [
+    {
+      "id": "nezabudnut",
+      "title": "Nezabudnúť",
+      "items": [
+        {
+          "text": "Do 24. 11.: Albatros — knižný darček",
+          "detail": "Trieda zbiera knižné darčeky Albatros (dárky od Ježíška) do 24. 11. Podrobnosti v školskom e-maile.",
+          "member": "tomas"
+        },
+        {
+          "text": "28. 11.: DOD PORG Libeň 10–16",
+          "detail": "Deň otvorených dverí PORG Libeň v sobotu 28. 11., 10–16.",
+          "member": "andrej"
+        },
+        {
+          "text": "Do 30. 11.: Záloha na hory 3 000 Kč",
+          "detail": "Škola žiada zálohu 3 000 Kč na hory 2027 do 30. 11. ako záväznú prihlášku. Údaje na platbu sú v školskom e-maile.",
+          "member": "andrej",
+          "family": false
+        },
+        {
+          "text": "8. 12.: DOD Trojské gymnázium",
+          "detail": "Deň otvorených dverí na Trojskom gymnáziu 8. 12.",
+          "member": "andrej"
+        },
+        {
+          "text": "12. 12.: Vianočné grilovanie"
+        }
+      ]
+    },
+    {
+      "id": "vyhlad",
+      "title": "Pondelok",
+      "outlook": {
+        "from": "2026-11-23",
+        "to": "2026-11-23"
+      },
+      "items": [
+        {
+          "member": "branislav",
+          "text": "Strihanie 14:30–15:30.",
+          "detail": "V osobnom kalendári Braňa: strihanie v kaderníctve 14:30–15:30."
+        },
+        {
+          "member": "tomas",
+          "text": "Veselá veda 15:30–16:30.",
+          "detail": "Pondelok 23. 11.: Tomáš má Veselú vedu 15:30–16:30."
+        }
+      ]
+    }
+  ]
+}
