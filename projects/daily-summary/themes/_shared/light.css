@@ -24,7 +24,9 @@ html.theme-light {
   --bullet: #A7B6C2;
   --outlook-bg: #F0F5F9;
   --outlook-ink: var(--accent);
-  --wx: var(--accent);
+  /* Weather icons: yellow sun / blue cloud — same hues as dark, deeper for light topbar. */
+  --wx-sun: #C99200;
+  --wx-cloud: #2c5f7a;
 }
 
 html.theme-light body {

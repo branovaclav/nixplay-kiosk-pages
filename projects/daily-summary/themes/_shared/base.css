@@ -253,7 +253,8 @@ body.is-stale-day .stale-note {
   line-height: 0;
   -webkit-flex-shrink: 0;
   flex-shrink: 0;
-  color: var(--wx);
+  /* Default blue (cloudy/rain/snow/fog/storm + unknown → cloudy). */
+  color: var(--wx-cloud);
 }
 
 .wx-icon svg {
@@ -261,6 +262,16 @@ body.is-stale-day .stale-note {
   height: 36px;
   display: block;
   vertical-align: middle;
+}
+
+/* Sun parts yellow; cloud parts blue (partly-cloudy is two-tone).
+   SVG shapes already use fill/stroke="currentColor". */
+.wx-icon .wx-sun {
+  color: var(--wx-sun);
+}
+
+.wx-icon .wx-cloud {
+  color: var(--wx-cloud);
 }
 
 .wx-text {
