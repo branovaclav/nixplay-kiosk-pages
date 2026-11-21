@@ -473,6 +473,59 @@ test("place_span_labels stacks down-first with sideways fallback", function () {
   assert.ok(out.indexOf("ok") !== -1);
 });
 
+test("weather icons use --wx-sun/--wx-cloud (no legacy --wx)", function () {
+  var light = fs.readFileSync(
+    path.join(__dirname, "..", "themes", "_shared", "light.css"),
+    "utf8"
+  );
+  var dark = fs.readFileSync(
+    path.join(__dirname, "..", "themes", "_shared", "dark.css"),
+    "utf8"
+  );
+  var base = fs.readFileSync(
+    path.join(__dirname, "..", "themes", "_shared", "base.css"),
+    "utf8"
+  );
+  assert.ok(light.indexOf("--wx-sun:") !== -1);
+  assert.ok(light.indexOf("--wx-cloud:") !== -1);
+  assert.ok(dark.indexOf("--wx-sun:") !== -1);
+  assert.ok(dark.indexOf("--wx-cloud:") !== -1);
+  // No single-colour --wx leftover in active themes.
+  assert.ok(!/(^|[^-])--wx\s*:/.test(light.replace(/\/\*[\s\S]*?\*\//g, "")));
+  assert.ok(!/(^|[^-])--wx\s*:/.test(dark.replace(/\/\*[\s\S]*?\*\//g, "")));
+  assert.ok(base.indexOf("var(--wx-cloud)") !== -1);
+  assert.ok(base.indexOf(".wx-icon .wx-sun") !== -1);
+  assert.ok(base.indexOf(".wx-icon .wx-cloud") !== -1);
+
+  var sunny = fs.readFileSync(
+    path.join(__dirname, "..", "assets", "weather", "sunny.svg"),
+    "utf8"
+  );
+  var partly = fs.readFileSync(
+    path.join(__dirname, "..", "assets", "weather", "partly-cloudy.svg"),
+    "utf8"
+  );
+  assert.ok(sunny.indexOf('class="wx-sun"') !== -1);
+  assert.ok(partly.indexOf('class="wx-sun"') !== -1);
+  assert.ok(partly.indexOf('class="wx-cloud"') !== -1);
+
+  var cp = require("child_process");
+  var script =
+    "import sys\n" +
+    "sys.path.insert(0, " +
+    JSON.stringify(path.join(__dirname, "..", "tools")) +
+    ")\n" +
+    "import build\n" +
+    "svg = build.weather_icon_svg('partly-cloudy')\n" +
+    "assert 'wx-sun' in svg and 'wx-cloud' in svg\n" +
+    "assert 'class=\"wx-sun\"' in build.weather_icon_svg('sunny')\n" +
+    "fallback = build.weather_icon_svg('not-a-real-icon')\n" +
+    "assert 'M17 10a4' in fallback  # cloudy path\n" +
+    "print('ok')\n";
+  var out = cp.execFileSync("python3", ["-c", script], { encoding: "utf8" });
+  assert.ok(out.indexOf("ok") !== -1);
+});
+
 test("span label CSS is transparent with top border on bands", function () {
   var base = fs.readFileSync(
     path.join(__dirname, "..", "themes", "_shared", "base.css"),

@@ -24,7 +24,9 @@ html.theme-dark {
   --bullet: #56657A;
   --outlook-bg: rgba(120, 170, 220, 0.10);
   --outlook-ink: #82B6E6;
-  --wx: #82B6E6;
+  /* Weather icons: yellow sun / blue cloud — same hues as light, brighter for dark topbar. */
+  --wx-sun: #F5C542;
+  --wx-cloud: #82B6E6;
 }
 
 html.theme-dark body {
@@ -50,7 +52,6 @@ html.theme-dark .panel {
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 10px 30px rgba(0, 0, 0, 0.35);
 }
 
-html.theme-dark .wx-icon { color: var(--wx); }
 html.theme-dark .wx-temps { color: var(--ink); }
 html.theme-dark .wx-summary { color: var(--muted); }
 
