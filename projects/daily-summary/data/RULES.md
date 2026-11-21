@@ -155,7 +155,7 @@ Konflikt: pretínajúce sa timed intervaly **tej istej osoby** v `members` →
 
 ## 5. Štýl textu
 
-Slovak, krátke, 24 h. Bez emoji. Bez tajomstiev (pozri úvod). `weather.sample: true`, kým nie live (badge UKÁŽKA sa nerenderuje).
+Slovak, krátke, 24 h. Bez emoji. Bez tajomstiev (pozri úvod). `weather.sample: true`, kým nie live (badge UKÁŽKA sa nerenderuje). Ikony počasia: slnečné časti žlté, ostatné modré (rovnaký odtieň v light/dark).
 
 ---
 

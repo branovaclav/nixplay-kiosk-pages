@@ -150,7 +150,7 @@ Mock pre screenshoty / test: `?today=YYYY-MM-DD` + `?now=HH:MM` (Europe/Prague l
 
 ### Počasie `icon`
 
-`sunny` · `partly-cloudy` · `cloudy` · `rain` · `snow` · `fog` · `storm` — SVG v `assets/weather/`.
+`sunny` · `partly-cloudy` · `cloudy` · `rain` · `snow` · `fog` · `storm` — SVG v `assets/weather/`. Colouring: sun parts yellow (`--wx-sun`), everything else blue (`--wx-cloud`); hues stay constant across light/dark (only lightness/saturation changes).
 
 ## Build
 
