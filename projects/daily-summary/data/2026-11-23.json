@@ -1,0 +1,115 @@
+{
+ "date": "2026-11-23",
+ "locale": "sk-SK",
+ "timezone": "Europe/Prague",
+ "now": "18:50",
+ "refresh_at": "06:30",
+ "weather": {
+  "sample": false,
+  "summary": "Polojasno",
+  "temp_high_c": 1,
+  "temp_low_c": -2,
+  "icon": "partly-cloudy"
+ },
+ "timeline": {
+  "start": "07:00",
+  "end": "22:00"
+ },
+ "events": [
+  {
+   "id": "branislav-strihanie",
+   "members": [
+    "branislav"
+   ],
+   "title": "Strihanie",
+   "start": "14:30",
+   "end": "15:30",
+   "all_day": false,
+   "status": "confirmed",
+   "flags": [],
+   "conflict_with": [],
+   "notes": [],
+   "reminders": [],
+   "location": "Kaderníctvo Pod Drinopolem"
+  },
+  {
+   "id": "tomas-vesela-veda",
+   "members": [
+    "tomas"
+   ],
+   "title": "Veselá věda",
+   "start": "15:30",
+   "end": "16:30",
+   "all_day": false,
+   "status": "confirmed",
+   "flags": [],
+   "conflict_with": [],
+   "notes": [],
+   "reminders": []
+  }
+ ],
+ "sections": [
+  {
+   "id": "zobrat",
+   "title": "Zobrať / vybaviť",
+   "items": [
+    {
+     "member": "tomas",
+     "text": "Do zajtra: Albatros — knižný darček.",
+     "detail": "Trieda zbiera knižné darčeky Albatros (dárky od Ježíška) do 24. 11. Podrobnosti v školskom e-maile."
+    }
+   ]
+  },
+  {
+   "id": "nezabudnut",
+   "title": "Nezabudnúť",
+   "items": [
+    {
+     "text": "28. 11.: DOD PORG Libeň 10–16",
+     "detail": "Deň otvorených dverí PORG Libeň v sobotu 28. 11., 10–16.",
+     "member": "andrej"
+    },
+    {
+     "text": "Do 30. 11.: Záloha na hory 3 000 Kč",
+     "detail": "Škola žiada zálohu 3 000 Kč na hory 2027 do 30. 11. ako záväznú prihlášku. Údaje na platbu sú v školskom e-maile.",
+     "member": "andrej",
+     "family": false
+    },
+    {
+     "text": "8. 12.: DOD Trojské gymnázium",
+     "detail": "Deň otvorených dverí na Trojskom gymnáziu 8. 12.",
+     "member": "andrej"
+    },
+    {
+     "text": "12. 12.: Vianočné grilovanie"
+    }
+   ]
+  },
+  {
+   "id": "vyhlad",
+   "title": "Utorok",
+   "outlook": {
+    "from": "2026-11-24",
+    "to": "2026-11-24"
+   },
+   "items": [
+    {
+     "member": "andrej",
+     "text": "Príprava MAT 15:15–16:45, potom baseball 16:45–18:00.",
+     "detail": "Príprava MAT na Českolipskej 15:15–16:45 sa prekrýva s baseballom Sabat 16:45–18:00 (U Vltavy) — treba presun."
+    },
+    {
+     "text": "Dni otvorených dverí: Nad štolou 16–17, Doppler 17–19.",
+     "detail": "V rodinnom kalendári sú Nad štolou 16:00–17:00 a Doppler 17:00–19:00; kto ide, nie je uvedené."
+    },
+    {
+     "member": "zuzka",
+     "text": "Zuzka večierok ČSFD 18:00–23:00."
+    },
+    {
+     "text": "Vybrať kôš 20:00–21:00."
+    }
+   ]
+  }
+ ]
+}
