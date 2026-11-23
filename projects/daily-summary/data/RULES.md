@@ -69,7 +69,7 @@ Lokálne / CI: `python3 tools/validate.py` musí prejsť pred deployom.
       {
         "text": "Krátky text (pohľad Rodina).",
         "detail": "Dlhší text (pohľad člena).",
-        "member": "andrej"
+        "members": ["andrej", "zuzka"]
       }
     ]
   }
@@ -78,8 +78,10 @@ Lokálne / CI: `python3 tools/validate.py` musí prejsť pred deployom.
 
 - `text` — povinný, krátky (sidebar v Rodina).
 - `detail` — voliteľný; v pohľade člena, inak sa použije `text`.
-- `member` — voliteľný; v pohľade člena sa ukazujú položky s týmto `member` **alebo bez `member`** (rodinné).
-- **`family: false`** (alebo `level: "detail"`) — položka sa **nezobrazí v pohľade Rodina**; len v relevantnom pohľade člena. Použi pre menej dôležité / osobné detaily, ktoré by Rodinu zahltili. Rodina = len to, čo sa zmestí a naozaj treba vidieť naraz.
+- `members` — voliteľné pole id (`branislav` · `zuzka` · `andrej` · `tomas`); non-empty, bez duplicít. Položka sa ukáže v osobnom pohľade **každého** vlastníka (a nikoho iného) + v Rodina, pokiaľ nie je `family: false`. Bez `members`/`member` = všade.
+- `member` — **legacy** string; ekvivalent `members: [member]`. Validátor odmietne položku s oboma poľami naraz.
+- **`family: false`** (alebo `level: "detail"`) — položka sa **nezobrazí v pohľade Rodina**; len v relevantných osobných pohľadoch. Použi pre menej dôležité / osobné detaily, ktoré by Rodinu zahltili. Rodina = len to, čo sa zmestí a naozaj treba vidieť naraz.
+- Badge (`hl-who`): v osobnom pohľade vždy všetci vlastníci (poradie stĺpcov). V Rodina len pri 1–2 vlastníkoch; pri 3+ len text.
 - Prázdna sekcia sa **nezapisuje**. Poradie poľa = poradie na ráme aj v chate.
 
 ---

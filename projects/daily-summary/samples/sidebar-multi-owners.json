@@ -1,0 +1,106 @@
+{
+  "date": "2026-11-24",
+  "locale": "sk-SK",
+  "timezone": "Europe/Prague",
+  "now": "10:15",
+  "refresh_at": "06:30",
+  "weather": {
+    "sample": true,
+    "summary": "Polojasno",
+    "icon": "partly-cloudy",
+    "temp_high_c": 11,
+    "temp_low_c": 3
+  },
+  "timeline": {
+    "start": "07:00",
+    "end": "22:00"
+  },
+  "events": [
+    {
+      "id": "andrej-skola",
+      "members": ["andrej"],
+      "title": "Škola",
+      "start": "08:00",
+      "end": "13:00",
+      "all_day": false,
+      "location": "ZŠ Trojská",
+      "status": "confirmed",
+      "flags": [],
+      "conflict_with": [],
+      "notes": [],
+      "reminders": []
+    },
+    {
+      "id": "tomas-skola",
+      "members": ["tomas"],
+      "title": "Škola",
+      "start": "08:00",
+      "end": "12:30",
+      "all_day": false,
+      "location": "ZŠ Trojská",
+      "status": "confirmed",
+      "flags": [],
+      "conflict_with": [],
+      "notes": [],
+      "reminders": []
+    },
+    {
+      "id": "family-obed",
+      "members": ["branislav", "zuzka", "andrej", "tomas"],
+      "title": "Obed doma",
+      "start": "13:00",
+      "end": "14:00",
+      "all_day": false,
+      "location": "doma",
+      "status": "confirmed",
+      "flags": [],
+      "conflict_with": [],
+      "notes": [],
+      "reminders": []
+    }
+  ],
+  "sections": [
+    {
+      "id": "pripomienky",
+      "title": "Pripomienky",
+      "items": [
+        {
+          "text": "Rodinný nákup po škole (bez vlastníka).",
+          "detail": "Ktokoľvek — chlieb, mlieko, ovocie."
+        },
+        {
+          "member": "andrej",
+          "text": "Podpísať súhlas Invenio (1 vlastník).",
+          "detail": "Andrej — súhlas do 25. 11., papier v taške."
+        },
+        {
+          "members": ["andrej", "zuzka"],
+          "text": "Kúpiť dresy na turnaj (2 vlastníci).",
+          "detail": "Zuzka + Andrej — veľkosť 140, do piatka."
+        },
+        {
+          "members": ["branislav", "zuzka", "andrej"],
+          "text": "Plán víkendu — chata (3 vlastníci, bez badge v Rodina).",
+          "detail": "Braňo, Zuzka, Andrej — odchod so 9:00."
+        },
+        {
+          "members": ["zuzka", "tomas"],
+          "family": false,
+          "text": "Zubár Tomáš (len osobné, 2 vlastníci).",
+          "detail": "Zuzka + Tomáš — štvrtok 15:30, poliklinika."
+        }
+      ]
+    },
+    {
+      "id": "vyhlad",
+      "title": "Zajtra",
+      "outlook": { "from": "2026-11-25", "to": "2026-11-25" },
+      "items": [
+        {
+          "text": "Bežný deň — nič mimoriadne.",
+          "detail": "Bežný školský deň."
+        }
+      ]
+    }
+  ]
+}

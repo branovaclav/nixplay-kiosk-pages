@@ -136,7 +136,8 @@ Staré pole `member` (string) sa už nepoužíva.
 |---|---|
 | `text` | krátky (pohľad Rodina, ak `family` nie je false) |
 | `detail` | voliteľný dlhší (pohľad člena) |
-| `member` | voliteľný filter pre pohľad člena |
+| `members` | voliteľné pole id vlastníkov (`["andrej","zuzka"]`); položka sa ukáže v osobnom pohľade **každého** vlastníka. Bez `members`/`member` = všade (Rodina + všetky osobné). Poradie badge = stĺpce kalendára (Braňo → Zuzka → Andrej → Tomáš). V Rodina badge len pri 1–2 vlastníkoch; pri 3+ len text. |
+| `member` | **legacy** string = `members: [member]`. Nepoužívať spolu s `members`. |
 | `family` | `false` = skryť v Rodina (ekvivalent `level: "detail"`) |
 | `outlook` | len pri `vyhlad` (alebo inej outlook sekcii): `{ "from", "to" }` ISO dátumy cieľa |
 
