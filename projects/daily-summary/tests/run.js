@@ -526,6 +526,142 @@ test("weather icons use --wx-sun/--wx-cloud (no legacy --wx)", function () {
   assert.ok(out.indexOf("ok") !== -1);
 });
 
+test("sidebar items support members[] (legacy member, multi-owner, family badges)", function () {
+  var base = fs.readFileSync(
+    path.join(__dirname, "..", "themes", "_shared", "base.css"),
+    "utf8"
+  );
+  assert.ok(base.indexOf('[data-members~="andrej"]') !== -1);
+  assert.ok(base.indexOf("li[data-member]") === -1);
+  assert.ok(base.indexOf('.hl-badges[data-count="3"]') !== -1);
+  assert.ok(base.indexOf('.hl-badges[data-count="4"]') !== -1);
+
+  var cp = require("child_process");
+  var script =
+    "import re, sys\n" +
+    "sys.path.insert(0, " +
+    JSON.stringify(path.join(__dirname, "..", "tools")) +
+    ")\n" +
+    "import build\n" +
+    "\n" +
+    "pack = build.load_json(build.DATA, 'members.json')\n" +
+    "day = build.load_json(build.PROJECT, 'samples', 'sidebar-multi-owners.json')\n" +
+    "html = build.render_day_page(day, pack)\n" +
+    "\n" +
+    "# Ownerless: no data-members attr on that li\n" +
+    "own = re.search(\n" +
+    "  r'<li ([^>]*)>\\s*<span class=\"item-text\">Rodinný nákup',\n" +
+    "  html)\n" +
+    "assert own, 'ownerless item missing'\n" +
+    "assert 'data-members' not in own.group(1)\n" +
+    "assert 'data-family=\"1\"' in own.group(1)\n" +
+    "\n" +
+    "# Legacy member → single owner\n" +
+    "assert 'data-members=\"andrej\"' in html\n" +
+    "assert 'Podpísať súhlas' in html\n" +
+    "assert re.search(r'data-count=\"1\"[^>]*>\\s*<span class=\"hl-who\"[^>]*>Andrej</span>', html)\n" +
+    "\n" +
+    "# 2 owners: column order zuzka then andrej; both badges\n" +
+    "assert 'data-members=\"zuzka andrej\"' in html\n" +
+    "two = re.search(\n" +
+    "  r'data-members=\"zuzka andrej\"[^>]*>\\s*'\n" +
+    "  r'<span class=\"hl-badges\" data-count=\"2\">((?:(?!</span></span>).)*)</span></span>',\n" +
+    "  html, re.S)\n" +
+    "assert two, '2-owner badges missing'\n" +
+    "assert two.group(1).index('Zuzka') < two.group(1).index('Andrej')\n" +
+    "\n" +
+    "# 3 owners: badges emitted (family CSS hides them); PEOPLE_ORDER\n" +
+    "assert 'data-members=\"branislav zuzka andrej\"' in html\n" +
+    "idx = html.index('data-members=\"branislav zuzka andrej\"')\n" +
+    "chunk = html[idx:idx + 700]\n" +
+    "assert 'data-count=\"3\"' in chunk\n" +
+    "assert chunk.index('Braňo') < chunk.index('Zuzka') < chunk.index('Andrej')\n" +
+    "\n" +
+    "# family:false + 2 owners\n" +
+    "assert re.search(\n" +
+    "  r'data-members=\"zuzka tomas\" data-family=\"0\"',\n" +
+    "  html)\n" +
+    "assert 'Zubár Tomáš' in html\n" +
+    "\n" +
+    "# item_owners helper\n" +
+    "assert build.item_owners({'member': 'andrej'}) == ['andrej']\n" +
+    "assert build.item_owners({'members': ['andrej', 'zuzka']}) == ['zuzka', 'andrej']\n" +
+    "assert build.item_owners({'members': ['tomas', 'branislav', 'andrej']}) == [\n" +
+    "  'branislav', 'andrej', 'tomas']\n" +
+    "assert build.item_owners({'text': 'x'}) == []\n" +
+    "print('ok')\n";
+  var out = cp.execFileSync("python3", ["-c", script], { encoding: "utf8" });
+  assert.ok(out.indexOf("ok") !== -1);
+});
+
+test("validator accepts members[] and rejects both/duplicates/unknown", function () {
+  var cp = require("child_process");
+  var script =
+    "import copy, json, os, sys, tempfile\n" +
+    "sys.path.insert(0, " +
+    JSON.stringify(path.join(__dirname, "..", "tools")) +
+    ")\n" +
+    "import validate\n" +
+    "\n" +
+    "pack = validate.load(os.path.join(validate.DATA, 'members.json'))\n" +
+    "err0 = validate.Errors()\n" +
+    "known = validate.validate_members(pack, err0)\n" +
+    "assert not err0\n" +
+    "\n" +
+    "base = {\n" +
+    "  'date': '2099-01-01',\n" +
+    "  'locale': 'sk-SK',\n" +
+    "  'timezone': 'Europe/Prague',\n" +
+    "  'weather': {'summary': 'x', 'icon': 'sunny', 'temp_high_c': 1, 'temp_low_c': 0},\n" +
+    "  'timeline': {'start': '07:00', 'end': '22:00'},\n" +
+    "  'events': [],\n" +
+    "  'sections': [{\n" +
+    "    'id': 'pripomienky', 'title': 'Pripomienky',\n" +
+    "    'items': [{'text': 'ok'}]\n" +
+    "  }]\n" +
+    "}\n" +
+    "\n" +
+    "def check(mutate, expect_ok, needle=None):\n" +
+    "  day = copy.deepcopy(base)\n" +
+    "  mutate(day)\n" +
+    "  td = tempfile.mkdtemp()\n" +
+    "  path = os.path.join(td, '2099-01-01.json')\n" +
+    "  with open(path, 'w', encoding='utf-8') as f:\n" +
+    "    json.dump(day, f)\n" +
+    "  err = validate.Errors()\n" +
+    "  validate.validate_day(path, known, err)\n" +
+    "  msgs = ' | '.join(err.items)\n" +
+    "  if expect_ok:\n" +
+    "    assert not err, msgs\n" +
+    "  else:\n" +
+    "    assert err, 'expected errors'\n" +
+    "    if needle:\n" +
+    "      assert needle in msgs, msgs\n" +
+    "\n" +
+    "check(lambda d: None, True)  # ownerless\n" +
+    "check(lambda d: d['sections'][0]['items'][0].__setitem__('member', 'andrej'), True)\n" +
+    "check(lambda d: d['sections'][0]['items'][0].__setitem__('members', ['andrej', 'zuzka']), True)\n" +
+    "check(lambda d: d['sections'][0]['items'][0].__setitem__('members', ['branislav', 'zuzka', 'andrej']), True)\n" +
+    "check(\n" +
+    "  lambda d: (d['sections'][0]['items'][0].__setitem__('members', ['zuzka', 'tomas']),\n" +
+    "             d['sections'][0]['items'][0].__setitem__('family', False)),\n" +
+    "  True)\n" +
+    "\n" +
+    "def both(d):\n" +
+    "  it = d['sections'][0]['items'][0]\n" +
+    "  it['member'] = 'andrej'\n" +
+    "  it['members'] = ['zuzka']\n" +
+    "check(both, False, 'not both')\n" +
+    "\n" +
+    "check(lambda d: d['sections'][0]['items'][0].__setitem__('members', []), False, 'non-empty')\n" +
+    "check(lambda d: d['sections'][0]['items'][0].__setitem__('members', ['andrej', 'andrej']), False, 'duplicate')\n" +
+    "check(lambda d: d['sections'][0]['items'][0].__setitem__('members', ['nobody']), False, 'unknown')\n" +
+    "check(lambda d: d['sections'][0]['items'][0].__setitem__('member', 'ghost'), False, 'unknown')\n" +
+    "print('ok')\n";
+  var out = cp.execFileSync("python3", ["-c", script], { encoding: "utf8" });
+  assert.ok(out.indexOf("ok") !== -1);
+});
+
 test("span label CSS is transparent with top border on bands", function () {
   var base = fs.readFileSync(
     path.join(__dirname, "..", "themes", "_shared", "base.css"),

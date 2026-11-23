@@ -226,9 +226,31 @@ def validate_day(path, known_ids, err):
                 continue
             if not (it.get("text") or "").strip():
                 err.add(iw, "text required")
-            mid = it.get("member")
-            if mid is not None and mid not in known_ids and mid not in PEOPLE:
-                err.add(iw, f"unknown member id {mid!r}")
+            has_member = "member" in it and it.get("member") is not None
+            has_members = "members" in it and it.get("members") is not None
+            if has_member and has_members:
+                err.add(iw, "use members[] or legacy member, not both")
+            elif has_members:
+                members = it["members"]
+                if not isinstance(members, list) or not members:
+                    err.add(iw, "members[] must be a non-empty array of ids")
+                else:
+                    seen = set()
+                    for mid in members:
+                        if not isinstance(mid, str) or not mid:
+                            err.add(iw, f"invalid member id {mid!r}")
+                            continue
+                        if mid not in known_ids and mid not in PEOPLE:
+                            err.add(iw, f"unknown member id {mid!r}")
+                        if mid in seen:
+                            err.add(iw, f"duplicate member id {mid!r}")
+                        seen.add(mid)
+            elif has_member:
+                mid = it["member"]
+                if not isinstance(mid, str) or not mid:
+                    err.add(iw, f"invalid member id {mid!r}")
+                elif mid not in known_ids and mid not in PEOPLE:
+                    err.add(iw, f"unknown member id {mid!r}")
 
         # Outlook: store target dates; title is client-computed fallback only
         sid = (sec.get("id") or "").lower()

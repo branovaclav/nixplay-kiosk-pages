@@ -1009,6 +1009,23 @@ def is_outlook(sec):
     )
 
 
+def item_owners(it):
+    """Sidebar item owners as ids in PEOPLE_ORDER.
+
+    Prefers members[] when present; legacy member string → [member].
+    Unknown ids are dropped. Empty → ownerless (shows in every view).
+    """
+    raw = None
+    if isinstance(it.get("members"), list):
+        raw = it["members"]
+    elif it.get("member"):
+        raw = [it["member"]]
+    if not raw:
+        return []
+    present = {m for m in raw if m in PEOPLE_ORDER}
+    return [p for p in PEOPLE_ORDER if p in present]
+
+
 def sidebar_html(day, people_map):
     sections = day_sections(day)
     main_secs = [s for s in sections if not is_outlook(s)]
@@ -1017,23 +1034,38 @@ def sidebar_html(day, people_map):
     def items_html(items):
         lis = []
         for it in items:
-            mid = it.get("member")
+            owners = item_owners(it)
             text = it.get("text") or ""
             detail = it.get("detail") or text
-            who = ""
-            data_m = mid or ""
             # family: false or level: "detail" → hide in Rodina view
             show_family = True
             if it.get("family") is False or it.get("level") == "detail":
                 show_family = False
-            if mid and mid in people_map:
-                m = people_map[mid]
-                who = (
-                    f'<span class="hl-who" style="{style_m(m)}">'
-                    f'{esc(m["display_name"])}</span> '
-                )
+            who = ""
+            if owners:
+                badges = []
+                for mid in owners:
+                    m = people_map.get(mid)
+                    if not m:
+                        continue
+                    badges.append(
+                        f'<span class="hl-who" style="{style_m(m)}">'
+                        f'{esc(m["display_name"])}</span>'
+                    )
+                if badges:
+                    # Family view hides badges when 3+ owners (data-count).
+                    # Spacing before text is margin on .hl-badges (so hide removes it).
+                    who = (
+                        f'<span class="hl-badges" data-count="{len(badges)}">'
+                        + "".join(badges)
+                        + "</span>"
+                    )
+            data_m = " ".join(owners)
+            attrs = f'data-family="{1 if show_family else 0}"'
+            if data_m:
+                attrs = f'data-members="{esc(data_m)}" {attrs}'
             lis.append(
-                f'<li data-member="{esc(data_m)}" data-family="{1 if show_family else 0}">'
+                f"<li {attrs}>"
                 f"{who}"
                 f'<span class="item-text">{esc(text)}</span>'
                 f'<span class="item-detail">{esc(detail)}</span>'

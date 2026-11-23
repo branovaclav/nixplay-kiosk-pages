@@ -483,6 +483,12 @@ body[data-view="tomas"] .sidebar-panel {
   background: var(--bullet);
 }
 
+.hl-badges {
+  display: inline;
+  white-space: nowrap;
+  margin-right: 4px;
+}
+
 .hl-who {
   display: inline-block;
   padding: 1px 7px;
@@ -493,6 +499,16 @@ body[data-view="tomas"] .sidebar-panel {
   color: #fff;
   background: var(--m);
   vertical-align: baseline;
+}
+
+.hl-badges .hl-who:last-child {
+  margin-right: 0;
+}
+
+/* Family view: badges only for 1–2 owners; 3+ → text only */
+body[data-view="rodina"] .hl-badges[data-count="3"],
+body[data-view="rodina"] .hl-badges[data-count="4"] {
+  display: none;
 }
 
 /* text vs detail */
@@ -518,11 +534,11 @@ body[data-view="rodina"] li[data-family="0"] {
   display: none;
 }
 
-/* Member view: hide items tagged to someone else */
-body[data-view="branislav"] li[data-member]:not([data-member=""]):not([data-member="branislav"]),
-body[data-view="zuzka"] li[data-member]:not([data-member=""]):not([data-member="zuzka"]),
-body[data-view="andrej"] li[data-member]:not([data-member=""]):not([data-member="andrej"]),
-body[data-view="tomas"] li[data-member]:not([data-member=""]):not([data-member="tomas"]) {
+/* Personal view: hide items owned by others (ownerless = no data-members → show) */
+body[data-view="branislav"] li[data-members]:not([data-members~="branislav"]),
+body[data-view="zuzka"] li[data-members]:not([data-members~="zuzka"]),
+body[data-view="andrej"] li[data-members]:not([data-members~="andrej"]),
+body[data-view="tomas"] li[data-members]:not([data-members~="tomas"]) {
   display: none;
 }
 
