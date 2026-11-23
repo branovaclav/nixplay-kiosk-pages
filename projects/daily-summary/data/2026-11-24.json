@@ -1,0 +1,196 @@
+{
+ "date": "2026-11-24",
+ "locale": "sk-SK",
+ "timezone": "Europe/Prague",
+ "now": "18:55",
+ "refresh_at": "06:30",
+ "weather": {
+  "sample": false,
+  "summary": "Slnečno",
+  "temp_high_c": 2,
+  "temp_low_c": -2,
+  "icon": "sunny"
+ },
+ "timeline": {
+  "start": "07:00",
+  "end": "22:00"
+ },
+ "events": [
+  {
+   "id": "andrej-priprava-mat",
+   "members": [
+    "andrej"
+   ],
+   "title": "Príprava MAT",
+   "start": "15:15",
+   "end": "16:45",
+   "all_day": false,
+   "status": "confirmed",
+   "flags": [],
+   "conflict_with": [],
+   "notes": [],
+   "reminders": [],
+   "location": "Gymnázium Českolipská"
+  },
+  {
+   "id": "nad-stolou-dod",
+   "members": [
+    "branislav",
+    "zuzka",
+    "andrej",
+    "tomas"
+   ],
+   "title": "Nad štolou – DOD",
+   "start": "16:00",
+   "end": "17:00",
+   "all_day": false,
+   "status": "confirmed",
+   "flags": [],
+   "conflict_with": [],
+   "notes": [],
+   "reminders": []
+  },
+  {
+   "id": "andrej-baseball-sabat",
+   "members": [
+    "andrej"
+   ],
+   "title": "Baseball Sabat",
+   "start": "16:45",
+   "end": "18:00",
+   "all_day": false,
+   "status": "confirmed",
+   "flags": [],
+   "conflict_with": [],
+   "notes": [],
+   "reminders": [],
+   "location": "SaBaT U Vltavy"
+  },
+  {
+   "id": "doppler-dod",
+   "members": [
+    "branislav",
+    "zuzka",
+    "andrej",
+    "tomas"
+   ],
+   "title": "DOD Doppler",
+   "start": "17:00",
+   "end": "19:00",
+   "all_day": false,
+   "status": "confirmed",
+   "flags": [],
+   "conflict_with": [],
+   "notes": [],
+   "reminders": []
+  },
+  {
+   "id": "zuzka-vecierok-csfd",
+   "members": [
+    "zuzka"
+   ],
+   "title": "Večierok ČSFD",
+   "start": "18:00",
+   "end": "23:00",
+   "all_day": false,
+   "status": "confirmed",
+   "flags": [],
+   "conflict_with": [],
+   "notes": [],
+   "reminders": []
+  },
+  {
+   "id": "vybrat-kos",
+   "members": [
+    "branislav",
+    "zuzka",
+    "andrej",
+    "tomas"
+   ],
+   "title": "Vybrať kôš",
+   "start": "20:00",
+   "end": "21:00",
+   "all_day": false,
+   "status": "confirmed",
+   "flags": [],
+   "conflict_with": [],
+   "notes": [],
+   "reminders": []
+  }
+ ],
+ "sections": [
+  {
+   "id": "zobrat",
+   "title": "Zobrať / vybaviť",
+   "items": [
+    {
+     "member": "tomas",
+     "text": "Dnes: Albatros — knižný darček.",
+     "detail": "Trieda zbiera knižné darčeky Albatros (dárky od Ježíška) do 24. 11. Podrobnosti v školskom e-maile."
+    }
+   ]
+  },
+  {
+   "id": "nezabudnut",
+   "title": "Nezabudnúť",
+   "items": [
+    {
+     "text": "28. 11.: DOD PORG Libeň 10–16",
+     "detail": "Deň otvorených dverí PORG Libeň v sobotu 28. 11., 10–16.",
+     "members": [
+      "branislav",
+      "zuzka",
+      "andrej"
+     ]
+    },
+    {
+     "text": "Do 30. 11.: Záloha na hory 3 000 Kč",
+     "detail": "Škola žiada zálohu 3 000 Kč na hory 2027 do 30. 11. ako záväznú prihlášku. Údaje na platbu sú v školskom e-maile.",
+     "members": [
+      "branislav",
+      "zuzka"
+     ]
+    },
+    {
+     "text": "8. 12.: DOD Trojské gymnázium",
+     "detail": "Deň otvorených dverí na Trojskom gymnáziu 8. 12.",
+     "members": [
+      "branislav",
+      "zuzka",
+      "andrej"
+     ]
+    },
+    {
+     "text": "12. 12.: Vianočné grilovanie",
+     "family": false
+    }
+   ]
+  },
+  {
+   "id": "vyhlad",
+   "title": "Zajtra",
+   "outlook": {
+    "from": "2026-11-25",
+    "to": "2026-11-25"
+   },
+   "items": [
+    {
+     "member": "branislav",
+     "text": "Lyžovačka 25.–29. 11. (celý deň)."
+    },
+    {
+     "member": "tomas",
+     "text": "Angličtina 13:10–13:55, tenis 15:00–16:00."
+    },
+    {
+     "member": "andrej",
+     "text": "Príprava ČJ 15:15–16:45, potom baseball LOB 17:00–19:00 (Bohnice).",
+     "detail": "Medzi prípravou na Českolipskej a baseballom v Bohniciach je 15 min."
+    },
+    {
+     "text": "DOD Kepler 13–14, Lukáš venčeky v škôlke 16–17."
+    }
+   ]
+  }
+ ]
+}
