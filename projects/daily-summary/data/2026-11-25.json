@@ -1,0 +1,195 @@
+{
+ "date": "2026-11-25",
+ "locale": "sk-SK",
+ "timezone": "Europe/Prague",
+ "now": "18:58",
+ "refresh_at": "06:30",
+ "weather": {
+  "sample": false,
+  "summary": "Polojasno",
+  "temp_high_c": 2,
+  "temp_low_c": -4,
+  "icon": "partly-cloudy"
+ },
+ "timeline": {
+  "start": "07:00",
+  "end": "22:00"
+ },
+ "events": [
+  {
+   "id": "branislav-lyzovacka",
+   "members": [
+    "branislav"
+   ],
+   "title": "Lyžovačka",
+   "start": null,
+   "end": null,
+   "all_day": true,
+   "status": "confirmed",
+   "flags": [],
+   "conflict_with": [],
+   "notes": [],
+   "reminders": [],
+   "time_note": "celý deň (25.–29. 11.)"
+  },
+  {
+   "id": "kepler-dod",
+   "members": [
+    "branislav",
+    "zuzka",
+    "andrej",
+    "tomas"
+   ],
+   "title": "DOD Kepler",
+   "start": "13:00",
+   "end": "14:00",
+   "all_day": false,
+   "status": "confirmed",
+   "flags": [],
+   "conflict_with": [],
+   "notes": [],
+   "reminders": []
+  },
+  {
+   "id": "tomas-anglictina",
+   "members": [
+    "tomas"
+   ],
+   "title": "Angličtina",
+   "start": "13:10",
+   "end": "13:55",
+   "all_day": false,
+   "status": "confirmed",
+   "flags": [],
+   "conflict_with": [],
+   "notes": [],
+   "reminders": []
+  },
+  {
+   "id": "tomas-tenis",
+   "members": [
+    "tomas"
+   ],
+   "title": "Tenis",
+   "start": "15:00",
+   "end": "16:00",
+   "all_day": false,
+   "status": "confirmed",
+   "flags": [],
+   "conflict_with": [],
+   "notes": [],
+   "reminders": []
+  },
+  {
+   "id": "andrej-priprava-cj",
+   "members": [
+    "andrej"
+   ],
+   "title": "Príprava ČJ",
+   "start": "15:15",
+   "end": "16:45",
+   "all_day": false,
+   "status": "confirmed",
+   "flags": [],
+   "conflict_with": [],
+   "notes": [],
+   "reminders": [],
+   "location": "Gymnázium Českolipská"
+  },
+  {
+   "id": "lukas-venceky",
+   "members": [
+    "branislav",
+    "zuzka",
+    "andrej",
+    "tomas"
+   ],
+   "title": "Lukáš – venčeky v škôlke",
+   "start": "16:00",
+   "end": "17:00",
+   "all_day": false,
+   "status": "confirmed",
+   "flags": [],
+   "conflict_with": [],
+   "notes": [],
+   "reminders": []
+  },
+  {
+   "id": "andrej-baseball-lob",
+   "members": [
+    "andrej"
+   ],
+   "title": "Baseball LOB",
+   "start": "17:00",
+   "end": "19:00",
+   "all_day": false,
+   "status": "confirmed",
+   "flags": [],
+   "conflict_with": [],
+   "notes": [
+    "Z prípravy na Českolipskej len 15 min na presun."
+   ],
+   "reminders": [],
+   "location": "LOB Bohnice"
+  }
+ ],
+ "sections": [
+  {
+   "id": "nezabudnut",
+   "title": "Nezabudnúť",
+   "items": [
+    {
+     "text": "28. 11.: DOD PORG Libeň 10–16",
+     "detail": "Deň otvorených dverí PORG Libeň v sobotu 28. 11., 10–16.",
+     "members": [
+      "branislav",
+      "zuzka",
+      "andrej"
+     ]
+    },
+    {
+     "text": "Do 30. 11.: Záloha na hory 3 000 Kč",
+     "detail": "Škola žiada zálohu 3 000 Kč na hory 2027 do 30. 11. ako záväznú prihlášku. Údaje na platbu sú v školskom e-maile.",
+     "members": [
+      "branislav",
+      "zuzka"
+     ]
+    },
+    {
+     "text": "8. 12.: DOD Trojské gymnázium",
+     "detail": "Deň otvorených dverí na Trojskom gymnáziu 8. 12.",
+     "members": [
+      "branislav",
+      "zuzka",
+      "andrej"
+     ]
+    },
+    {
+     "text": "12. 12.: Vianočné grilovanie"
+    }
+   ]
+  },
+  {
+   "id": "vyhlad",
+   "title": "Zajtra",
+   "outlook": {
+    "from": "2026-11-26",
+    "to": "2026-11-26"
+   },
+   "items": [
+    {
+     "member": "andrej",
+     "text": "Príprava v škole 13:30–15:45."
+    },
+    {
+     "member": "zuzka",
+     "text": "Zahájenie Talianskeho festivalu 17:00–23:00."
+    },
+    {
+     "member": "branislav",
+     "text": "Lyžovačka pokračuje (do 29. 11.)."
+    }
+   ]
+  }
+ ]
+}
