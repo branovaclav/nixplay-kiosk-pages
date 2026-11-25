@@ -1,0 +1,145 @@
+{
+ "date": "2026-11-26",
+ "locale": "sk-SK",
+ "timezone": "Europe/Prague",
+ "now": "18:55",
+ "refresh_at": "06:30",
+ "weather": {
+  "sample": false,
+  "summary": "Sneženie",
+  "icon": "snow",
+  "temp_high_c": 1,
+  "temp_low_c": -2
+ },
+ "timeline": {
+  "start": "07:00",
+  "end": "22:00"
+ },
+ "events": [
+  {
+   "status": "confirmed",
+   "flags": [],
+   "conflict_with": [],
+   "notes": [],
+   "reminders": [],
+   "all_day": true,
+   "id": "branislav-lyzovacka",
+   "members": [
+    "branislav"
+   ],
+   "title": "Lyžovačka",
+   "start": null,
+   "end": null,
+   "time_note": "celý deň (25.–29. 11.)"
+  },
+  {
+   "status": "confirmed",
+   "flags": [],
+   "conflict_with": [],
+   "notes": [
+    "Príprava v škole."
+   ],
+   "reminders": [],
+   "all_day": false,
+   "id": "andrej-priprava-skola",
+   "members": [
+    "andrej"
+   ],
+   "title": "Príprava",
+   "start": "13:30",
+   "end": "15:45"
+  },
+  {
+   "status": "confirmed",
+   "flags": [],
+   "conflict_with": [],
+   "notes": [
+    "Zahájenie festivalu."
+   ],
+   "reminders": [],
+   "all_day": false,
+   "id": "zuzka-taliansky-festival",
+   "members": [
+    "zuzka"
+   ],
+   "title": "Taliansky festival",
+   "start": "17:00",
+   "end": "23:00"
+  }
+ ],
+ "sections": [
+  {
+   "id": "zobrat",
+   "title": "Zobrať / vybaviť",
+   "items": [
+    {
+     "member": "tomas",
+     "text": "Učebnica prvouky do školy."
+    },
+    {
+     "member": "tomas",
+     "text": "Na piatok: rozčítaná kniha."
+    }
+   ]
+  },
+  {
+   "id": "nezabudnut",
+   "title": "Nezabudnúť",
+   "items": [
+    {
+     "text": "28. 11.: DOD PORG Libeň 10–16",
+     "detail": "Deň otvorených dverí PORG Libeň v sobotu 28. 11., 10–16.",
+     "members": [
+      "branislav",
+      "zuzka",
+      "andrej"
+     ]
+    },
+    {
+     "text": "Do 30. 11.: Záloha na hory 3 000 Kč",
+     "detail": "Škola žiada zálohu 3 000 Kč na hory 2027 do 30. 11. ako záväznú prihlášku. Údaje na platbu sú v školskom e-maile.",
+     "members": [
+      "branislav",
+      "zuzka"
+     ]
+    },
+    {
+     "text": "2. 12.: Rozsvietenie stromčeka, Tomáš spieva s 2. A (príchod 16:20)",
+     "detail": "Obecná záhrada pri MŠ Troja, začiatok 16:30, deti priviesť o 16:20. Ak sa nedá vyzdvihnúť z družiny, napísať triednej. Potom malé občerstvenie.",
+     "member": "tomas"
+    },
+    {
+     "text": "8. 12.: DOD Trojské gymnázium",
+     "detail": "Deň otvorených dverí na Trojskom gymnáziu 8. 12.",
+     "members": [
+      "branislav",
+      "zuzka",
+      "andrej"
+     ]
+    },
+    {
+     "text": "12. 12.: Vianočné grilovanie",
+     "family": false
+    }
+   ]
+  },
+  {
+   "id": "vyhlad",
+   "title": "Zajtra",
+   "outlook": {
+    "from": "2026-11-27",
+    "to": "2026-11-27"
+   },
+   "items": [
+    {
+     "member": "andrej",
+     "text": "Baseball Českolipská 17:00–19:00."
+    },
+    {
+     "member": "branislav",
+     "text": "Lyžovačka pokračuje (do 29. 11.)."
+    }
+   ]
+  }
+ ]
+}
