@@ -1,0 +1,126 @@
+{
+ "date": "2026-11-27",
+ "locale": "sk-SK",
+ "timezone": "Europe/Prague",
+ "now": "18:55",
+ "refresh_at": "06:30",
+ "weather": {
+  "sample": false,
+  "summary": "Zamračené",
+  "icon": "cloudy",
+  "temp_high_c": 0,
+  "temp_low_c": -2
+ },
+ "timeline": {
+  "start": "07:00",
+  "end": "22:00"
+ },
+ "events": [
+  {
+   "status": "confirmed",
+   "flags": [],
+   "conflict_with": [],
+   "notes": [],
+   "reminders": [],
+   "all_day": true,
+   "id": "branislav-lyzovacka",
+   "members": [
+    "branislav"
+   ],
+   "title": "Lyžovačka",
+   "start": null,
+   "end": null,
+   "time_note": "celý deň (25.–29. 11.)"
+  },
+  {
+   "status": "confirmed",
+   "flags": [],
+   "conflict_with": [],
+   "notes": [
+    "Gymnázium Českolipská."
+   ],
+   "reminders": [],
+   "all_day": false,
+   "id": "andrej-baseball",
+   "members": [
+    "andrej"
+   ],
+   "title": "Baseball",
+   "start": "17:00",
+   "end": "19:00"
+  }
+ ],
+ "sections": [
+  {
+   "id": "zobrat",
+   "title": "Zobrať / vybaviť",
+   "items": [
+    {
+     "member": "tomas",
+     "text": "Rozčítaná kniha do školy (čitateľská dielňa)."
+    },
+    {
+     "members": [
+      "branislav",
+      "zuzka",
+      "andrej"
+     ],
+     "text": "Zajtra 28. 11.: DOD PORG Libeň 10–16."
+    }
+   ]
+  },
+  {
+   "id": "nezabudnut",
+   "title": "Nezabudnúť",
+   "items": [
+    {
+     "text": "Do 30. 11.: Záloha na hory 3 000 Kč",
+     "detail": "Škola žiada zálohu 3 000 Kč na hory 2027 do 30. 11. ako záväznú prihlášku. Údaje na platbu sú v školskom e-maile.",
+     "members": [
+      "branislav",
+      "zuzka"
+     ]
+    },
+    {
+     "text": "2. 12.: Rozsvietenie stromčeka, Tomáš spieva s 2. A (príchod 16:20)",
+     "detail": "Obecná záhrada pri MŠ Troja, začiatok 16:30, deti priviesť o 16:20. Ak sa nedá vyzdvihnúť z družiny, napísať triednej. Potom malé občerstvenie.",
+     "member": "tomas"
+    },
+    {
+     "text": "8. 12.: DOD Trojské gymnázium",
+     "detail": "Deň otvorených dverí na Trojskom gymnáziu 8. 12.",
+     "members": [
+      "branislav",
+      "zuzka",
+      "andrej"
+     ]
+    },
+    {
+     "text": "12. 12.: Vianočné grilovanie",
+     "family": false
+    }
+   ]
+  },
+  {
+   "id": "vyhlad",
+   "title": "Víkend",
+   "outlook": {
+    "from": "2026-11-28",
+    "to": "2026-11-29"
+   },
+   "items": [
+    {
+     "member": "tomas",
+     "text": "Ne 10:00–12:00: oslava narodenín (Marek)."
+    },
+    {
+     "text": "Ne 15:00–16:30: Asterix a Obelix, premiéra (Cinema City)."
+    },
+    {
+     "member": "branislav",
+     "text": "Lyžovačka do nedele 29. 11."
+    }
+   ]
+  }
+ ]
+}
