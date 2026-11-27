@@ -1,0 +1,127 @@
+{
+ "date": "2026-11-28",
+ "locale": "sk-SK",
+ "timezone": "Europe/Prague",
+ "now": "19:00",
+ "refresh_at": "06:30",
+ "weather": {
+  "sample": false,
+  "summary": "Zamračené",
+  "icon": "cloudy",
+  "temp_high_c": 0,
+  "temp_low_c": -4
+ },
+ "timeline": {
+  "start": "07:00",
+  "end": "22:00"
+ },
+ "events": [
+  {
+   "status": "confirmed",
+   "flags": [],
+   "conflict_with": [],
+   "notes": [],
+   "reminders": [],
+   "all_day": true,
+   "id": "branislav-lyzovacka",
+   "members": [
+    "branislav"
+   ],
+   "title": "Lyžovačka",
+   "start": null,
+   "end": null,
+   "time_note": "celý deň (25.–29. 11.)"
+  },
+  {
+   "status": "confirmed",
+   "flags": [],
+   "conflict_with": [],
+   "notes": [
+    "Deň otvorených dverí PORG Libeň, 10–16."
+   ],
+   "reminders": [],
+   "all_day": true,
+   "id": "rodina-dod-porg-liben",
+   "members": [
+    "branislav",
+    "zuzka",
+    "andrej",
+    "tomas"
+   ],
+   "title": "DOD PORG Libeň",
+   "start": null,
+   "end": null,
+   "time_note": "celý deň · 10–16 h"
+  }
+ ],
+ "sections": [
+  {
+   "id": "nedela",
+   "title": "Nedeľa",
+   "items": [
+    {
+     "member": "tomas",
+     "text": "10–12: oslava narodenín (Marek)."
+    },
+    {
+     "text": "15:00–16:30: Asterix a Obelix, premiéra.",
+     "detail": "Nedeľa 29. 11.: premiéra Asterix a Obelix v Cinema City 15:00–16:30."
+    }
+   ]
+  },
+  {
+   "id": "nezabudnut",
+   "title": "Nezabudnúť",
+   "items": [
+    {
+     "text": "Do 30. 11.: Záloha na hory 3 000 Kč",
+     "detail": "Škola žiada zálohu 3 000 Kč na hory 2027 do 30. 11. ako záväznú prihlášku. Údaje na platbu sú v školskom e-maile.",
+     "members": [
+      "branislav",
+      "zuzka"
+     ]
+    },
+    {
+     "text": "2. 12.: Rozsvietenie stromčeka, Tomáš spieva s 2. A (príchod 16:20)",
+     "detail": "Obecná záhrada pri MŠ Troja, začiatok 16:30, deti priviesť o 16:20. Ak sa nedá vyzdvihnúť z družiny, napísať triednej. Potom malé občerstvenie.",
+     "member": "tomas"
+    },
+    {
+     "text": "8. 12.: DOD Trojské gymnázium",
+     "detail": "Deň otvorených dverí na Trojskom gymnáziu 8. 12.",
+     "members": [
+      "branislav",
+      "zuzka",
+      "andrej"
+     ]
+    },
+    {
+     "text": "12. 12.: Vianočné grilovanie",
+     "family": false
+    }
+   ]
+  },
+  {
+   "id": "vyhlad",
+   "title": "Pondelok",
+   "outlook": {
+    "from": "2026-11-30",
+    "to": "2026-11-30"
+   },
+   "items": [
+    {
+     "text": "Servis VW Passat 8–9.",
+     "detail": "Pondelok 30. 11.: servis VW Passat 8:00–9:00 (Na Maninách)."
+    },
+    {
+     "member": "tomas",
+     "text": "Veselá veda 15:30–16:30."
+    },
+    {
+     "member": "andrej",
+     "text": "Meniny (SK)."
+    }
+   ]
+  }
+ ]
+}
